@@ -36,7 +36,7 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 
 ## M3 — Runtime (Thu afternoon)
 
-- [ ] **T-30 (P0) State store** with defaults, `persist`, debounced AsyncStorage save, and load. → AT-05
+- [x] **T-30 (P0) State store** with defaults, `persist`, debounced AsyncStorage save, and load. → AT-05
 - [ ] **T-31 (P0) Action engine** with all ops except `ai.run` and `notify`; busy state per action; `confirm` abort; errors → toast. → AT-03
 - [ ] **T-32 (P0) Renderer**: flat map → tree, screen navigation, per-element error boundary. → AT-04
 - [ ] **T-33 (P0) P0 components**: Stack, Card, Divider, Text, Image, Stat, TextInput, NumberInput, Toggle, Select, ImageInput, List, Button. Light/dark, labels, 44 px targets. → AT-04, AT-16

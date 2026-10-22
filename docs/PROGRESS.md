@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-30 (Claude Code, 2026-10-22):** `createStore(appId, spec.state)` in `src/runtime/store.ts` → `{getState,setState(patch|fn),subscribe,load,flush}`; `useStoreState(store)` hook. Call `await store.load()` on open, `flush()` on unmount/background. Debounce 500 ms to `jackapp:data:<id>` via `src/storage` (`readJson/writeJson/dataKey`); persist:false, undeclared and mistyped stored keys are ignored on load. 6 tests (AT-05 logic, mocked AsyncStorage); check green. Deps per ADR-016. Web/Android UI not run.
+
 > **T-21 (Codex, 2026-10-22):** `validate(input: unknown): SpecError[]` accepts JSON text or an object; types exported from `types.ts` and `validate.ts`. Empty errors authorize render/save; `SpecSchema.parse()` alone does not. Pure helpers cover strict P0 props, reference existence, graph cycles/reuse/orphans/depth, IDs, declaration-based Value/formatter types, all action assignments/filters, AI output subsets/defaults and every List caller context. Independent valid action steps/sections are checked even after structural errors. Precise dot/bracket paths, deduplicated code/path errors, repair hints, immutable inputs. AT-01 activates all heroes and 16 invalid cases; every §12 boundary and immediately-above case tested, including multibyte bytes, defaults-before-size, expanded prompt defaults/items, tree and math depth. Full `npm run check` green (9 suites / 400 tests); no dependencies/renderers/native code or real-model/device/browser UI runs. Approved v0.1 clarifications in SCHEMA §12 and ADR-014/015. **Next:** Claude Code reviews these three commits; T-30/T-32/T-33 can consume the validator/catalog/fixtures. **T-31:** runtime range checks for dynamic indices and rounding digits. **T-41:** static prompts use defaults + fixed clock/en-US/UTC/USD and every default item (typed zeros if empty); recheck actual expanded prompt ≤2000 using live state/item/settings before inference.
 
 > **T-24 (Codex, 2026-10-22):** Renderer-free `catalog` exports the 13 P0 entries as `{props, meta}`. Every component has a named PropsSchema/inferred Props type and metadata example accepted by the schema. Strict nested sort, documented defaults, Select 2–12 options and slider bounds tested; AT-15 checks P0 docs bidirectionally (ADR-014). Full check green (7 suites / 299 tests). No dependencies/renderers/model/device changes. Next: T-21 consumes these schemas; T-33 supplies renderers, T-55 adds P1.
@@ -66,6 +68,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-22 | Claude Code | T-30 | Store with defaults, persist filter, 500 ms debounced AsyncStorage save, load; AT-05 tests; check green (406 tests) | see git log |
 | 2026-10-22 | Codex | T-21 | Pure semantic validator with repair hints, AT-01, all limit boundaries and approved clarifications; check green (400 tests) | see git log |
 | 2026-10-22 | Codex | T-24 | Strict P0 catalog props, metadata and bidirectional docs sync; check green (299 tests) | see git log |
 | 2026-10-22 | Codex | T-23 | Three raw hero fixtures and 16 invalid cases covering all error codes; check green (250 tests) | see git log |
