@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M0 — Setup done except T-04 CI; T-14 decisions drafted (ADR-003/005 await human Accept); M1 phone spikes pending |
-| Last updated | 2026-10-22 by Codex |
+| Last updated | 2026-10-23 by Codex |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -20,6 +20,8 @@
 | — | — | — | — |
 
 ## Handoff note (latest)
+
+> **T-43 (Codex, 2026-10-23):** `systemPrompt(stage, target?)` supports PLAN/FILL/stage-aware REPAIR. Each includes exactly two examples (compact H1 + unsupported), catalog text, JSON-only/catalog-only/refusal instructions and the 5–15 element guidance. `PlanSchema`/`validatePlan()` check field types and registered names, leaving unfinished references/scheduling semantics to FILL. `outputSchema(target)` derives PLAN-or-refusal and catalog-constrained-spec-or-refusal JSON Schemas from Zod with local references (semantic `validate()` remains authoritative). Focused prompt/schema tests and full check pass. Next: T-44 calls/parsing, T-45 orchestration, T-46 validated refusal handling. No real-model tuning (T-61).
 
 > **T-42 (Codex, 2026-10-23):** `buildCatalogPrompt()` returns `{text, chars, estimatedTokens}` from the renderer-free registry schemas + metadata. Required/defaulted/nested props and every op included; Value/Id/Output/Where stay named. Catalog: 3547 chars, ~886.75 tokens (chars/4). Focused catalog tests and full check pass. Jest root crawl through node_modules is slow: use `npm run check -- -- --runInBand --roots src --watchman=false` (same typecheck/lint/all source tests). Next: T-43 PLAN/prompts, T-44 extraction, T-45 shared repair loop, T-46 refusals. Mock only; no dependencies or contract changes.
 
@@ -80,6 +82,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-23 | Codex | T-43 | Stage prompts, two valid examples each, loose plans and catalog-constrained JSON Schemas; focused + full check green | see git log |
 | 2026-10-23 | Codex | T-42 | Catalog text generated from registry props/meta, compact Value aliases; focused + full check green | see git log |
 | 2026-10-23 | Claude Code | T-35 | Run screen, confirm capability, Home dev menu for H1–H3; AT-04 verified on web, phone pending | see git log |
 | 2026-10-23 | Claude Code | T-32 | Renderer with per-element error boundary, bindings, list ops, screen navigation; AT-04 auto test | see git log |
