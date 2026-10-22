@@ -50,7 +50,7 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 - [x] **T-42 (P0) Catalog prompt builder** from `catalog/*/meta.ts`.
 - [x] **T-43 (P0) Plan stage** (prompt + few-shot + loose validation).
 - [x] **T-44 (P0) Fill stage** (plan + catalog → spec; defensive JSON parsing).
-- [ ] **T-45 (P0) Repair loop** (≤ 2 attempts, errors fed back). → AT-06
+- [x] **T-45 (P0) Repair loop** (≤ 2 attempts, errors fed back). → AT-06
 - [ ] **T-46 (P0) Unsupported path** in plan and fill; friendly UI. → AT-06
 - [ ] **T-47 (P0) Create screen**: prompt box, progress stages, live preview, save, retry. → AT-07
 

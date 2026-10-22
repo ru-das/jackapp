@@ -12,3 +12,19 @@ export const mockProvider: LLMProvider = {
     return '{"ok":true}';
   },
 };
+
+/** Isolated scripts keep repair tests independent of the UI singleton. */
+export function createScriptedMock(responses: readonly (string | Error)[]): LLMProvider {
+  let next = 0;
+  return {
+    ...mockProvider,
+    caps: { ...mockProvider.caps },
+    async generate({ signal }) {
+      if (signal?.aborted) throw new Error('aborted');
+      if (next >= responses.length) throw new Error('Scripted mock exhausted.');
+      const response = responses[next++];
+      if (response instanceof Error) throw response;
+      return response;
+    },
+  };
+}
