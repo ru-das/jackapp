@@ -33,9 +33,10 @@ export const StateDeclSchema = z.discriminatedUnion('type', [
     ));
     decl.default.forEach((item, index) => {
       const result = itemSchema.safeParse(item);
-      if (!result.success) result.error.issues.forEach((issue) => ctx.addIssue({
-        code: 'custom', path: ['default', index, ...issue.path], message: issue.message,
-      }));
+      if (!result.success) result.error.issues.forEach((issue) => {
+        const paths = issue.code === 'unrecognized_keys' ? issue.keys.map((key) => [...issue.path, key]) : [issue.path];
+        paths.forEach((path) => ctx.addIssue({ code: 'custom', path: ['default', index, ...path], message: issue.message }));
+      });
     });
   }),
 ]);
@@ -77,7 +78,7 @@ export const ComponentNameSchema = z.enum([
 ]);
 export const ElementSchema = z.strictObject({
   type: ComponentNameSchema,
-  // shortcut: component-specific strict props arrive in T-24; retain only JSON data here.
+  // Structure accepts JSON props; validate() applies the renderer-free catalog schemas.
   props: z.record(z.string(), z.json()),
   children: z.array(IdentifierSchema).optional(),
 }).refine((element) => element.children === undefined || ['Stack', 'Card'].includes(element.type), {

@@ -20,3 +20,8 @@ export type Action = z.infer<typeof ActionSchema>;
 export type Output = z.infer<typeof OutputSchema>;
 export type Schedule = z.infer<typeof ScheduleSchema>;
 export type Trigger = z.infer<typeof TriggerSchema>;
+
+export type ErrorCode = 'BAD_JSON' | 'BAD_VERSION' | 'SHAPE' | 'UNKNOWN_COMPONENT'
+  | 'BAD_PROP' | 'MISSING_REF' | 'UNDECLARED_STATE' | 'TYPE_MISMATCH' | 'TREE'
+  | 'BAD_VALUE' | 'BAD_ACTION' | 'LIMIT_EXCEEDED';
+export type SpecError = { code: ErrorCode; path: string; message: string; hint?: string };

@@ -128,3 +128,12 @@ Agents may add **Proposed** entries. Only the human marks them **Accepted**, or 
 2026-10-22 · Accepted · human-approved T-23 → T-24 → T-21 plan
 
 **Decision.** The renderer-free catalog exports `{ name: { props, meta } }` for the 13 P0 components. Strict prop schemas and metadata examples follow COMPONENTS.md. AT-15 compares P0 headings in both directions; P1 schemas and headings join the registry in T-55. No dependency added and no specVersion change: this implements the existing v0.1 prop contract.
+
+## ADR-015: Deterministic semantic validation of v0.1
+2026-10-22 · Accepted · human-approved T-23 → T-24 → T-21 plan
+
+**Decision.** Keep specVersion `0.1` and the existing Value grammar. Use Zod for structure and the renderer-free P0 catalog for props, then pure helpers for references, graph constraints, declaration-based Value types, action assignments, AI compatibility and item contexts. `validate()` returns repairable errors and never mutates input. Structural parsing alone does not authorize render/save. No dependencies or renderers added.
+
+**Approved clarifications.** Size is compact input JSON ≤32,768 UTF-8 bytes including metadata, before defaults. Root depth is 1; math permits three nested nodes (`BAD_VALUE` on excess; other §12 limits use `LIMIT_EXCEEDED`). Prompt checks use declared defaults, a fixed 2000-01-01T00:00:00Z clock, en-US, UTC and USD; inspect every default item of every caller, using typed zeros for empty lists. Append supplies all fields; update is partial; whole-list set requires identical schemas. Reject unknown fields. AI defaults are declared, type-correct and list-only. Literal indices are nonnegative integers and rounding digits integers; dynamic arguments require runtime range checks. No numeric coercion; valid ISO/image URI literals work in typed positions. Inspect complete unescaped templates only in documented positions; unmatched braces are literal. Actions requiring item context must work for every List caller and cannot have ordinary callers or be unused. Catalog sync remains P0-only under ADR-014.
+
+**Handoff.** T-41 must recheck actual expanded prompt length using live state/item/settings before invoking the provider; static defaults cannot bound later user input. T-31 must range-check dynamic indices/digits. Pure unit checks cover web-compatible modules; no device or real-model checks are involved.

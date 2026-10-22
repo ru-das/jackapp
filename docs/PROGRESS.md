@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-21 (Codex, 2026-10-22):** `validate(input: unknown): SpecError[]` accepts JSON text or an object; types exported from `types.ts` and `validate.ts`. Empty errors authorize render/save; `SpecSchema.parse()` alone does not. Pure helpers cover strict P0 props, reference existence, graph cycles/reuse/orphans/depth, IDs, declaration-based Value/formatter types, all action assignments/filters, AI output subsets/defaults and every List caller context. Independent valid action steps/sections are checked even after structural errors. Precise dot/bracket paths, deduplicated code/path errors, repair hints, immutable inputs. AT-01 activates all heroes and 16 invalid cases; every §12 boundary and immediately-above case tested, including multibyte bytes, defaults-before-size, expanded prompt defaults/items, tree and math depth. Full `npm run check` green (9 suites / 400 tests); no dependencies/renderers/native code or real-model/device/browser UI runs. Approved v0.1 clarifications in SCHEMA §12 and ADR-014/015. **Next:** Claude Code reviews these three commits; T-30/T-32/T-33 can consume the validator/catalog/fixtures. **T-31:** runtime range checks for dynamic indices and rounding digits. **T-41:** static prompts use defaults + fixed clock/en-US/UTC/USD and every default item (typed zeros if empty); recheck actual expanded prompt ≤2000 using live state/item/settings before inference.
+
 > **T-24 (Codex, 2026-10-22):** Renderer-free `catalog` exports the 13 P0 entries as `{props, meta}`. Every component has a named PropsSchema/inferred Props type and metadata example accepted by the schema. Strict nested sort, documented defaults, Select 2–12 options and slider bounds tested; AT-15 checks P0 docs bidirectionally (ADR-014). Full check green (7 suites / 299 tests). No dependencies/renderers/model/device changes. Next: T-21 consumes these schemas; T-33 supplies renderers, T-55 adds P1.
 
 > **T-23 (Codex, 2026-10-22):** Raw `h1/h2/h3.json` exported as named fixtures plus `validFixtures`; 16 separate invalid fixtures export input and expected code/path through `invalidFixtures`. H1 matches §13 exactly; H2/H3 complete their excerpts. Structural fixture tests pass; T-21 must activate semantic assertions for all cases. Full check green (6 suites / 250 tests). Pure data, no device or model run. Next: T-24, then T-21.
@@ -64,6 +66,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-22 | Codex | T-21 | Pure semantic validator with repair hints, AT-01, all limit boundaries and approved clarifications; check green (400 tests) | see git log |
 | 2026-10-22 | Codex | T-24 | Strict P0 catalog props, metadata and bidirectional docs sync; check green (299 tests) | see git log |
 | 2026-10-22 | Codex | T-23 | Three raw hero fixtures and 16 invalid cases covering all error codes; check green (250 tests) | see git log |
 | 2026-10-22 | Codex | T-22 | Pure value/template resolver, all formatters/aggregates/math, safe refs and warnings; check green (243 tests) | see git log |

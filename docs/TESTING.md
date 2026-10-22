@@ -16,7 +16,7 @@ Three layers:
 | Action engine | `src/runtime/__tests__/actions.test.ts` | Each op; `confirm` abort; error stops the action; `ai.run` with mock |
 | Renderer + components | `src/runtime/__tests__/render.test.tsx` | H1–H3 fixtures render; input binding; checkbox; delete; navigate |
 | Generator | `src/ai/generator/__tests__/*.test.ts` | JSON extraction from messy output; repair loop with scripted mock responses; unsupported path |
-| Catalog docs sync | `src/catalog/__tests__/docs-sync.test.ts` | Every catalog name has `### <Name>` in `docs/COMPONENTS.md` and vice versa |
+| Catalog docs sync | `src/catalog/__tests__/docs-sync.test.ts` | Registry names match P0 `### <Name>` headings in `docs/COMPONENTS.md` in both directions (P1 joins in T-55) |
 | Security | `src/__tests__/security.test.ts` | Forbidden API scan over `src/`; HTML strings render as plain text |
 
 Rules:
@@ -105,7 +105,7 @@ The static web build loads from the hosted URL on a phone and desktop and is ins
 The latest `evals/results/*.json` meets the targets in §2, or the gap is explained in `PROGRESS.md` and the write-up.
 
 ### AT-15 Catalog sync (auto)
-The docs-sync test passes.
+The docs-sync test compares registry names bidirectionally with P0 headings until T-55 adds P1 components (ADR-014).
 
 ### AT-16 Accessibility basics (W + A)
 Every input has a label read by TalkBack or the browser's screen reader. Touch targets ≥ 44 px. Layout survives 130% font scale. Contrast is OK in light and dark.

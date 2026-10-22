@@ -29,7 +29,7 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 ## M2 — Spec core (Thu morning)
 
 - [x] **T-20 (P0) Spec types + Zod schema** (`src/spec/schema.ts`, `types.ts`) covering all of `SCHEMA.md` §1–8, with strict objects. → AT-01
-- [ ] **T-21 (P0) Semantic validator** (`validate.ts`): refs, tree (orphans, cycles, reuse), bind types, action field checks, `ai.run` output/into compatibility, `$item` context, limits. Returns `SpecError[]` with the codes in `SCHEMA.md` §11 and model-friendly hints. → AT-01
+- [x] **T-21 (P0) Semantic validator** (`validate.ts`): refs, tree (orphans, cycles, reuse), bind types, action field checks, `ai.run` output/into compatibility, `$item` context, limits. Returns `SpecError[]` with the codes in `SCHEMA.md` §11 and model-friendly hints. → AT-01
 - [x] **T-22 (P0) Value resolver** (`values.ts`): literals, templates + formatters, `$ref`, `$agg`, `$math`, `$now`, `$item`/`$index`. Pure functions. → AT-02
 - [x] **T-23 (P0) Fixtures.** Full H1, H2, H3 specs from `SCHEMA.md` §13, plus at least 12 invalid specs (one per error code where possible), each with its expected error code.
 - [x] **T-24 (P0) Catalog prop schemas** for all P0 components (`catalog/*/props.ts` + `meta.ts`) and the registry. Validator uses them. → AT-15
@@ -46,7 +46,7 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 ## M4 — AI (Fri morning)
 
 - [ ] **T-40 (P0) Provider registry + mock provider + settings screen** (model choice E2B/E4B, download progress, delete model; no URL fields; network = model downloads only). → AT-06
-- [ ] **T-41 (P0) `ai.run` op**: output → JSON Schema, call provider, validate, one retry, coerce with defaults, write to state. Abort and 120 s timeout. → AT-03
+- [ ] **T-41 (P0) `ai.run` op**: output → JSON Schema, call provider, validate, one retry, coerce with defaults, write to state. Abort and 120 s timeout. Recheck the actual expanded prompt ≤2000 characters with live state/item/settings immediately before inference (ADR-015). → AT-03
 - [ ] **T-42 (P0) Catalog prompt builder** from `catalog/*/meta.ts`.
 - [ ] **T-43 (P0) Plan stage** (prompt + few-shot + loose validation).
 - [ ] **T-44 (P0) Fill stage** (plan + catalog → spec; defensive JSON parsing).

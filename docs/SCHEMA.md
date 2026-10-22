@@ -3,7 +3,7 @@
 This is **the** contract between the model, the validator, the runtime, and stored data. Anything not described here is invalid.
 
 **Change rules**
-- Any change bumps `specVersion` and adds a migration in `src/spec/migrations/` (once v0.2 exists).
+- Changes bump `specVersion` and add a migration in `src/spec/migrations/` (once v0.2 exists). The human-approved implementation clarifications below (ADR-014/015) retain `specVersion: "0.1"`.
 - The same commit must update `src/spec/schema.ts`, `src/spec/validate.ts`, tests, and this file.
 - Log the change in `DECISIONS.md`.
 
@@ -203,7 +203,7 @@ Validated loosely (types and catalog names only). Its job is to make the FILL st
 
 ## 11. Validation errors
 
-`validate(spec) → SpecError[]`. An empty array means valid.
+`validate(input: unknown) → SpecError[]` accepts an object or JSON text. An empty array means valid. Structural `SpecSchema.parse()` applies defaults but **does not** authorize rendering or saving; callers must run `validate()` first. Errors use dot/bracket paths, stable stage/input order, no repeated code/path pairs, and repair hints. Unknown keys point to the offending property. Malformed Values use `BAD_VALUE`, component props use `BAD_PROP`, action step shape uses `BAD_ACTION`, and version/component/§12 limit errors take precedence over generic `SHAPE`. Checks that depend on malformed declarations or props are skipped; independent valid sections are still checked.
 
 ```ts
 type SpecError = { code: ErrorCode; path: string; message: string; hint?: string };
@@ -230,14 +230,25 @@ type SpecError = { code: ErrorCode; path: string; message: string; hint?: string
 
 | Item | Max |
 |---|---|
-| Spec size | 32 KB |
+| Spec size | 32,768 UTF-8 bytes of compact input JSON, including metadata, before defaults |
 | Screens | 3 |
-| Elements | 60 (tree depth 8) |
+| Elements | 60 (tree depth 8; screen root is depth 1) |
 | State keys | 20 (8 fields per list item) |
 | Actions | 12 (8 steps each) |
 | Triggers | 3 |
-| `$math` nesting | 3 |
+| `$math` nesting | 3 nested math nodes; violations use `BAD_VALUE` |
 | `ai.run` prompt | 2000 chars expanded |
+
+### Approved v0.1 validation clarifications (ADR-015)
+
+- Other §12 limits use `LIMIT_EXCEEDED`. Size is measured after compact serialization, so JSON text whitespace is excluded. Metadata counts; parser defaults do not.
+- Prompt validation expands declared defaults with `now = 2000-01-01T00:00:00Z`, locale `en-US`, time zone UTC and currency USD. Every default item of every calling List is checked; an empty list uses a typed zero item (`""`, `0`, `false`, `null` for date) and index 0. **T-41 must check the actual expanded prompt with live state, item and user settings immediately before inference.**
+- `state.append` supplies every declared item field. `state.update` permits partial patches. Both reject unknown fields. Whole-list `state.set` requires identical field names and types, regardless of declaration order.
+- `ai.run.defaults` is list-only; each key must be declared by the target list and each literal must match that field type. Output list fields remain a type-matching subset of the target; omitted fields retain the documented defaults/zero-value behavior.
+- Literal indices are nonnegative integers; literal rounding digits are integers. Dynamic numeric arguments are type-checked here and need runtime range checks (T-31/T-41).
+- There is no numeric coercion. The Value grammar is unchanged (in particular, direct `null` is not a Value). Valid ISO date and image URI literals are accepted in their corresponding typed positions; nullable references may resolve to null.
+- Templates inspect complete unescaped expressions only; unmatched braces remain literal, matching `resolveTemplate`. Only documented Template/Value positions are inspected (input labels/placeholders, image alt text and List.emptyText are literal strings).
+- `$item`/`$index` actions must be compatible with **every** calling List. Mixed ordinary/item callers and unused actions requiring an item context are invalid. P0 item slots are List.title/subtitle/trailing; List.onItemPress passes item context.
 
 ---
 
