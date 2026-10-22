@@ -24,7 +24,7 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
   - Record: model id, download size, load time, tokens/s, JSON validity on 5 prompts → ADR-003. ⏱ 3 h. **If it fails, the web build shows "this browser can't run the model, use the Android app", and the APK is the main demo.**
 - [x] **T-12 merged into T-10.** (Android local provider is now T-10, llama.rn only. ADR-012.)
 - [ ] **T-13 (P1) json-render evaluation.** Can it render the H1 fixture through an adapter on web and Android? Write the result in ADR-005. ⏱ 2 h max. Default: own renderer.
-- [ ] **T-14 (P0) Decision gate.** Update ADR-003/005, `PROGRESS.md`, and reorder tasks if needed.
+- [x] **T-14 (P0) Decision gate.** Update ADR-003/005, `PROGRESS.md`, and reorder tasks if needed.
 
 ## M2 — Spec core (Thu morning)
 

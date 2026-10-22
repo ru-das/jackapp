@@ -37,7 +37,11 @@ Agents may add **Proposed** entries. Only the human marks them **Accepted**, or 
 2026-10-20 · Proposed (Ollama parts superseded by ADR-012) · human
 
 **Context.** We need an open-weight model with vision, structured output, and sizes that run on phones and laptops. It's also the strongest partner category fit.
-**Decision.** Gemma 4: E2B for on-device runtime `ai.run`; E4B for on-device/web generation; a larger Gemma 4 via Ollama when available. Exact model ids are recorded after the spikes: `web: ____ · android: ____ · ollama: ____`.
+**Decision.** Gemma 4, E2B by default for both generation and `ai.run` on every platform (the only size wired in code; one model to download, fits phone RAM). E4B is an optional Settings choice later, only if the phone spike shows E2B generation quality is too low and E4B fits in RAM. Exact ids (as in code):
+- **Android (llama.rn):** `unsloth/gemma-4-E2B-it-GGUF` → `gemma-4-E2B-it-Q4_0.gguf` (3,041,378,400 B) + `mmproj-F16.gguf` (985,654,080 B) for images. Q4_0 because Android GPU offload supports only Q4_0/Q6_K (ADR-013).
+- **Web (Transformers.js 4.3.1):** `onnx-community/gemma-4-E2B-it-ONNX`, `q4f16` on WebGPU, `q4` on wasm fallback (`public/llm-worker.js`).
+- **E4B ids:** not chosen. Expected to follow the same naming (`gemma-4-E4B-it-GGUF`, `gemma-4-E4B-it-ONNX`) but not verified; confirm on the repos before wiring.
+- **Spike status:** ids are locked from code; download size, load time, tokens/s and JSON validity are still pending phone runs (PROGRESS.md → Spike results).
 **Consequences.** One family across providers keeps prompt behavior consistent.
 **Alternatives.** Qwen / Llama small models: fine technically, but weaker fit for the story and the partner category.
 
@@ -53,8 +57,8 @@ Agents may add **Proposed** entries. Only the human marks them **Accepted**, or 
 2026-10-20 · Proposed · human
 
 **Context.** Vercel's json-render (Apache-2.0) offers Zod catalogs, a React Native renderer, and streaming. Our hand-written renderer is small.
-**Decision.** `SCHEMA.md` stays the contract. Spike T-13 (≤ 2 h) checks whether json-render can render our spec through an adapter on web and Android. **Default if the spike is inconclusive: our own renderer.**
-**Spike result:** `____`
+**Decision.** We use our own renderer (`src/runtime`, catalog in `src/catalog`). No json-render dependency. `SCHEMA.md` stays the contract. T-13 is not run; reopen only if the own renderer proves too costly.
+**Spike result:** not run (own renderer is the default).
 **Consequences.** Docs don't churn whichever way the spike goes. If json-render is adopted, credit it in the README and the post.
 **Alternatives.** Adopt json-render's spec format directly: rejected, because it couples our contract to a fast-moving library.
 

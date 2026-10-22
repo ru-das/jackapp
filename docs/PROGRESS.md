@@ -8,7 +8,7 @@
 
 | | |
 |---|---|
-| Phase | M0 — Setup (T-01..03, T-05 done; T-04 CI open) |
+| Phase | M0 — Setup done except T-04 CI; T-14 decisions drafted (ADR-003/005 await human Accept); M1 phone spikes pending |
 | Last updated | 2026-10-22 by Claude Code |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-14 (2026-10-22):** ADR-003 now has exact ids. Gemma 4 **E2B** default for generation and `ai.run`, Android `unsloth/gemma-4-E2B-it-GGUF` Q4_0 + `mmproj-F16`, web `onnx-community/gemma-4-E2B-it-ONNX`. E4B optional, ids unverified, not wired. ADR-005: own renderer, T-13 skipped. Both ADRs still *Proposed*: human marks Accepted. Spike numbers still need the phone.
+>
 > **ADR-012 (2026-10-22): no server model, no model on the 4 GB dev laptop.** Providers are `mock` | `local` only. Native = llama.rn (T-10, ported from the human's earlier app; absorbs T-12). Web = Transformers.js + WebGPU (T-11); if it fails the web build says to use the Android app. Eval runs on the phone: Codex `src/ai/generator/eval.ts` + `evals/prompts.json`, Claude Code `src/app/dev/eval.tsx`. Agents use mock only; the human tests on the phone. Needs from human: path/repo of the earlier llama.rn app to port (T-10), and its credit line for README.
 >
 > Expo SDK 58 app scaffolded (router in `src/app`, `@/` alias, jest-expo, zod installed, skeleton stubs per ARCHITECTURE §3). RNTL 14: `render` is async (`await render(...)`). TS 6: no `baseUrl`; `types: [jest,node]` set. Codex can start `src/spec`. Next: T-04 CI, then the M1 spikes (T-10, T-11) in parallel (see ROADMAP lanes). Everyone commits on `main` (AGENTS.md §8). Answer the open questions below before T-10/T-11.
@@ -54,6 +56,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-22 | Claude Code | T-14 | ADR-003 exact model ids (E2B default), ADR-005 own renderer; left Proposed | see git log |
 | 2026-10-22 | Claude Code | T-11 (code) | `public/llm-worker.js` (Transformers.js 4.3.1 from jsDelivr, Gemma 4 E2B ONNX, webgpu q4f16 / wasm q4), `local.web.ts` client, fake-Worker tests; `expo export -p web` OK. Phone spike pending | see git log |
 | 2026-10-22 | Claude Code | T-10 (code) | llama.rn `local.native.ts`, `provider.ts`, mock, `dev/spike.tsx`, eas.json, app.json plugins, ADR-013; mocked tests only. Phone spike pending | see git log |
 | 2026-10-22 | Claude Code | docs (ADR-012) | llama.rn only, phone-side eval; removed the eval script, `scripts/eval.ts` and the server-provider stub; T-10 rewritten, T-12 merged | see git log |
