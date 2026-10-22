@@ -45,7 +45,7 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 
 ## M4 — AI (Fri morning)
 
-- [ ] **T-40 (P0) Provider registry + mock provider + settings screen** (model choice E2B/E4B, download progress, delete model; no URL fields; network = model downloads only). → AT-06
+- [x] **T-40 (P0) Provider registry + mock provider + settings screen** (model choice E2B/E4B, download progress, delete model; no URL fields; network = model downloads only). → AT-06
 - [ ] **T-41 (P0) `ai.run` op**: output → JSON Schema, call provider, validate, one retry, coerce with defaults, write to state. Abort and 120 s timeout. Recheck the actual expanded prompt ≤2000 characters with live state/item/settings immediately before inference (ADR-015). → AT-03
 - [x] **T-42 (P0) Catalog prompt builder** from `catalog/*/meta.ts`.
 - [x] **T-43 (P0) Plan stage** (prompt + few-shot + loose validation).

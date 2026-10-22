@@ -1,49 +1,52 @@
 // Ported from the author's Kokishin app (MIT): https://github.com/ru-das/kokishin
 import * as FileSystem from 'expo-file-system/legacy';
 import { initLlama, type LlamaContext } from 'llama.rn';
+import { ggufBytes, MODELS, type ModelId } from '../models';
 import type { LLMProvider, ProviderStatus } from '../provider';
 
-const HF = 'https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/main';
 const DIR = `${FileSystem.documentDirectory ?? ''}models/`;
 // Q4_0: the only quant (with Q6_K) that Android GPU offload supports.
-export const FILES = [
-  { name: 'gemma-4-E2B-it-Q4_0.gguf', size: 3_041_378_400 },
-  { name: 'mmproj-F16.gguf', size: 985_654_080 },
-] as const;
-const TOTAL = FILES[0].size + FILES[1].size;
+type FileInfo = { name: string; size: number };
 
+let model: ModelId = 'E2B';
 let ctx: LlamaContext | null = null;
 let inflight: Promise<void> | null = null;
 let state: ProviderStatus = 'unloaded';
 let queue: Promise<unknown> = Promise.resolve();
 
+const files = (): readonly FileInfo[] => MODELS[model].gguf.files;
+// mmproj has the same name in both repos; E2B stays unprefixed so the spike's earlier download is still valid.
+const path = (f: FileInfo) => `${DIR}${model === 'E2B' ? '' : `${model}-`}${f.name}`;
+
 export const lastTimings = { tokensPerSec: 0 };
 
-async function hasFile(f: (typeof FILES)[number]) {
-  const i = await FileSystem.getInfoAsync(DIR + f.name);
+async function hasFile(f: FileInfo) {
+  const i = await FileSystem.getInfoAsync(path(f));
   return i.exists && i.size === f.size;
 }
 
 async function download(onProgress?: (p: { loaded: number; total: number }) => void) {
   await FileSystem.makeDirectoryAsync(DIR, { intermediates: true });
+  const total = ggufBytes(model);
+  const base = `https://huggingface.co/${MODELS[model].gguf.repo}/resolve/main`;
   let done = 0;
-  for (const f of FILES) {
+  for (const f of files()) {
     if (!(await hasFile(f))) {
-      const part = `${DIR}${f.name}.part`;
-      const base = done;
+      const part = `${path(f)}.part`;
+      const before = done;
       // shortcut: no resume across app restarts, restarts the current file. Add AsyncStorage resumeData if phone downloads keep dying.
-      await FileSystem.createDownloadResumable(`${HF}/${f.name}`, part, {}, (d) =>
-        onProgress?.({ loaded: base + d.totalBytesWritten, total: TOTAL }),
+      await FileSystem.createDownloadResumable(`${base}/${f.name}`, part, {}, (d) =>
+        onProgress?.({ loaded: before + d.totalBytesWritten, total }),
       ).downloadAsync();
       const i = await FileSystem.getInfoAsync(part);
       if (!i.exists || i.size !== f.size) {
         await FileSystem.deleteAsync(part, { idempotent: true });
         throw new Error(`Download of ${f.name} failed. Check your connection and try again.`);
       }
-      await FileSystem.moveAsync({ from: part, to: DIR + f.name });
+      await FileSystem.moveAsync({ from: part, to: path(f) });
     }
     done += f.size;
-    onProgress?.({ loaded: done, total: TOTAL });
+    onProgress?.({ loaded: done, total });
   }
 }
 
@@ -51,13 +54,13 @@ async function doLoad(onProgress?: (p: { loaded: number; total: number }) => voi
   state = 'downloading';
   await download(onProgress);
   const c = await initLlama({
-    model: DIR + FILES[0].name,
+    model: path(files()[0]),
     n_ctx: 8192,
     n_gpu_layers: 99,
     use_mlock: true,
     ctx_shift: false, // required for multimodal
   });
-  const ok = await c.initMultimodal({ path: DIR + FILES[1].name, use_gpu: true, image_max_tokens: 256 });
+  const ok = await c.initMultimodal({ path: path(files()[1]), use_gpu: true, image_max_tokens: 256 });
   if (!ok || !(await c.getMultimodalSupport()).vision) {
     await c.release();
     throw new Error('Vision projector failed to load.');
@@ -67,9 +70,28 @@ async function doLoad(onProgress?: (p: { loaded: number; total: number }) => voi
 
 export const localProvider: LLMProvider = {
   id: 'local',
-  label: 'On-device (Gemma 4 E2B)',
+  label: 'On-device (Gemma 4)',
   caps: { vision: true, jsonSchema: true, contextTokens: 8192 },
   status: () => state,
+  async setModel(next) {
+    if (next === model) return;
+    await inflight?.catch(() => {});
+    await ctx?.release();
+    ctx = null;
+    model = next;
+    state = 'unloaded';
+  },
+  async isDownloaded() {
+    return (await Promise.all(files().map(hasFile))).every(Boolean);
+  },
+  async remove() {
+    await inflight?.catch(() => {});
+    await ctx?.release();
+    ctx = null;
+    state = 'unloaded';
+    await Promise.all(files().flatMap((f) => [path(f), `${path(f)}.part`])
+      .map((p) => FileSystem.deleteAsync(p, { idempotent: true })));
+  },
   load(onProgress) {
     if (ctx) return Promise.resolve();
     inflight ??= doLoad(onProgress)

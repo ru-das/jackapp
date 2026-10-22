@@ -106,6 +106,9 @@ export interface LLMProvider {
   label: string;
   caps: { vision: boolean; jsonSchema: boolean; contextTokens: number };
   status(): ProviderStatus;                 // 'unloaded' | 'downloading' | 'ready' | 'error'
+  setModel(model: 'E2B' | 'E4B'): Promise<void>;   // releases a loaded different model
+  isDownloaded(): Promise<boolean>;         // load() will not download
+  remove(): Promise<void>;                  // release + delete downloaded files
   load(onProgress?: (p: { loaded: number; total: number }) => void): Promise<void>;
   generate(req: {
     system: string;

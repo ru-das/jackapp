@@ -11,6 +11,8 @@ export default function RootLayout() {
         contentStyle: { backgroundColor: t.bg },
       }}>
         <Stack.Screen name="index" options={{ title: 'JackApp' }} />
+        <Stack.Screen name="create" options={{ title: 'New mini-app' }} />
+        <Stack.Screen name="settings" options={{ title: 'Settings' }} />
       </Stack>
       <Toaster />
     </>

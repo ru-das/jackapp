@@ -6,12 +6,11 @@ import {
   RawImage,
 } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1/dist/transformers.min.js';
 
-const MODEL = 'onnx-community/gemma-4-E2B-it-ONNX';
 let processor;
 let model;
 let stopper = new InterruptableStoppingCriteria();
 
-async function load() {
+async function load(MODEL) {
   const gpu = !!navigator.gpu && !!(await navigator.gpu.requestAdapter().catch(() => null));
   const device = gpu ? 'webgpu' : 'wasm';
   // q4f16 needs fp16 shaders, which wasm lacks.
@@ -59,7 +58,7 @@ async function generate({ id, system, messages, maxTokens, temperature }) {
 onmessage = async ({ data }) => {
   if (data.type === 'abort') return stopper.interrupt();
   try {
-    if (data.type === 'load') await load();
+    if (data.type === 'load') await load(data.model);
     else if (data.type === 'generate') await generate(data);
   } catch (e) {
     postMessage({ type: 'error', id: data.id, message: String(e?.message ?? e) });

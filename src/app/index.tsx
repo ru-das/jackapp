@@ -21,6 +21,14 @@ export default function Home() {
     <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={styles.content}>
       <Text accessibilityRole="header" style={[styles.title, { color: t.text }]}>JackApp</Text>
       <Text style={[styles.sub, { color: t.muted }]}>My mini-apps will live here</Text>
+      {([['New mini-app', '/create'], ['Settings', '/settings']] as const).map(([label, to]) => (
+        <Pressable
+          key={to} accessibilityRole="button" onPress={() => router.push(to)}
+          style={[styles.nav, { backgroundColor: to === '/create' ? t.accent : t.surface, borderColor: t.border }]}
+        >
+          <Text style={[styles.name, { color: to === '/create' ? t.accentText : t.text }]}>{label}</Text>
+        </Pressable>
+      ))}
       {__DEV__ ? (
         <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Dev: load a fixture</Text>
@@ -49,6 +57,7 @@ const styles = StyleSheet.create({
   card: { padding: space.lg, gap: space.sm, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth },
   h: { fontSize: 17, fontWeight: '600', marginBottom: space.sm },
   row: { minHeight: MIN_TARGET + 12, flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.control },
+  nav: { minHeight: MIN_TARGET + 8, borderRadius: radius.control, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', padding: space.md },
   icon: { fontSize: 28 },
   flex: { flex: 1 },
   name: { fontSize: 16, fontWeight: '600' },

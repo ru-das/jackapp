@@ -1,3 +1,4 @@
+import { MODELS, type ModelId } from '../models';
 import type { LLMProvider, ProviderStatus } from '../provider';
 
 export const NO_GPU_NOTICE = 'No GPU found: running on CPU, this will be slow. The Android app is faster.';
@@ -18,6 +19,15 @@ let state: ProviderStatus = 'unloaded';
 let queue: Promise<unknown> = Promise.resolve();
 let warned = false;
 let nextId = 0;
+let model: ModelId = 'E2B';
+// Transformers.js caches model files here; the worker owns the cache, we only inspect or clear it.
+const CACHE = 'transformers-cache';
+
+function stopWorker() {
+  worker?.terminate();
+  worker = null;
+  state = 'unloaded';
+}
 
 function getWorker() {
   worker ??= new Worker('/llm-worker.js', { type: 'module' });
@@ -53,7 +63,7 @@ function doLoad(onProgress?: (p: Progress) => void) {
     };
     w.addEventListener('message', onMsg);
     w.addEventListener('error', onErr);
-    w.postMessage({ type: 'load' });
+    w.postMessage({ type: 'load', model: MODELS[model].onnx });
   });
 }
 
@@ -96,9 +106,29 @@ function run(req: Parameters<LLMProvider['generate']>[0]) {
 
 export const localProvider: LLMProvider = {
   id: 'local',
-  label: 'In-browser (Gemma 4 E2B)',
+  label: 'In-browser (Gemma 4)',
   caps: { vision: true, jsonSchema: false, contextTokens: 4096 },
   status: () => state,
+  async setModel(next) {
+    if (next === model) return;
+    await inflight?.catch(() => {});
+    stopWorker();
+    model = next;
+  },
+  async isDownloaded() {
+    try {
+      const keys = await (await caches.open(CACHE)).keys();
+      return keys.some((r) => r.url.includes(MODELS[model].onnx));
+    } catch {
+      return false;
+    }
+  },
+  async remove() {
+    await inflight?.catch(() => {});
+    stopWorker();
+    // shortcut: clears every cached model, not just the selected one; fine while two models exist.
+    await caches.delete(CACHE);
+  },
   load(onProgress) {
     if (state === 'ready') return Promise.resolve();
     inflight ??= doLoad(onProgress)
