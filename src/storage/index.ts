@@ -21,3 +21,11 @@ export async function writeJson(key: string, value: unknown): Promise<void> {
 }
 
 export const specKey = (appId: string) => `jackapp:spec:${appId}`;
+
+export async function removeKey(key: string): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(key);
+  } catch (e) {
+    console.warn(`storage: could not remove ${key}`, e);
+  }
+}
