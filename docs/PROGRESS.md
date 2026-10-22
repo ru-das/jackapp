@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-44 (Codex, 2026-10-23):** `parseResponse(raw)` preserves raw output and returns the first balanced top-level object or repairable `BAD_JSON` errors. It strips outer fences, handles nested arrays/objects, quoted braces/escapes and preambles, rejects arrays/primitives/truncation/malformed JSON, and never skips a broken first object. `fill({prompt,plan,provider,signal?})` calls a loaded provider with FILL instructions and returns raw text; shared `callStage` supplies stage temperature/token limits, optional JSON Schema only when supported, and abort checks before/after calls. Parser/FILL focused tests and full check pass (499 tests). Next: T-45 orchestration and T-46 refusal outcomes. Pure TS, mock only; no device/model runs.
+
 > **T-43 (Codex, 2026-10-23):** `systemPrompt(stage, target?)` supports PLAN/FILL/stage-aware REPAIR. Each includes exactly two examples (compact H1 + unsupported), catalog text, JSON-only/catalog-only/refusal instructions and the 5–15 element guidance. `PlanSchema`/`validatePlan()` check field types and registered names, leaving unfinished references/scheduling semantics to FILL. `outputSchema(target)` derives PLAN-or-refusal and catalog-constrained-spec-or-refusal JSON Schemas from Zod with local references (semantic `validate()` remains authoritative). Focused prompt/schema tests and full check pass. Next: T-44 calls/parsing, T-45 orchestration, T-46 validated refusal handling. No real-model tuning (T-61).
 
 > **T-42 (Codex, 2026-10-23):** `buildCatalogPrompt()` returns `{text, chars, estimatedTokens}` from the renderer-free registry schemas + metadata. Required/defaulted/nested props and every op included; Value/Id/Output/Where stay named. Catalog: 3547 chars, ~886.75 tokens (chars/4). Focused catalog tests and full check pass. Jest root crawl through node_modules is slow: use `npm run check -- -- --runInBand --roots src --watchman=false` (same typecheck/lint/all source tests). Next: T-43 PLAN/prompts, T-44 extraction, T-45 shared repair loop, T-46 refusals. Mock only; no dependencies or contract changes.
@@ -82,6 +84,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-23 | Codex | T-44 | Defensive JSON extraction with raw/error retention; FILL provider boundary, limits and cancellation; focused + full check green | see git log |
 | 2026-10-23 | Codex | T-43 | Stage prompts, two valid examples each, loose plans and catalog-constrained JSON Schemas; focused + full check green | see git log |
 | 2026-10-23 | Codex | T-42 | Catalog text generated from registry props/meta, compact Value aliases; focused + full check green | see git log |
 | 2026-10-23 | Claude Code | T-35 | Run screen, confirm capability, Home dev menu for H1–H3; AT-04 verified on web, phone pending | see git log |
