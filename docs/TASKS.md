@@ -52,6 +52,7 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 - [x] **T-44 (P0) Fill stage** (plan + catalog → spec; defensive JSON parsing).
 - [x] **T-45 (P0) Repair loop** (≤ 2 attempts, errors fed back). → AT-06
 - [ ] **T-46 (P0) Unsupported path** in plan and fill; friendly UI. → AT-06
+  - Generator complete (2026-10-23): validated refusals from PLAN/FILL/REPAIR, malformed refusals repaired. **Friendly UI acceptance pending T-47** (authorized deferral).
 - [ ] **T-47 (P0) Create screen**: prompt box, progress stages, live preview, save, retry. → AT-07
 
 ## M5 — App features (Fri afternoon)

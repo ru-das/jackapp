@@ -2,9 +2,9 @@ import { SpecSchema } from '@/spec/schema';
 import type { Spec, SpecError } from '@/spec/types';
 import { validate } from '@/spec/validate';
 import { callStage, checkCancellation, fill, type StageRequest } from './fill';
-import { PlanSchema, type Plan, type TargetStage, type Unsupported } from './outputSchemas';
+import { PlanSchema, UnsupportedSchema, type Plan, type TargetStage, type Unsupported } from './outputSchemas';
 import { parseResponse } from './parse';
-import { validatePlan } from './plan';
+import { schemaErrors, validatePlan } from './plan';
 import { repair } from './repair';
 
 export type GenerationResult =
@@ -41,7 +41,11 @@ export async function generate(options: GenerateOptions): Promise<GenerationResu
       const parsed = parseResponse(raw);
       errors = parsed.errors;
       if (parsed.value) {
-        if (target === 'plan') {
+        if (Object.hasOwn(parsed.value, 'unsupported') && !(target === 'plan' && parsed.value.unsupported === null)) {
+          const refusal = UnsupportedSchema.safeParse(parsed.value);
+          if (refusal.success) return finish({ status: 'unsupported', unsupported: refusal.data.unsupported, repairs });
+          errors = schemaErrors(refusal.error);
+        } else if (target === 'plan') {
           errors = validatePlan(parsed.value);
           if (!errors.length) plan = PlanSchema.parse(parsed.value);
         } else {
