@@ -40,7 +40,7 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 - [ ] **T-31 (P0) Action engine** with all ops except `ai.run` and `notify`; busy state per action; `confirm` abort; errors → toast. → AT-03
 - [ ] **T-32 (P0) Renderer**: flat map → tree, screen navigation, per-element error boundary. → AT-04
 - [ ] **T-33 (P0) P0 components**: Stack, Card, Divider, Text, Image, Stat, TextInput, NumberInput, Toggle, Select, ImageInput, List, Button. Light/dark, labels, 44 px targets. → AT-04, AT-16
-- [ ] **T-34 (P0) Capabilities**: image pick/camera with downscale, share with fallback, toast. Platform-split where needed.
+- [x] **T-34 (P0) Capabilities**: image pick/camera with downscale, share with fallback, toast. Platform-split where needed.
 - [ ] **T-35 (P0) Run screen** `run/[id].tsx` loads a stored spec and renders it; dev menu loads the H1–H3 fixtures. → AT-04
 
 ## M4 — AI (Fri morning)
