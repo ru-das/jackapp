@@ -21,7 +21,7 @@ Agents may add **Proposed** entries. Only the human marks them **Accepted**, or 
 2026-10-20 · Accepted · human
 
 **Context.** The user wants an installable mobile app and a website from one codebase, in about 5 days, built with coding agents.
-**Decision.** Expo (React Native + React Native Web), Expo Router, TypeScript strict. Record the exact SDK version here at setup: `SDK: ____`.
+**Decision.** Expo (React Native + React Native Web), Expo Router, TypeScript strict. Record the exact SDK version here at setup: `SDK: 58.0.17` (expo ~58.0.17, react-native 0.88.0, react 19.3.0, TypeScript ~6.0.3; set up 2026-10-22).
 **Consequences.** One component catalog and runtime for all platforms. Native modules need a dev build, not Expo Go. Web uses react-native-web primitives, so web styling follows React Native rules.
 **Alternatives.** Capacitor (web-first wrapper): simpler web, but weaker native inference options. Flutter: new language for the team, weaker web story for this use. Separate web + native apps: no time.
 

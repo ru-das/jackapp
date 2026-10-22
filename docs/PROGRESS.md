@@ -8,9 +8,9 @@
 
 | | |
 |---|---|
-| Phase | M0 — Setup (not started) |
-| Last updated | 2026-10-20 23:59 IST by human |
-| `main` health | n/a (no code yet) |
+| Phase | M0 — Setup (T-01..03, T-05 done; T-04 CI open) |
+| Last updated | 2026-10-22 by Claude Code |
+| `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
 ## Active work
@@ -21,7 +21,7 @@
 
 ## Handoff note (latest)
 
-> Docs are written. Nothing built yet. Next: T-01 → T-03 (setup), then the M1 spikes (T-10, T-11, T-12) in parallel (see ROADMAP lanes). Everyone commits on `main` (AGENTS.md §8). Answer the open questions below before T-11/T-12.
+> Expo SDK 58 app scaffolded (router in `src/app`, `@/` alias, jest-expo, zod installed, skeleton stubs per ARCHITECTURE §3). RNTL 14: `render` is async (`await render(...)`). TS 6: no `baseUrl`; `types: [jest,node]` set. Codex can start `src/spec`. Next: T-04 CI, then the M1 spikes (T-10, T-11, T-12) in parallel (see ROADMAP lanes). Everyone commits on `main` (AGENTS.md §8). Answer the open questions below before T-11/T-12.
 
 ## Open questions (human to answer)
 
@@ -49,6 +49,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-22 | Claude Code | T-01,T-02,T-03,T-05 | Expo SDK 58 app, scripts, skeleton, README | see git log |
 | 2026-10-20 | human + Claude | docs | Project docs created | — |
 
 ## Write-up evidence (collect as you go)

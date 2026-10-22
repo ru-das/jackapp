@@ -8,13 +8,13 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 
 ## M0 — Setup (Wed morning)
 
-- [ ] **T-01 (P0) Init Expo app.** TypeScript strict, Expo Router with routes in `src/app/`, `@/` alias, web + Android targets. Record the SDK version in ADR-001.
+- [x] **T-01 (P0) Init Expo app.** TypeScript strict, Expo Router with routes in `src/app/`, `@/` alias, web + Android targets. Record the SDK version in ADR-001.
   - `npm run web` shows a placeholder home; `npm run android` builds a dev client.
-- [ ] **T-02 (P0) Scripts and test setup.** `typecheck`, `lint`, `test` (jest-expo + RN Testing Library), `check`, `eval` (placeholder).
+- [x] **T-02 (P0) Scripts and test setup.** `typecheck`, `lint`, `test` (jest-expo + RN Testing Library), `check`, `eval` (placeholder).
   - `npm run check` passes with one sample test.
-- [ ] **T-03 (P0) Folder skeleton** exactly as in `ARCHITECTURE.md` §3, with `index.ts` stubs. Add a placeholder `scripts/eval.ts` and `evals/prompts.json` (empty array).
+- [x] **T-03 (P0) Folder skeleton** exactly as in `ARCHITECTURE.md` §3, with `index.ts` stubs. Add a placeholder `scripts/eval.ts` and `evals/prompts.json` (empty array).
 - [ ] **T-04 (P1) CI.** GitHub Actions runs `npm ci && npm run check` on push and PR.
-- [ ] **T-05 (P0) README skeleton.** What it is, how to run, Credits, "Post-deadline changes" (empty).
+- [x] **T-05 (P0) README skeleton.** What it is, how to run, Credits, "Post-deadline changes" (empty).
 
 ## M1 — Risk spikes (Wed). Time-boxed; record results in DECISIONS.md
 
