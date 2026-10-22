@@ -1,10 +1,10 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { AppState, StyleSheet, Text, View } from 'react-native';
-import { confirm, share, toast } from '@/capabilities';
-import { createActionEngine } from '@/runtime/actions';
+import type { createActionEngine } from '@/runtime/actions';
 import { Renderer, type RendererHandle } from '@/runtime/Renderer';
-import { createStore, type Store } from '@/runtime/store';
+import { createSession } from '@/runtime/session';
+import type { Store } from '@/runtime/store';
 import { SpecSchema } from '@/spec/schema';
 import type { Spec } from '@/spec/types';
 import { validate } from '@/spec/validate';
@@ -22,6 +22,7 @@ export default function Run() {
 
   useEffect(() => {
     let store: Store | undefined;
+    const abort = new AbortController();
     let live = true;
     (async () => {
       const raw = await readJson(specKey(id));
@@ -32,26 +33,17 @@ export default function Run() {
         return live && setPhase({ kind: 'error', message: "This mini-app is damaged, so we can't open it." });
       }
       const spec = SpecSchema.parse(raw);
-      store = createStore(id, spec.state);
+      const session = createSession(id, spec, abort.signal);
+      store = session.store;
       await store.load();
-      const s = store;
-      const engine = createActionEngine({
-        spec, store: s,
-        services: { share, toast, confirm, navigate: (to) => navigateRef.current?.(to) },
-        getValueContext: () => ({
-          now: new Date(), locale: Intl.DateTimeFormat().resolvedOptions().locale,
-          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          currency: 'USD', // shortcut: same fixed currency as Renderer, until settings exist
-          onWarning: (m) => console.warn(`spec: ${m}`),
-        }),
-      });
-      if (live) setPhase({ kind: 'ready', spec, store: s, engine });
+      session.setNavigate((to) => navigateRef.current?.(to));
+      if (live) setPhase({ kind: 'ready', spec, store: session.store, engine: session.engine });
     })().catch((e) => {
       console.error(`run/${id}: load failed`, e);
       if (live) setPhase({ kind: 'error', message: 'Something went wrong opening this mini-app.' });
     });
     const sub = AppState.addEventListener('change', (s) => { if (s !== 'active') void store?.flush(); });
-    return () => { live = false; sub.remove(); void store?.flush(); };
+    return () => { live = false; abort.abort(); sub.remove(); void store?.flush(); };
   }, [id]);
 
   const title = phase.kind === 'ready' ? `${phase.spec.meta.icon ?? ''} ${phase.spec.meta.name}`.trim() : '';
