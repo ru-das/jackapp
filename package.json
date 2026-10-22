@@ -38,8 +38,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "expo lint",
     "test": "jest",
-    "check": "npm run typecheck && npm run lint && npm test",
-    "eval": "tsx scripts/eval.ts"
+    "check": "npm run typecheck && npm run lint && npm test"
   },
   "private": true,
   "jest": {

@@ -37,12 +37,12 @@ File ownership between the lanes is defined in `AGENTS.md` §8.
 | When (IST) | Phase | Lane A — Codex | Lane B — Claude Code | Human |
 |---|---|---|---|---|
 | Wed 09:00–10:30 | P0 Setup | — | T-01, T-02, T-03, T-05 | Create GitHub repo, answer open questions |
-| Wed 10:30–19:00 | P1 Spikes + early core | T-20, T-22 (spec types, values) | T-10 → T-11 (Ollama, web local) | T-12 with Lane B in the afternoon (phone) |
+| Wed 10:30–19:00 | P1 Spikes + early core | T-20, T-22 (spec types, values) | T-10 → T-11 (llama.rn native, web local) | Run the spikes on the phone (T-10, T-11) |
 | Wed 19:00–20:00 | **Decision gate** | T-04 CI | T-13 (optional), T-14 | Accept ADR-003/005 |
 | Thu 09:00–13:00 | P2 Spec core | T-21, T-23, T-24 | T-30 store, T-34 capabilities | Run reviews |
 | Thu 14:00–21:00 | P3 Runtime | T-31 action engine | T-32, T-33, T-35 | Try fixtures on phone |
 | Fri 09:00–14:00 | P4 Generator | T-42 → T-46 (with mock) | T-40, T-41, T-47 | Write hero prompts |
-| Fri 14:00–21:00 | P5 Features | T-60 eval harness | T-50, T-52, T-51 | **Start Lazy Log** (use H1–H3 for real) |
+| Fri 14:00–21:00 | P5 Features | T-60 eval runner (`generator/eval.ts`) | T-50, T-52, T-51, T-60 `dev/eval.tsx` | **Start Lazy Log** (use H1–H3 for real) |
 | Sat 09:00–21:00 | P6 Quality & builds | T-61, T-62 | T-63, T-64, T-53–T-55, T-65 | Run evals, real-device test |
 | Sun 09:00–12:00 | Last fixes | bug fixes | bug fixes | **Feature freeze 12:00** |
 | Sun 12:00–23:00 | P7 Ship story | facts for write-up | README, screenshots | Demo video, write the post |
@@ -52,7 +52,7 @@ File ownership between the lanes is defined in `AGENTS.md` §8.
 1. T-13 json-render evaluation → keep own renderer.
 2. T-55 P1 components (Chart, Timer, DateInput).
 3. T-51 edit-by-chat → "Remix" regenerates from scratch with the old prompt plus the change.
-4. T-12 Android on-device → Android uses Ollama over LAN; say so honestly in the post.
+4. T-11 web local → web build shows "this browser can't run the model, use the Android app"; the APK is the main demo.
 5. T-52 triggers → drop from Plant Pal; mention as next step.
 **Never cut:** validator, repair loop, the 3 hero apps, eval numbers, the write-up day.
 
@@ -134,19 +134,19 @@ Tell me the exact command to make an Android dev build on my phone.
 
 **Goal:** know by tonight which inference paths are real. Meanwhile Lane A builds the pure-TS core, which doesn't depend on spike results.
 
-**Lane B prompt 1 — Ollama provider (T-10):**
+**Lane B prompt 1 — Native provider with llama.rn (T-10):**
 ```
-Do T-10. Implement src/ai/provider.ts (interface from ARCHITECTURE.md §5)
-and src/ai/providers/ollama.ts.
-- POST {baseUrl}/api/chat, stream:false, `format` = JSON Schema when given,
-  images as base64 (strip the data-URL prefix).
-- AbortSignal + timeout support. Clear error messages (connection refused,
-  CORS, model not pulled → include the `ollama pull <model>` hint).
-- scripts/spike-ollama.ts: (1) text prompt → JSON {title, items[]},
-  (2) a local photo → JSON list of objects. Print timings.
-- README: how to run Ollama with OLLAMA_ORIGINS for the web app.
-Model: <ollama model id, e.g. a Gemma 4 tag you've pulled>.
-Record results in the Spike results table in docs/PROGRESS.md.
+Do T-10 (ADR-012). Never run a model on this laptop (4 GB RAM): use mock
+for tests; I run the spike on my phone.
+- src/ai/provider.ts (interface from ARCHITECTURE.md §5, ids 'mock' | 'local')
+  and src/ai/providers/local.native.ts, ported from my earlier llama.rn +
+  Gemma app at <path or repo>. Credit it in README → Credits.
+- Model downloaded to app storage with progress (never bundle weights);
+  JSON via llama.rn grammar / JSON-schema mode; images via mmproj.
+- Dev screen src/app/dev/spike.tsx: runs 5 JSON prompts + 1 photo prompt and
+  shows load time, tokens/s, valid JSON count (of 5).
+- Tell me exactly what to do on the phone (build, install, permissions).
+Record my results in the Spike results table in docs/PROGRESS.md and ADR-003.
 ```
 
 **Lane B prompt 2 — Web local provider spike (T-11), time-box 3 h:**
@@ -165,19 +165,7 @@ Write them into docs/PROGRESS.md (Spike results) and propose ADR-003 text.
 If WebGPU isn't available on my machine, say so and stop.
 ```
 
-**Lane B + human prompt 3 — Android local provider spike (T-12), time-box 3 h:**
-```
-Do T-12 as a time-boxed spike (3 hours max).
-Goal: Gemma 4 E2B on my Android phone (<model>, <RAM> GB) via
-react-native-executorch in our Expo dev build. If Gemma 4 isn't available
-for it or it won't build, try llama.rn with a Gemma 4 E2B GGUF (Q4).
-- src/ai/providers/local.native.ts implements LLMProvider.
-- Download the model to app storage with progress; never bundle weights.
-- Same 5 JSON prompts + 1 image prompt as the web spike.
-Report the same metrics into docs/PROGRESS.md. Tell me exactly what I need
-to do on the phone (install, permissions). If it fails, write why and
-recommend falling back to the Ollama provider over LAN.
-```
+**T-12** is merged into prompt 1 (ADR-012). There is no separate Android spike prompt.
 
 **Lane A prompt — spec types + values (T-20, T-22), no spike dependency:**
 ```
@@ -206,7 +194,7 @@ Do T-14. From the Spike results in docs/PROGRESS.md:
 Don't mark ADRs Accepted. I'll do that.
 ```
 
-**Human:** accept the ADRs. If both local spikes failed, the story becomes "runs on *your* machine via Ollama, data never leaves your network." That's still a valid open/local story.
+**Human:** accept the ADRs. If the web spike failed, the web build says "this browser can't run the model, use the Android app" and the APK is the main demo. If llama.rn fails on the phone, stop and ask: there is no server fallback.
 
 ---
 
@@ -310,9 +298,9 @@ Don't tune prompts against a real model yet. That's T-61 with eval data.
 ```
 Do T-40, T-41, T-47.
 - T-40: provider registry + mock (shared with Lane A's scripted mock),
-  settings screen: provider choice, Ollama URL + "Test connection",
-  local model download/load with progress and size, persisted in
-  jackapp:settings.
+  settings screen: model choice E2B/E4B, download progress and size,
+  delete model, persisted in jackapp:settings. No URL fields; network is
+  model downloads only.
 - T-41: ai.run op per SCHEMA.md §7 (output → JSON Schema, one retry,
   coercion with defaults, 120 s timeout, abort). Wire it into the
   action engine services.
@@ -320,24 +308,32 @@ Do T-40, T-41, T-47.
   staged progress (Planning → Building → Checking → Repairing n),
   live preview using the real Renderer, Save, Try again, and a friendly
   unsupported card showing reason + suggestion + "Build the suggestion".
-Verify AT-07 with Ollama for at least H1.
+Verify AT-07 on my phone for at least H1 (I run it; you use mock).
 ```
 
 ---
 
 ### P5 — Features · Fri 14:00–21:00
 
-**Lane A prompt — eval harness (T-60):**
+**Lane A prompt — eval runner (T-60):**
 ```
-Do T-60. scripts/eval.ts runs in Node with the
-Ollama provider and the same generate() pipeline (no React imports; if
+Do T-60 (Codex part). src/ai/generator/eval.ts is a pure TS runner that
+takes any LLMProvider and uses the same generate() pipeline (no React imports; if
 anything blocks this, tell me the boundary violation).
 - evals/prompts.json: 30 prompts as described in TASKS.md T-60
   (10 hero-like, 15 everyday chores in plain casual English, 5 that
   should be unsupported). Include mustUse/mustOps where obvious.
-- Flags: --model, --no-plan, --only, --concurrency 1 default.
-- Output evals/results/<timestamp>.json + console table with the metrics
-  and targets from docs/TESTING.md §2. Also list the top 5 error codes.
+- Options object: { noPlan, only }, sequential. Returns the results object
+  (per-prompt outcome + metrics and targets from docs/TESTING.md §2, top 5
+  error codes). Unit-test it with the mock provider.
+```
+
+**Lane B prompt — phone eval screen (T-60, Claude Code part):**
+```
+Do T-60 (screen). Hidden screen src/app/dev/eval.tsx runs
+src/ai/generator/eval.ts with the local provider on the phone: model
+(E2B/E4B), no-plan toggle, run-one-prompt, live progress, metrics table,
+and a Share button for the results JSON. I save it to evals/results/.
 ```
 
 **Lane B prompt — home, triggers, edit (T-50, T-52, T-51):**
@@ -362,7 +358,7 @@ Do T-50, then T-52, then T-51.
 
 **Lane A prompt — eval-driven fixes (T-61):**
 ```
-Run `npm run eval` (and `-- --no-plan`). Do T-61: from the results,
+I ran the eval on my phone (with and without the plan stage); results are in evals/results/. Do T-61: from the results,
 find the top 3 failure modes (by error code and by prompt). For each:
 hypothesis → change (prompt wording, few-shot example, validator hint,
 or catalog hint) → re-run only the affected prompts → full re-run at the end.
@@ -375,7 +371,7 @@ Keep every results file. Write a before/after table in PROGRESS.md
 Do T-62. Implement src/__tests__/security.test.ts per docs/TESTING.md
 AT-12. Then audit: every entry point that produces a spec (generate, load,
 import, edit) calls validate() before use; templates render plain text;
-fetch() is only used by the ollama provider and model downloads.
+fetch() is only used for model downloads.
 Report findings as path:line — issue — fix, then fix them.
 ```
 
@@ -440,8 +436,7 @@ Include on-screen text for each shot and what to record on phone vs desktop.
 **Prompt — final README (Lane B, T-72):**
 ```
 Do T-72. README: one-paragraph pitch, GIF, live web link, APK link,
-how it works (diagram from ARCHITECTURE.md), run locally (web, Android,
-Ollama setup), models used and why, eval results table, privacy statement,
+how it works (diagram from ARCHITECTURE.md), run locally (web, Android dev build), models used and why, eval results table, privacy statement,
 Credits (every library and model with license), "Post-deadline changes"
 (empty unless there are any), and the challenge note.
 ```

@@ -21,11 +21,13 @@
 
 ## Handoff note (latest)
 
-> Expo SDK 58 app scaffolded (router in `src/app`, `@/` alias, jest-expo, zod installed, skeleton stubs per ARCHITECTURE §3). RNTL 14: `render` is async (`await render(...)`). TS 6: no `baseUrl`; `types: [jest,node]` set. Codex can start `src/spec`. Next: T-04 CI, then the M1 spikes (T-10, T-11, T-12) in parallel (see ROADMAP lanes). Everyone commits on `main` (AGENTS.md §8). Answer the open questions below before T-11/T-12.
+> **ADR-012 (2026-10-22): no server model, no model on the 4 GB dev laptop.** Providers are `mock` | `local` only. Native = llama.rn (T-10, ported from the human's earlier app; absorbs T-12). Web = Transformers.js + WebGPU (T-11); if it fails the web build says to use the Android app. Eval runs on the phone: Codex `src/ai/generator/eval.ts` + `evals/prompts.json`, Claude Code `src/app/dev/eval.tsx`. Agents use mock only; the human tests on the phone. Needs from human: path/repo of the earlier llama.rn app to port (T-10), and its credit line for README.
+>
+> Expo SDK 58 app scaffolded (router in `src/app`, `@/` alias, jest-expo, zod installed, skeleton stubs per ARCHITECTURE §3). RNTL 14: `render` is async (`await render(...)`). TS 6: no `baseUrl`; `types: [jest,node]` set. Codex can start `src/spec`. Next: T-04 CI, then the M1 spikes (T-10, T-11) in parallel (see ROADMAP lanes). Everyone commits on `main` (AGENTS.md §8). Answer the open questions below before T-10/T-11.
 
 ## Open questions (human to answer)
 
-1. **Hardware**: laptop RAM/GPU/OS? Can it run Ollama with Gemma 4 E4B (or bigger)?
+1. ~~**Hardware**~~ Answered: laptop has 4 GB RAM, no model runs on it (ADR-012).
 2. **Phone**: Android model and RAM? Chrome version (WebGPU)?
 3. **Accounts**: Expo/EAS account ready? GitHub repo created (name, public)?
 4. **Team**: solo, or teammates (DEV handles)?
@@ -41,14 +43,14 @@
 
 | Provider | Model id | Download | Load time | Tokens/s | Valid JSON (of 5) | Verdict |
 |---|---|---|---|---|---|---|
-| Ollama | | | | | | |
-| Web (Transformers.js) | | | | | | |
-| Android (ExecuTorch / llama.rn) | | | | | | |
+| Web (Transformers.js + WebGPU) | | | | | | |
+| Android (llama.rn) | | | | | | |
 
 ## Done log (newest first)
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-22 | Claude Code | docs (ADR-012) | llama.rn only, phone-side eval; removed the eval script, `scripts/eval.ts` and the server-provider stub; T-10 rewritten, T-12 merged | see git log |
 | 2026-10-22 | Claude Code | T-01,T-02,T-03,T-05 | Expo SDK 58 app, scripts, skeleton, README | see git log |
 | 2026-10-20 | human + Claude | docs | Project docs created | — |
 

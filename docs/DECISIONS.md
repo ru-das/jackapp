@@ -34,7 +34,7 @@ Agents may add **Proposed** entries. Only the human marks them **Accepted**, or 
 **Alternatives.** Code generation in a sandboxed WebView: rejected for reliability, security, and store policy.
 
 ## ADR-003: Gemma 4 as the default model family
-2026-10-20 · Proposed · human
+2026-10-20 · Proposed (Ollama parts superseded by ADR-012) · human
 
 **Context.** We need an open-weight model with vision, structured output, and sizes that run on phones and laptops. It's also the strongest partner category fit.
 **Decision.** Gemma 4: E2B for on-device runtime `ai.run`; E4B for on-device/web generation; a larger Gemma 4 via Ollama when available. Exact model ids are recorded after the spikes: `web: ____ · android: ____ · ollama: ____`.
@@ -42,7 +42,7 @@ Agents may add **Proposed** entries. Only the human marks them **Accepted**, or 
 **Alternatives.** Qwen / Llama small models: fine technically, but weaker fit for the story and the partner category.
 
 ## ADR-004: Provider abstraction with platform-split local providers
-2026-10-20 · Accepted · human
+2026-10-20 · Accepted (Ollama parts superseded by ADR-012) · human
 
 **Context.** Inference differs per platform. Agents and tests need to work without a model.
 **Decision.** One `LLMProvider` interface (see `ARCHITECTURE.md` §5). Providers: `mock`, `ollama`, and `local` (split into `local.web.ts` with Transformers.js and `local.native.ts` with ExecuTorch or llama.rn).
@@ -98,3 +98,18 @@ Agents may add **Proposed** entries. Only the human marks them **Accepted**, or 
 **Context.** Branches and worktrees (ADR-010) confused the human and both agents, and cost time we don't have.
 **Decision.** One folder, one branch (`main`). Each agent stages only the files it owns (`AGENTS.md` §8) and never runs history- or worktree-changing git commands. The other agent reviews the latest commits after each prompt.
 **Consequences.** No merges. A broken commit lands on `main` directly, so the review step and `npm run check` matter more. One agent's half-done files can make the other's `npm run check` fail; agents ignore failures in files they don't own.
+
+## ADR-012: No Ollama. llama.rn on Android, WebGPU on web, real-model work on the phone
+2026-10-22 · Accepted · human
+
+**Context.** The dev laptop has 4 GB RAM, so no model ever runs on it. Ollama (ADR-003/004) needed a model host we don't have. The human already shipped an Android app with llama.rn + Gemma on their phone, and tested Transformers.js + WebGPU in Chrome on the same phone.
+**Decision.**
+- Provider ids are only `'mock' | 'local'`. `local.native.ts` = llama.rn (ported from the human's earlier app, credited in README). `local.web.ts` = Transformers.js + WebGPU. `react-native-executorch` is dropped.
+- T-12 merges into T-10 (native provider + dev screen `src/app/dev/spike.tsx`). If web WebGPU (T-11) fails, the web build shows "this browser can't run the model, use the Android app", and the APK is the main demo.
+- Eval runs on the phone: Codex writes `src/ai/generator/eval.ts` (pure TS, any provider, tested with mock) and `evals/prompts.json`; Claude Code writes the hidden screen `src/app/dev/eval.tsx`, which runs it with the local provider and shares the results JSON. `npm run eval` and `scripts/eval.ts` are removed.
+- Settings: model choice E2B/E4B, download progress, delete model. No URL fields. Network = model downloads only.
+- Target: generation median ≤ 90 s on a mid-range Android phone.
+- Agents never run a model on the dev laptop; they use the mock provider. Real-model checks happen on the human's phone (`AGENTS.md` §4.12).
+**Consequences.** One less provider, no LAN or CORS setup, a stronger "runs on your own device" story. Real-model verification needs the human and a phone, so agent work stays on mock until then.
+**Alternatives.** Ollama on a borrowed machine: rejected, no host and it breaks the on-device story. ExecuTorch: rejected, llama.rn is already proven in the human's app.
+**Supersedes.** The Ollama parts of ADR-003 and ADR-004.

@@ -19,7 +19,7 @@ This is **the** contract between the model, the validator, the runtime, and stor
     "description": "Photo of fridge → grocery list",  // ≤ 140 chars
     "icon": "🧊",                      // a single emoji
     "sourcePrompt": "…",              // set by the generator, not the model
-    "generatedBy": { "provider": "ollama", "model": "gemma4:e4b" } // set by the generator
+    "generatedBy": { "provider": "local", "model": "gemma-4-e4b" } // set by the generator
   },
   "state":    { /* key → StateDecl */ },
   "screens":  [ /* Screen, first one is the entry screen */ ],

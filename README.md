@@ -24,6 +24,9 @@ Details for each doc live in `docs/` (start with `docs/PROGRESS.md`).
 
 - [Expo](https://expo.dev), [Expo Router](https://docs.expo.dev/router/introduction/), [React Native](https://reactnative.dev), [Zod](https://zod.dev): MIT.
 - Gemma 4 (Google DeepMind): open-weight model used for generation.
+- [llama.rn](https://github.com/mybigday/llama.rn) (MIT): on-device inference on Android.
+- Native provider (`src/ai/providers/local.native.ts`) ported from the author's earlier llama.rn + Gemma Android app: ____ (name/link to fill in).
+- [Transformers.js](https://github.com/huggingface/transformers.js) (Apache-2.0): in-browser inference via WebGPU.
 
 ## Post-deadline changes
 

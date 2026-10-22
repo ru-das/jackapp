@@ -41,7 +41,6 @@ A prompt may contain several tasks. Do them in the order given, one commit per t
 | `npm run lint` | `expo lint` |
 | `npm test` | Jest (`jest-expo`), uses the mock provider |
 | `npm run check` | typecheck + lint + test. **Must pass before every commit** |
-| `npm run eval` | Eval harness against Ollama (`OLLAMA_URL`, default `http://localhost:11434`) |
 
 ## 4. Hard rules (never break)
 
@@ -49,13 +48,14 @@ A prompt may contain several tasks. Do them in the order given, one commit per t
 2. **Validate every spec** before rendering or saving it: generated, loaded, or imported.
 3. **Respect module boundaries** (`ARCHITECTURE.md` §4): `src/spec` has no React or platform imports; the runtime never imports the generator; catalog components never call AI or storage.
 4. **Platform code goes in `.web.ts` / `.native.ts`** behind one interface.
-5. **No network** except model downloads and the user-set Ollama URL. No telemetry.
+5. **No network** except model downloads. No telemetry. No user-set URLs.
 6. **No new dependency** without a `DECISIONS.md` line saying why. Prefer what Expo already ships.
 7. **Contract changes** (`SCHEMA.md`, `COMPONENTS.md`) update code, tests, and docs in the same commit, plus a `DECISIONS.md` entry.
 8. **TypeScript strict.** No `any` except at JSON parse boundaries, where data immediately goes through Zod.
 9. **Never delete or weaken a test** to make it pass. Fix the code, or explain in the reply and ask.
 10. **Never commit secrets, model weights, or large binaries.** Weights are downloaded at runtime.
 11. **Don't edit the other agent's files** (§8).
+12. **Never run a model on the dev laptop (4 GB RAM). Use the mock provider; real-model checks happen on the human's phone.** (ADR-012)
 
 ## 5. Code conventions
 
@@ -77,7 +77,7 @@ A prompt may contain several tasks. Do them in the order given, one commit per t
 
 - After 2 failed attempts at the same error, stop. Write what you tried in `PROGRESS.md` → Blockers and ask the human.
 - Missing information (hardware, model ids, accounts) → ask. Don't invent values.
-- An inference runtime won't work → fall back to the `ollama` provider and log it. Don't burn hours.
+- An inference runtime won't work → keep building on the `mock` provider, log it in `PROGRESS.md` → Blockers, and ask the human to test on the phone. Don't burn hours.
 
 ## 8. Multi-agent coordination (two agents, one folder, one branch)
 
@@ -91,7 +91,7 @@ Claude Code and Codex may run at the same time in the same folder. These rules k
 | `src/ai/generator/**` | `src/app/**`, `src/ui/**` |
 | `src/runtime/actions.ts` (+ its tests) | `src/runtime/` everything else |
 | `src/catalog/*/props.ts`, `src/catalog/*/meta.ts`, `src/catalog/index.ts` | `src/catalog/*/*.tsx` |
-| `scripts/eval.ts`, `evals/**` | `src/ai/provider.ts`, `src/ai/providers/**` |
+| `src/ai/generator/eval.ts`, `evals/**` | `src/ai/provider.ts`, `src/ai/providers/**` |
 | `src/__tests__/security.test.ts` | `src/capabilities/**`, `src/storage/**`, `README.md` |
 
 Both may edit `docs/TASKS.md` and `docs/PROGRESS.md`. Re-read the file right before editing it, and change only your own lines. Anything not in the table: ask the human first.

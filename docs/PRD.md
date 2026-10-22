@@ -22,7 +22,7 @@ General AI chat can answer once, but it doesn't give you a **reusable tool** wit
 JackApp lets a user **describe a mini-app in plain language** and get a working one in about a minute.
 
 - The AI does **not** write code. It assembles a **JSON spec** from a fixed catalog of pre-built, tested components (camera input, checklist, AI step, reminder, stat, and so on). See `SCHEMA.md` and `COMPONENTS.md`.
-- The model is **open-weight (Gemma 4)** and runs **locally**: on the phone, in the browser via WebGPU, or on the user's own Ollama server.
+- The model is **open-weight (Gemma 4)** and runs **locally**: on the phone (llama.rn) or in the browser via WebGPU.
 - Mini-apps can use the model **at runtime** too (for example, "read this receipt photo"), so open AI is the core of both building and using them.
 
 ## 3. Why open AI matters here (the core of the write-up)
@@ -43,7 +43,7 @@ JackApp lets a user **describe a mini-app in plain language** and get a working 
 ## 5. Goals and non-goals
 
 ### Goals (for the challenge build)
-- G1. Prompt → working, saved mini-app in **≤ 90 s** on a laptop (Ollama provider) and as fast as possible on-device.
+- G1. Prompt → working, saved mini-app in **≤ 90 s** (median) on a mid-range Android phone, on-device.
 - G2. **≥ 80% of eval prompts** produce a valid spec within 2 repair attempts (see `TESTING.md`, eval harness).
 - G3. **One codebase** runs as a website (installable PWA) and an Android app; iOS builds from the same code later.
 - G4. **3 hero mini-apps** that are polished and actually used by the author Fri–Sun (the "Lazy Payoff").
@@ -84,7 +84,7 @@ A fourth, the **graceful refusal**, is also part of the demo: "Build me a physic
 - US-09. As a user, I can rename, duplicate, delete, export (JSON), and import mini-apps.
 
 ### Control
-- US-10. As a user, I can choose the model provider: **On-device**, **In-browser (WebGPU)**, or **My Ollama server (URL)**.
+- US-10. As a user, I can choose the model size (**E2B** or **E4B**), see the download progress, and delete the model. On the phone it runs on-device; in the browser it uses WebGPU.
 - US-11. As a user, I can see the model download size and progress, and the app tells me when it's ready offline.
 
 ## 8. Feature list and priority
@@ -93,9 +93,9 @@ A fourth, the **graceful refusal**, is also part of the demo: "Build me a physic
 |---|---|---|
 | F-01 | Spec validator, renderer, state store, action engine | P0 |
 | F-02 | P0 component catalog (see `COMPONENTS.md`) | P0 |
-| F-03 | Provider abstraction + Ollama + mock providers | P0 |
+| F-03 | Provider abstraction + mock provider | P0 |
 | F-04 | Web in-browser provider (Transformers.js/WebGPU) | P0 (spike decides) |
-| F-05 | Android on-device provider (ExecuTorch or llama.rn) | P1 (spike decides) |
+| F-05 | Android on-device provider (llama.rn, ported from the human's earlier app) | P0 (main demo) |
 | F-06 | Two-stage generation with repair loop | P0 |
 | F-07 | Graceful "unsupported" responses | P0 |
 | F-08 | Home gallery + starter templates | P0 |
@@ -125,7 +125,7 @@ A fourth, the **graceful refusal**, is also part of the demo: "Build me a physic
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| On-device Gemma 4 won't run in React Native in time | Medium | Medium | Ollama provider works on any platform; native on-device becomes a bonus |
+| WebGPU in the browser can't run the model | Medium | Medium | Web shows "this browser can't run the model, use the Android app"; the APK is the main demo |
 | Transformers.js inside Expo web bundling fails | Medium | High | Load it in a Web Worker from a CDN ESM build |
 | Small model makes invalid specs | High | High | Two-stage generation, schema-constrained output, repair loop, few-shot examples |
 | Scope creep | High | High | `TASKS.md` priorities; P1/P2 only after P0 is green |

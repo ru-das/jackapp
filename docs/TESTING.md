@@ -2,7 +2,7 @@
 
 Three layers:
 1. **Automated** (`npm run check`, every commit): unit and component tests with the mock provider.
-2. **Eval harness** (`npm run eval`): real model quality, run on demand against Ollama.
+2. **Eval on the phone** (hidden `dev/eval` screen): real model quality, run on demand on the human's Android phone. Never on the dev laptop (ADR-012).
 3. **Manual acceptance** (this file): device and end-to-end checks before milestones and before shipping.
 
 ---
@@ -24,9 +24,9 @@ Rules:
 - The mock supports **scripted responses** (an array returned in order) so repair loops can be tested.
 - A bug fix comes with a test that failed before the fix.
 
-## 2. Eval harness
+## 2. Eval on the phone
 
-`npm run eval [-- --provider ollama --model <id> --no-plan --only <id>]`
+Runner: `src/ai/generator/eval.ts` (pure TS, any provider, unit-tested with `mock`). The hidden screen `src/app/dev/eval.tsx` runs it with the local provider, with options for the model (E2B/E4B), no-plan, and a single prompt id, then shares the results JSON.
 
 - Input: `evals/prompts.json`
 
@@ -36,7 +36,7 @@ Rules:
  { "id": "e28", "prompt": "Build me a 3D racing game", "expect": "unsupported" }]
 ```
 
-- Output: `evals/results/<ISO-timestamp>.json` plus a console table.
+- Output: results JSON (shared from the phone; the human commits it as `evals/results/<ISO-timestamp>.json`) plus an on-screen table.
 
 | Metric | Target |
 |---|---|
@@ -45,9 +45,9 @@ Rules:
 | `mustUse` / `mustOps` satisfied (of valid) | ≥ 80% |
 | Unsupported correctly refused | ≥ 4 of 5 |
 | False refusals (expected spec, got unsupported) | ≤ 2 of 25 |
-| Median generation time (Ollama) | ≤ 60 s |
+| Median generation time (mid-range Android phone) | ≤ 90 s |
 
-Run it with and without the plan stage (`--no-plan`) and keep both result files. The comparison goes in the write-up.
+Run it with and without the plan stage and keep both result files. The comparison goes in the write-up.
 
 ## 3. Acceptance tests
 
@@ -78,7 +78,7 @@ Given a mini-app with data, when the app is reloaded or killed and reopened, the
 - A mock that is always bad → `failed` after 2 repairs, with a friendly UI message.
 - A plan with `unsupported` → the unsupported UI shows `reason` and `suggestion`.
 
-### AT-07 Real generation (W, Ollama)
+### AT-07 Real generation (A, on the phone; W if WebGPU passes)
 Given each hero prompt from `PRD.md` §6, when generated, then a valid spec previews within 90 s and the mini-app works end to end: the photo goes through `ai.run` into the list, Plant Pal's trigger is saved, and Bill Splitter's Stat shows a correct split.
 
 ### AT-08 Edit-by-chat (W)
@@ -96,7 +96,7 @@ Exported JSON re-imports as an identical spec. A tampered file (unknown componen
 ### AT-12 Security (auto + review)
 - `grep -rnE "eval\(|new Function|dangerouslySetInnerHTML|WebView" src/` returns nothing (except the test itself).
 - A spec with `"<b>hi</b><script>"` in a Text value renders literally.
-- Only the model source and the Ollama URL appear in network logs during a full session.
+- Only the model source appears in network logs during a full session. There are no URL fields in Settings.
 
 ### AT-13 Builds (W + A)
 The static web build loads from the hosted URL on a phone and desktop and is installable as a PWA. The APK installs on a clean Android phone and launches with no dev server.
@@ -114,7 +114,7 @@ Every input has a label read by TalkBack or the browser's screen reader. Touch t
 
 | Device | OS / browser | WebGPU | Local model | Notes |
 |---|---|---|---|---|
-| Dev laptop | ____ | ____ | Ollama ____ | |
+| Dev laptop (4 GB RAM) | ____ | n/a | none (mock only) | |
 | Phone 1 | Android __ / Chrome __ | ____ | ____ | RAM __ GB |
 
 ## 5. Pre-submission checklist (Sun night)

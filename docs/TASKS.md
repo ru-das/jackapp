@@ -10,20 +10,19 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 
 - [x] **T-01 (P0) Init Expo app.** TypeScript strict, Expo Router with routes in `src/app/`, `@/` alias, web + Android targets. Record the SDK version in ADR-001.
   - `npm run web` shows a placeholder home; `npm run android` builds a dev client.
-- [x] **T-02 (P0) Scripts and test setup.** `typecheck`, `lint`, `test` (jest-expo + RN Testing Library), `check`, `eval` (placeholder).
+- [x] **T-02 (P0) Scripts and test setup.** `typecheck`, `lint`, `test` (jest-expo + RN Testing Library), `check`. (A placeholder `eval` script was added here and removed by ADR-012.)
   - `npm run check` passes with one sample test.
-- [x] **T-03 (P0) Folder skeleton** exactly as in `ARCHITECTURE.md` §3, with `index.ts` stubs. Add a placeholder `scripts/eval.ts` and `evals/prompts.json` (empty array).
+- [x] **T-03 (P0) Folder skeleton** exactly as in `ARCHITECTURE.md` §3, with `index.ts` stubs. Add `evals/prompts.json` (empty array). (`scripts/eval.ts` was removed by ADR-012.)
 - [ ] **T-04 (P1) CI.** GitHub Actions runs `npm ci && npm run check` on push and PR.
 - [x] **T-05 (P0) README skeleton.** What it is, how to run, Credits, "Post-deadline changes" (empty).
 
 ## M1 — Risk spikes (Wed). Time-boxed; record results in DECISIONS.md
 
-- [ ] **T-10 (P0) Ollama provider.** Implement `ai/providers/ollama.ts` per `ARCHITECTURE.md` §5 with `format` JSON Schema and images. Add a script `scripts/spike-ollama.ts` that sends a text prompt and a photo prompt and prints parsed JSON.
-  - Works from Node and from the web app (document `OLLAMA_ORIGINS` for CORS in README). ⏱ 1.5 h
-- [ ] **T-11 (P0) Web local provider spike.** Transformers.js + WebGPU in a Web Worker loading a small Gemma 4 (prefer E2B ONNX). Text → JSON and image → JSON in the Expo web build.
-  - Record: model id, download size, load time, tokens/s, JSON validity on 5 prompts → ADR-003. ⏱ 3 h. **If it fails, mark web-local P1 and move on.**
-- [ ] **T-12 (P0) Android local provider spike.** `react-native-executorch` with Gemma 4 E2B (fallback `llama.rn` + GGUF) on the dev build, on a real phone.
-  - Record the same metrics → ADR-003. ⏱ 3 h. **If it fails, Android uses the Ollama provider for the challenge.**
+- [ ] **T-10 (P0) Native provider with llama.rn.** `provider.ts` + `local.native.ts` ported from the human's earlier llama.rn + Gemma app. Model downloaded with progress; JSON via grammar / JSON-schema mode; images via mmproj. Add the dev screen `src/app/dev/spike.tsx` that runs 5 JSON prompts + 1 photo prompt and shows load time, tokens/s, and valid JSON count.
+  - Credit the earlier app in README → Credits. Human runs the spike on the phone and records results in `PROGRESS.md` → Spike results and ADR-003. No model runs on the dev laptop (ADR-012). ⏱ 3 h. Absorbs the old T-12.
+- [ ] **T-11 (P0) Web local provider spike.** Transformers.js + WebGPU in a Web Worker loading a small Gemma 4 (prefer E2B ONNX). Text → JSON and image → JSON in the Expo web build, tested by the human in Chrome on the phone.
+  - Record: model id, download size, load time, tokens/s, JSON validity on 5 prompts → ADR-003. ⏱ 3 h. **If it fails, the web build shows "this browser can't run the model, use the Android app", and the APK is the main demo.**
+- [x] **T-12 merged into T-10.** (Android local provider is now T-10, llama.rn only. ADR-012.)
 - [ ] **T-13 (P1) json-render evaluation.** Can it render the H1 fixture through an adapter on web and Android? Write the result in ADR-005. ⏱ 2 h max. Default: own renderer.
 - [ ] **T-14 (P0) Decision gate.** Update ADR-003/005, `PROGRESS.md`, and reorder tasks if needed.
 
@@ -46,7 +45,7 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 
 ## M4 — AI (Fri morning)
 
-- [ ] **T-40 (P0) Provider registry + mock provider + settings screen** (choose provider, Ollama URL, model ids, load/download progress). → AT-06
+- [ ] **T-40 (P0) Provider registry + mock provider + settings screen** (model choice E2B/E4B, download progress, delete model; no URL fields; network = model downloads only). → AT-06
 - [ ] **T-41 (P0) `ai.run` op**: output → JSON Schema, call provider, validate, one retry, coerce with defaults, write to state. Abort and 120 s timeout. → AT-03
 - [ ] **T-42 (P0) Catalog prompt builder** from `catalog/*/meta.ts`.
 - [ ] **T-43 (P0) Plan stage** (prompt + few-shot + loose validation).
@@ -66,7 +65,7 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 
 ## M6 — Quality & builds (Sat)
 
-- [ ] **T-60 (P0) Eval harness** `npm run eval`: 30 prompts in `evals/prompts.json` (10 hero-like, 15 everyday chores, 5 should-be-unsupported). Metrics: valid on first try, valid after repair, unsupported precision, median latency. With and without the plan stage. Saves `evals/results/<timestamp>.json` and prints a table. → AT-14
+- [ ] **T-60 (P0) Eval on the phone.** Codex: `src/ai/generator/eval.ts` (pure TS runner, any provider, tested with mock) + 30 prompts in `evals/prompts.json` (10 hero-like, 15 everyday chores, 5 should-be-unsupported). Claude Code: hidden screen `src/app/dev/eval.tsx` runs it with the local provider and shares the results JSON. Metrics: valid on first try, valid after repair, unsupported precision, median latency (target ≤ 90 s). With and without the plan stage. Human saves the shared JSON to `evals/results/<timestamp>.json`. → AT-14
 - [ ] **T-61 (P0) Fix the top 3 failure modes** found by the eval (prompts, hints, validator messages). Re-run and record the before/after.
 - [ ] **T-62 (P0) Security pass**: forbidden-API grep, HTML-in-spec test, import validation. → AT-12
 - [ ] **T-63 (P0) Web deploy**: static export + PWA manifest/icons, hosted. → AT-13

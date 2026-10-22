@@ -11,7 +11,7 @@ JackApp is a single **Expo (React Native + React Native Web)** TypeScript app th
 ```mermaid
 flowchart LR
   U[User prompt] --> G[Generator<br/>plan → fill → repair]
-  G <--> P[LLM Provider<br/>on-device / WebGPU / Ollama / mock]
+  G <--> P[LLM Provider<br/>llama.rn on-device / WebGPU / mock]
   G --> V[Spec Validator]
   V -->|valid spec| S[(Local storage)]
   S --> R[Runtime<br/>renderer + state + actions]
@@ -33,8 +33,8 @@ flowchart LR
 | Notifications | `expo-notifications` (native) | Web: best-effort, only while the tab is open |
 | Tests | `jest-expo`, `@testing-library/react-native` | |
 | Inference: web | Transformers.js (`@huggingface/transformers`) with WebGPU, in a Web Worker | Spike T-11 decides feasibility |
-| Inference: Android | `react-native-executorch` (fallback: `llama.rn`) | Needs a dev build, not Expo Go. Spike T-12 decides |
-| Inference: any platform | Ollama HTTP API on a user-supplied URL | Always available; the eval harness uses it |
+| Inference: Android | `llama.rn` + Gemma 4 GGUF (+ mmproj for images) | Needs a dev build, not Expo Go. Ported from the human's earlier shipped app (ADR-012). T-10 |
+| Inference: tests / agents | `mock` provider | No model ever runs on the dev laptop (4 GB RAM) |
 | Optional renderer lib | Vercel `json-render` | Spike T-13 decides (ADR-005). Our spec stays canonical either way |
 
 ## 3. Directory layout
@@ -44,8 +44,6 @@ jackapp/
 ├── AGENTS.md  CLAUDE.md  ROADMAP.md  README.md
 ├── docs/                      # PRD, ARCHITECTURE, SCHEMA, COMPONENTS, TASKS, TESTING, DECISIONS, PROGRESS
 ├── app.json  eas.json  package.json  tsconfig.json
-├── scripts/
-│   └── eval.ts                # eval harness (Node, Ollama provider)
 ├── evals/
 │   ├── prompts.json           # 30 eval prompts with expectations
 │   └── results/               # timestamped JSON results (committed)
@@ -55,7 +53,10 @@ jackapp/
     │   ├── create.tsx         # Prompt → generate → preview → save
     │   ├── run/[id].tsx       # Run a mini-app
     │   ├── edit/[id].tsx      # Edit-by-chat
-    │   └── settings.tsx       # Provider + model management
+    │   ├── settings.tsx       # Model choice (E2B/E4B), download progress, delete model
+    │   └── dev/               # hidden dev screens, run on the phone
+    │       ├── spike.tsx      # 5 JSON prompts + 1 photo prompt: load time, tokens/s, valid JSON
+    │       └── eval.tsx       # runs generator/eval.ts with the local provider, shares results JSON
     ├── spec/                  # THE CONTRACT. No React imports here.
     │   ├── types.ts           # TS types inferred from Zod
     │   ├── schema.ts          # Zod schemas (structure)
@@ -73,14 +74,14 @@ jackapp/
     │   ├── provider.ts        # LLMProvider interface + registry
     │   ├── providers/
     │   │   ├── mock.ts
-    │   │   ├── ollama.ts
     │   │   ├── local.web.ts       # Transformers.js worker client
-    │   │   └── local.native.ts    # ExecuTorch / llama.rn
+    │   │   └── local.native.ts    # llama.rn
     │   └── generator/
     │       ├── catalogPrompt.ts   # builds the catalog section of prompts from catalog/*/meta.ts
     │       ├── prompts.ts         # system prompts + few-shot examples
     │       ├── plan.ts  fill.ts  repair.ts
-    │       └── generate.ts        # orchestrates the pipeline, emits progress events
+    │       ├── generate.ts        # orchestrates the pipeline, emits progress events
+    │       └── eval.ts            # pure TS eval runner, any provider (tested with mock)
     ├── capabilities/          # camera, share, notifications — platform-split where needed
     ├── storage/               # mini-app library CRUD
     └── ui/                    # app-shell components (not mini-app components)
@@ -90,18 +91,18 @@ jackapp/
 
 1. **Specs are data, never code.** No `eval`, `new Function`, dynamic `import()` of spec content, `dangerouslySetInnerHTML`, or WebView rendering of model output. The only "logic" in a spec is the closed op set and value expressions in `SCHEMA.md`. (ADR-002)
 2. **Every spec is untrusted** until `validate()` returns no errors: on generation, on load from storage, and on import.
-3. **`src/spec/` has no React or platform imports.** It must run in Node (eval harness, tests).
+3. **`src/spec/` has no React or platform imports.** It must run in Node (tests, eval runner).
 4. **`src/runtime/` never imports `src/ai/generator/`.** The runtime only knows the `LLMProvider` interface, for `ai.run`.
 5. **Catalog components never call AI or storage directly.** They get props and callbacks from the runtime.
 6. **Platform differences live in `.web.ts` / `.native.ts` files** behind one interface. No `Platform.OS` branching in feature code, except for small UI tweaks.
-7. **No network calls** except (a) model weight downloads from the configured model source and (b) the user-configured Ollama URL. No analytics, no telemetry.
+7. **No network calls** except model weight downloads from the configured model source. No user-set URLs, no analytics, no telemetry.
 8. **No new dependency** without a line in `DECISIONS.md` saying why.
 
 ## 5. LLM provider interface
 
 ```ts
 export interface LLMProvider {
-  id: 'mock' | 'ollama' | 'local';
+  id: 'mock' | 'local';
   label: string;
   caps: { vision: boolean; jsonSchema: boolean; contextTokens: number };
   status(): ProviderStatus;                 // 'unloaded' | 'downloading' | 'ready' | 'error'
@@ -118,13 +119,11 @@ export interface LLMProvider {
 ```
 
 - **mock**: returns fixtures by keyword. Used by tests, UI work, and agents without a model.
-- **ollama**: `POST {baseUrl}/api/chat` with `format: <JSON Schema>` and `stream: false`. Images go as base64 in `images`.
-- **local (web)**: Transformers.js in a Web Worker. The main thread talks to it via `postMessage`. Model files are cached by the browser.
-- **local (native)**: ExecuTorch or llama.rn. Model file is downloaded once into app storage.
+- **local (web)**: Transformers.js + WebGPU in a Web Worker. The main thread talks to it via `postMessage`. Model files are cached by the browser. If the browser has no WebGPU or the model fails to load, the web build shows "this browser can't run the model, use the Android app".
+- **local (native)**: `llama.rn`. GGUF model file is downloaded once into app storage with progress. JSON output uses llama.rn grammar / JSON-schema mode. Images go through the mmproj file. Ported from the human's earlier app (credit in README).
 
 Default models (confirm in spike, record in ADR-003):
-- Generation: Gemma 4 **E4B** (on-device and web) or a larger Gemma 4 through Ollama when available.
-- Runtime `ai.run`: Gemma 4 **E2B** on-device, same model as generation otherwise.
+- User picks **E2B** or **E4B** in Settings. Generation and `ai.run` use the chosen model.
 
 ## 6. Generation pipeline
 
@@ -172,7 +171,7 @@ Rules:
 | `jackapp:apps` | index: `[{id, name, icon, updatedAt}]` |
 | `jackapp:spec:<id>` | the spec JSON |
 | `jackapp:data:<id>` | persisted state for that mini-app |
-| `jackapp:settings` | provider choice, Ollama URL, model ids |
+| `jackapp:settings` | model choice (E2B/E4B) |
 
 ## 9. Platform matrix
 
@@ -180,8 +179,7 @@ Rules:
 |---|---|---|---|
 | Render + state + persistence | ✅ | ✅ | ✅ |
 | Camera / library | ✅ library + camera via browser | ✅ | ✅ |
-| Local model | ✅ if WebGPU (Chrome/Edge desktop & Android) | ✅ if spike passes | ⏳ |
-| Ollama provider | ✅ (needs CORS: `OLLAMA_ORIGINS`) | ✅ (LAN URL) | ✅ |
+| Local model | ✅ if WebGPU (Chrome Android; else "use the Android app") | ✅ llama.rn (main demo) | ⏳ |
 | Scheduled notifications | ⚠️ only while open | ✅ | ✅ |
 
 ## 10. Performance and size budgets
@@ -189,13 +187,13 @@ Rules:
 - Spec ≤ 32 KB. Render of a 60-element spec < 100 ms on a mid-range phone.
 - Images downscaled to ≤ 1024 px before storage and before `ai.run`.
 - Web JS bundle (excluding model weights) ≤ 3 MB.
-- Generation on the Ollama provider: median ≤ 60 s.
+- Generation (plan + fill + repairs) median ≤ 90 s on a mid-range Android phone.
 
 ## 11. Security notes
 
 - Specs are imported only after validation. Bad imports are rejected with readable errors.
 - Template rendering produces **plain text** only. No HTML, no markdown links that open URLs.
-- The Ollama URL is user-entered. Never auto-discover or send data anywhere else.
+- No URL fields anywhere. The only network traffic is model downloads. Never send user data anywhere.
 - No secrets in the repo. The app needs none.
 
 ## 12. Deployment

@@ -213,8 +213,8 @@ Capabilities are device features the runtime exposes. Components and ops declare
 
 | Capability | Used by | Web | Android | Permission prompt |
 |---|---|---|---|---|
-| `ai.text` | `ai.run` | WebGPU or Ollama | on-device or Ollama | none |
-| `ai.vision` | `ai.run` with `image` | WebGPU or Ollama | on-device or Ollama | none |
+| `ai.text` | `ai.run` | WebGPU | on-device (llama.rn) | none |
+| `ai.vision` | `ai.run` with `image` | WebGPU | on-device (llama.rn + mmproj) | none |
 | `camera` | ImageInput | ✅ | ✅ | first use |
 | `photoLibrary` | ImageInput | ✅ (file picker) | ✅ | first use |
 | `storage` | all state | ✅ | ✅ | none |
