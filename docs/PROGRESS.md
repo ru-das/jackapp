@@ -25,6 +25,8 @@
 >
 > Expo SDK 58 app scaffolded (router in `src/app`, `@/` alias, jest-expo, zod installed, skeleton stubs per ARCHITECTURE §3). RNTL 14: `render` is async (`await render(...)`). TS 6: no `baseUrl`; `types: [jest,node]` set. Codex can start `src/spec`. Next: T-04 CI, then the M1 spikes (T-10, T-11) in parallel (see ROADMAP lanes). Everyone commits on `main` (AGENTS.md §8). Answer the open questions below before T-10/T-11.
 
+> **T-10 phone steps:** (1) `npm i -g eas-cli && eas login`; (2) `eas init` in repo, commit the `projectId` it adds to `app.json`; (3) `eas build -p android --profile development`, install the APK from the link; (4) `npx expo start --dev-client`, open JackApp on the phone (same Wi-Fi); (5) open `jackapp://dev/spike`: Download+load (~4 GB, Wi-Fi), Run 5 JSON prompts, Photo prompt, tokens/s; (6) record results in Spike results + ADR-003. Standalone alt: `--profile preview`. Not verified on a device: untested `llama.rn` plugin options on RN 0.88 are the main risk (if EAS build fails, paste the log in Blockers).
+
 ## Open questions (human to answer)
 
 1. ~~**Hardware**~~ Answered: laptop has 4 GB RAM, no model runs on it (ADR-012).
@@ -50,6 +52,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-22 | Claude Code | T-10 (code) | llama.rn `local.native.ts`, `provider.ts`, mock, `dev/spike.tsx`, eas.json, app.json plugins, ADR-013; mocked tests only. Phone spike pending | see git log |
 | 2026-10-22 | Claude Code | docs (ADR-012) | llama.rn only, phone-side eval; removed the eval script, `scripts/eval.ts` and the server-provider stub; T-10 rewritten, T-12 merged | see git log |
 | 2026-10-22 | Claude Code | T-01,T-02,T-03,T-05 | Expo SDK 58 app, scripts, skeleton, README | see git log |
 | 2026-10-20 | human + Claude | docs | Project docs created | — |

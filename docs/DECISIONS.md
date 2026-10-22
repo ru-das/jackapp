@@ -113,3 +113,8 @@ Agents may add **Proposed** entries. Only the human marks them **Accepted**, or 
 **Consequences.** One less provider, no LAN or CORS setup, a stronger "runs on your own device" story. Real-model verification needs the human and a phone, so agent work stays on mock until then.
 **Alternatives.** Ollama on a borrowed machine: rejected, no host and it breaks the on-device story. ExecuTorch: rejected, llama.rn is already proven in the human's app.
 **Supersedes.** The Ollama parts of ADR-003 and ADR-004.
+
+## ADR-013: Dependencies added for the native provider (T-10)
+2026-10-22 · Accepted · Claude Code
+
+`llama.rn@0.12.9` (pinned, the version proven in Kokishin; on-device GGUF inference + mmproj vision), `expo-file-system` (resumable model download), `expo-dev-client` (native modules don't run in Expo Go), `expo-build-properties` (minSdk 24, proguard keep for `com.rnllama`), `expo-image-picker` (photo input for the spike, later ImageInput). Android model: `unsloth/gemma-4-E2B-it-GGUF` Q4_0 + `mmproj-F16` (Q4_0 because Android GPU offload supports only Q4_0/Q6_K). Spike result pending on the phone (ADR-003).
