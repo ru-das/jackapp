@@ -3,7 +3,7 @@
 The **catalog** is the complete set of building blocks the model may use. If a component isn't in this file, the model can't use it and the validator rejects it.
 
 **Source of truth in code:** `src/catalog/<Component>/{props.ts, <Component>.tsx, meta.ts}`.
-`meta.ts` holds the one-line **model hint** and an **example**; the generator builds its catalog prompt from those. A test (`catalog-docs-sync`) fails if a catalog component has no `### <Name>` heading here, or the other way round.
+`meta.ts` holds the one-line **model hint** and an **example**; the generator builds its catalog prompt from those. A test (`catalog-docs-sync`) compares the registry names bidirectionally with **P0** `### <Name>` headings until T-55 implements the P1 components. P1 schemas are deferred.
 
 Legend: **P0** = needed for hero apps and the challenge · **P1** = after P0 is green · **P2** = after the challenge.
 Value = see `SCHEMA.md` §4. Template = string with `{{…}}`. StateKey = declared state key.

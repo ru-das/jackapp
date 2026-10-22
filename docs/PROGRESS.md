@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-24 (Codex, 2026-10-22):** Renderer-free `catalog` exports the 13 P0 entries as `{props, meta}`. Every component has a named PropsSchema/inferred Props type and metadata example accepted by the schema. Strict nested sort, documented defaults, Select 2–12 options and slider bounds tested; AT-15 checks P0 docs bidirectionally (ADR-014). Full check green (7 suites / 299 tests). No dependencies/renderers/model/device changes. Next: T-21 consumes these schemas; T-33 supplies renderers, T-55 adds P1.
+
 > **T-23 (Codex, 2026-10-22):** Raw `h1/h2/h3.json` exported as named fixtures plus `validFixtures`; 16 separate invalid fixtures export input and expected code/path through `invalidFixtures`. H1 matches §13 exactly; H2/H3 complete their excerpts. Structural fixture tests pass; T-21 must activate semantic assertions for all cases. Full check green (6 suites / 250 tests). Pure data, no device or model run. Next: T-24, then T-21.
 
 > **T-22 (Codex, 2026-10-22):** `values.ts` exports `resolveValue(value, context)` and `resolveTemplate(text, context)`. `ValueContext` requires state, `now: Date`, locale and IANA timeZone; optional item/index, currency and onWarning. Currency formatting requires a currency code. References return raw values (including null/undefined); substitutions are plain text, single-pass, with escaped openers. Invalid numeric operations warn and return 0; invalid formatting warns and returns empty text. `ago` uses whole elapsed seconds/minutes/hours/days/30-day months/365-day years. 93 resolver tests cover all AT-02 cases and formatters, own-property access, immutable inputs and injected settings; full `npm run check` passes (5 suites / 243 tests). Pure modules only, no native code or model runs; no device/browser UI test in these tasks. Next: T-21 semantics, T-23 fixtures, T-24 strict component props.
@@ -62,6 +64,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-22 | Codex | T-24 | Strict P0 catalog props, metadata and bidirectional docs sync; check green (299 tests) | see git log |
 | 2026-10-22 | Codex | T-23 | Three raw hero fixtures and 16 invalid cases covering all error codes; check green (250 tests) | see git log |
 | 2026-10-22 | Codex | T-22 | Pure value/template resolver, all formatters/aggregates/math, safe refs and warnings; check green (243 tests) | see git log |
 | 2026-10-22 | Codex | T-20 | Strict structural schemas, typed defaults, bounded Values, inferred types; check green (150 tests) | see git log |

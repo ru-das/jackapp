@@ -32,7 +32,7 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 - [ ] **T-21 (P0) Semantic validator** (`validate.ts`): refs, tree (orphans, cycles, reuse), bind types, action field checks, `ai.run` output/into compatibility, `$item` context, limits. Returns `SpecError[]` with the codes in `SCHEMA.md` §11 and model-friendly hints. → AT-01
 - [x] **T-22 (P0) Value resolver** (`values.ts`): literals, templates + formatters, `$ref`, `$agg`, `$math`, `$now`, `$item`/`$index`. Pure functions. → AT-02
 - [x] **T-23 (P0) Fixtures.** Full H1, H2, H3 specs from `SCHEMA.md` §13, plus at least 12 invalid specs (one per error code where possible), each with its expected error code.
-- [ ] **T-24 (P0) Catalog prop schemas** for all P0 components (`catalog/*/props.ts` + `meta.ts`) and the registry. Validator uses them. → AT-15
+- [x] **T-24 (P0) Catalog prop schemas** for all P0 components (`catalog/*/props.ts` + `meta.ts`) and the registry. Validator uses them. → AT-15
 
 ## M3 — Runtime (Thu afternoon)
 

@@ -123,3 +123,8 @@ Agents may add **Proposed** entries. Only the human marks them **Accepted**, or 
 2026-10-22 · Accepted · Claude Code
 
 `llama.rn@0.12.9` (pinned, the version proven in Kokishin; on-device GGUF inference + mmproj vision), `expo-file-system` (resumable model download), `expo-dev-client` (native modules don't run in Expo Go), `expo-build-properties` (minSdk 24, proguard keep for `com.rnllama`), `expo-image-picker` (photo input for the spike, later ImageInput). Android model: `unsloth/gemma-4-E2B-it-GGUF` Q4_0 + `mmproj-F16` (Q4_0 because Android GPU offload supports only Q4_0/Q6_K). Spike result pending on the phone (ADR-003).
+
+## ADR-014: P0 catalog sync before P1 implementation
+2026-10-22 · Accepted · human-approved T-23 → T-24 → T-21 plan
+
+**Decision.** The renderer-free catalog exports `{ name: { props, meta } }` for the 13 P0 components. Strict prop schemas and metadata examples follow COMPONENTS.md. AT-15 compares P0 headings in both directions; P1 schemas and headings join the registry in T-55. No dependency added and no specVersion change: this implements the existing v0.1 prop contract.
