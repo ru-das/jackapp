@@ -119,7 +119,7 @@ export interface LLMProvider {
 ```
 
 - **mock**: returns fixtures by keyword. Used by tests, UI work, and agents without a model.
-- **local (web)**: Transformers.js + WebGPU in a Web Worker. The main thread talks to it via `postMessage`. Model files are cached by the browser. If the browser has no WebGPU or the model fails to load, the web build shows "this browser can't run the model, use the Android app".
+- **local (web)**: Transformers.js + WebGPU in a Web Worker (`public/llm-worker.js`, library from jsDelivr; client in `local.web.ts`). The main thread talks to it via `postMessage`. No WebGPU → falls back to wasm CPU with a one-time slow warning. `jsonSchema` is not enforced on web (the repair loop covers it). Model files are cached by the browser. If the browser has no WebGPU or the model fails to load, the web build shows "this browser can't run the model, use the Android app".
 - **local (native)**: `llama.rn`. GGUF model file is downloaded once into app storage with progress. JSON output uses llama.rn grammar / JSON-schema mode. Images go through the mmproj file. Ported from the human's earlier app (credit in README).
 
 Default models (confirm in spike, record in ADR-003):

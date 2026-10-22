@@ -110,6 +110,7 @@ Agents may add **Proposed** entries. Only the human marks them **Accepted**, or 
 - Settings: model choice E2B/E4B, download progress, delete model. No URL fields. Network = model downloads only.
 - Target: generation median ≤ 90 s on a mid-range Android phone.
 - Agents never run a model on the dev laptop; they use the mock provider. Real-model checks happen on the human's phone (`AGENTS.md` §4.12).
+- Web worker (T-11): `public/llm-worker.js` imports `@huggingface/transformers@4.3.1` from jsDelivr, because Metro can't bundle workers or onnxruntime-web. No npm dependency added; the CDN load is library code, not user data (shortcut: vendor into `public/` for offline web).
 **Consequences.** One less provider, no LAN or CORS setup, a stronger "runs on your own device" story. Real-model verification needs the human and a phone, so agent work stays on mock until then.
 **Alternatives.** Ollama on a borrowed machine: rejected, no host and it breaks the on-device story. ExecuTorch: rejected, llama.rn is already proven in the human's app.
 **Supersedes.** The Ollama parts of ADR-003 and ADR-004.

@@ -20,7 +20,7 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 
 - [ ] **T-10 (P0) [code done 2026-10-22, phone spike pending] Native provider with llama.rn.** `provider.ts` + `local.native.ts` ported from the human's earlier llama.rn + Gemma app. Model downloaded with progress; JSON via grammar / JSON-schema mode; images via mmproj. Add the dev screen `src/app/dev/spike.tsx` that runs 5 JSON prompts + 1 photo prompt and shows load time, tokens/s, and valid JSON count.
   - Credit the earlier app in README → Credits. Human runs the spike on the phone and records results in `PROGRESS.md` → Spike results and ADR-003. No model runs on the dev laptop (ADR-012). ⏱ 3 h. Absorbs the old T-12.
-- [ ] **T-11 (P0) Web local provider spike.** Transformers.js + WebGPU in a Web Worker loading a small Gemma 4 (prefer E2B ONNX). Text → JSON and image → JSON in the Expo web build, tested by the human in Chrome on the phone.
+- [~] **T-11 (P0) Web local provider spike.** *(code done 2026-10-22, mocked tests only; phone spike pending)* Transformers.js + WebGPU in a Web Worker loading a small Gemma 4 (prefer E2B ONNX). Text → JSON and image → JSON in the Expo web build, tested by the human in Chrome on the phone.
   - Record: model id, download size, load time, tokens/s, JSON validity on 5 prompts → ADR-003. ⏱ 3 h. **If it fails, the web build shows "this browser can't run the model, use the Android app", and the APK is the main demo.**
 - [x] **T-12 merged into T-10.** (Android local provider is now T-10, llama.rn only. ADR-012.)
 - [ ] **T-13 (P1) json-render evaluation.** Can it render the H1 fixture through an adapter on web and Android? Write the result in ADR-005. ⏱ 2 h max. Default: own renderer.
