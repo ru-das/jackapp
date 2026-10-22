@@ -18,8 +18,11 @@
 | Agent | Task | Started (IST) | Notes |
 |---|---|---|---|
 | — | — | — | — |
+| Codex | T-22 | 2026-10-22 | T-20 verified; implementing pure value resolution next. |
 
 ## Handoff note (latest)
+
+> **T-20 (Codex, 2026-10-22):** `src/spec/schema.ts` exports strict structural schemas and `SpecSchema`; `types.ts` infers the public types. Defaults are applied on parse. 142 schema tests; `npm run check` passes (4 suites / 150 tests). Per the approved plan, element props remain JSON-only until T-24 supplies strict component schemas. T-21 still owns reference existence, tree validation, state compatibility, expanded prompt and serialized-size checks; structural parsing alone does not authorize rendering/saving. T-22 is next in this session. No model or device runs.
 
 > **T-14 (2026-10-22):** ADR-003 now has exact ids. Gemma 4 **E2B** default for generation and `ai.run`, Android `unsloth/gemma-4-E2B-it-GGUF` Q4_0 + `mmproj-F16`, web `onnx-community/gemma-4-E2B-it-ONNX`. E4B optional, ids unverified, not wired. ADR-005: own renderer, T-13 skipped. Both ADRs still *Proposed*: human marks Accepted. Spike numbers still need the phone.
 >
@@ -56,6 +59,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-22 | Codex | T-20 | Strict structural schemas, typed defaults, bounded Values, inferred types; check green (150 tests) | see git log |
 | 2026-10-22 | Claude Code | T-14 | ADR-003 exact model ids (E2B default), ADR-005 own renderer; left Proposed | see git log |
 | 2026-10-22 | Claude Code | T-11 (code) | `public/llm-worker.js` (Transformers.js 4.3.1 from jsDelivr, Gemma 4 E2B ONNX, webgpu q4f16 / wasm q4), `local.web.ts` client, fake-Worker tests; `expo export -p web` OK. Phone spike pending | see git log |
 | 2026-10-22 | Claude Code | T-10 (code) | llama.rn `local.native.ts`, `provider.ts`, mock, `dev/spike.tsx`, eas.json, app.json plugins, ADR-013; mocked tests only. Phone spike pending | see git log |
