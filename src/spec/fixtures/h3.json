@@ -1,0 +1,141 @@
+{
+  "specVersion": "0.1",
+  "meta": {
+    "name": "Bill Splitter",
+    "description": "Read a receipt and split the total",
+    "icon": "🧾"
+  },
+  "state": {
+    "bill": {
+      "type": "image",
+      "default": null,
+      "persist": false
+    },
+    "lines": {
+      "type": "list",
+      "of": {
+        "name": "string",
+        "price": "number"
+      },
+      "default": []
+    },
+    "people": {
+      "type": "number",
+      "default": 2
+    }
+  },
+  "screens": [
+    {
+      "id": "main",
+      "title": "Bill Splitter",
+      "root": "root"
+    }
+  ],
+  "elements": {
+    "root": {
+      "type": "Stack",
+      "props": {},
+      "children": [
+        "receipt",
+        "readBtn",
+        "linesList",
+        "peopleIn",
+        "total",
+        "eachPays"
+      ]
+    },
+    "receipt": {
+      "type": "ImageInput",
+      "props": {
+        "bind": "bill",
+        "label": "Receipt photo"
+      }
+    },
+    "readBtn": {
+      "type": "Button",
+      "props": {
+        "label": "Read receipt",
+        "onPress": "readBill"
+      }
+    },
+    "linesList": {
+      "type": "List",
+      "props": {
+        "items": "lines",
+        "title": "{{$item.name}}",
+        "trailing": "{{$item.price|currency}}"
+      }
+    },
+    "peopleIn": {
+      "type": "NumberInput",
+      "props": {
+        "bind": "people",
+        "label": "People",
+        "min": 1
+      }
+    },
+    "total": {
+      "type": "Stat",
+      "props": {
+        "label": "Total",
+        "value": {
+          "$agg": {
+            "op": "sum",
+            "of": "lines",
+            "field": "price"
+          }
+        },
+        "format": "currency"
+      }
+    },
+    "eachPays": {
+      "type": "Stat",
+      "props": {
+        "label": "Each person pays",
+        "value": {
+          "$math": [
+            "round",
+            {
+              "$math": [
+                "/",
+                {
+                  "$agg": {
+                    "op": "sum",
+                    "of": "lines",
+                    "field": "price"
+                  }
+                },
+                {
+                  "$ref": "people"
+                }
+              ]
+            },
+            2
+          ]
+        },
+        "format": "currency"
+      }
+    }
+  },
+  "actions": {
+    "readBill": {
+      "steps": [
+        {
+          "op": "ai.run",
+          "prompt": "Read the receipt. Return each line with its name and numeric price.",
+          "image": {
+            "$ref": "bill"
+          },
+          "output": {
+            "type": "list",
+            "of": {
+              "name": "string",
+              "price": "number"
+            }
+          },
+          "into": "lines"
+        }
+      ]
+    }
+  }
+}

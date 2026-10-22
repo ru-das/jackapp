@@ -1,0 +1,156 @@
+{
+  "specVersion": "0.1",
+  "meta": {
+    "name": "Fridge Snap",
+    "description": "Photo of your fridge → grocery list",
+    "icon": "🧊"
+  },
+  "state": {
+    "photo": {
+      "type": "image",
+      "default": null,
+      "persist": false
+    },
+    "notes": {
+      "type": "string",
+      "default": ""
+    },
+    "items": {
+      "type": "list",
+      "of": {
+        "name": "string",
+        "qty": "string",
+        "done": "boolean"
+      },
+      "default": []
+    }
+  },
+  "screens": [
+    {
+      "id": "main",
+      "title": "Fridge Snap",
+      "root": "root"
+    }
+  ],
+  "elements": {
+    "root": {
+      "type": "Stack",
+      "props": {
+        "gap": "md"
+      },
+      "children": [
+        "capture",
+        "listCard"
+      ]
+    },
+    "capture": {
+      "type": "Card",
+      "props": {
+        "title": "Snap your fridge"
+      },
+      "children": [
+        "photoIn",
+        "notesIn",
+        "makeBtn"
+      ]
+    },
+    "photoIn": {
+      "type": "ImageInput",
+      "props": {
+        "bind": "photo",
+        "label": "Fridge photo",
+        "source": "any"
+      }
+    },
+    "notesIn": {
+      "type": "TextInput",
+      "props": {
+        "bind": "notes",
+        "label": "Anything to add?",
+        "placeholder": "e.g. we're out of eggs"
+      }
+    },
+    "makeBtn": {
+      "type": "Button",
+      "props": {
+        "label": "Make my list",
+        "onPress": "makeList",
+        "variant": "primary"
+      }
+    },
+    "listCard": {
+      "type": "Card",
+      "props": {
+        "title": "Grocery list"
+      },
+      "children": [
+        "list",
+        "clearBtn"
+      ]
+    },
+    "list": {
+      "type": "List",
+      "props": {
+        "items": "items",
+        "title": "{{$item.name}}",
+        "subtitle": "{{$item.qty}}",
+        "checkField": "done",
+        "deletable": true,
+        "emptyText": "Snap a photo to start"
+      }
+    },
+    "clearBtn": {
+      "type": "Button",
+      "props": {
+        "label": "Clear bought items",
+        "onPress": "clearDone",
+        "variant": "secondary"
+      }
+    }
+  },
+  "actions": {
+    "makeList": {
+      "steps": [
+        {
+          "op": "ai.run",
+          "prompt": "You see a photo of a home fridge. List common groceries that look missing or nearly finished. Short names. Extra notes from the user: {{notes}}",
+          "image": {
+            "$ref": "photo"
+          },
+          "output": {
+            "type": "list",
+            "of": {
+              "name": "string",
+              "qty": "string"
+            }
+          },
+          "into": "items",
+          "mode": "replace",
+          "defaults": {
+            "done": false
+          }
+        },
+        {
+          "op": "toast",
+          "message": "{{items|count}} items on your list"
+        }
+      ]
+    },
+    "clearDone": {
+      "steps": [
+        {
+          "op": "confirm",
+          "message": "Remove items you've bought?"
+        },
+        {
+          "op": "state.remove",
+          "path": "items",
+          "where": {
+            "field": "done",
+            "equals": true
+          }
+        }
+      ]
+    }
+  }
+}

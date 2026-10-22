@@ -1,0 +1,129 @@
+{
+  "specVersion": "0.1",
+  "meta": {
+    "name": "Plant Pal",
+    "description": "Track plants and watering",
+    "icon": "🌱"
+  },
+  "state": {
+    "plants": {
+      "type": "list",
+      "of": {
+        "name": "string",
+        "lastWatered": "date"
+      },
+      "default": []
+    },
+    "newPlant": {
+      "type": "string",
+      "default": ""
+    },
+    "lastWatered": {
+      "type": "date",
+      "default": null
+    }
+  },
+  "screens": [
+    {
+      "id": "main",
+      "title": "Plant Pal",
+      "root": "root"
+    }
+  ],
+  "elements": {
+    "root": {
+      "type": "Stack",
+      "props": {},
+      "children": [
+        "plantIn",
+        "addBtn",
+        "plantsList"
+      ]
+    },
+    "plantIn": {
+      "type": "TextInput",
+      "props": {
+        "bind": "newPlant",
+        "label": "Plant name",
+        "onSubmit": "addPlant"
+      }
+    },
+    "addBtn": {
+      "type": "Button",
+      "props": {
+        "label": "Add plant",
+        "onPress": "addPlant"
+      }
+    },
+    "plantsList": {
+      "type": "List",
+      "props": {
+        "items": "plants",
+        "title": "{{$item.name}}",
+        "subtitle": "Watered {{$item.lastWatered|ago}}",
+        "onItemPress": "waterOne"
+      }
+    }
+  },
+  "actions": {
+    "addPlant": {
+      "steps": [
+        {
+          "op": "state.append",
+          "path": "plants",
+          "value": {
+            "name": {
+              "$ref": "newPlant"
+            },
+            "lastWatered": {
+              "$now": true
+            }
+          }
+        },
+        {
+          "op": "state.set",
+          "path": "newPlant",
+          "value": ""
+        }
+      ]
+    },
+    "waterOne": {
+      "steps": [
+        {
+          "op": "state.update",
+          "path": "plants",
+          "index": {
+            "$ref": "$index"
+          },
+          "set": {
+            "lastWatered": {
+              "$now": true
+            }
+          }
+        },
+        {
+          "op": "state.set",
+          "path": "lastWatered",
+          "value": {
+            "$now": true
+          }
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "sunday",
+      "type": "schedule",
+      "schedule": {
+        "kind": "weekly",
+        "weekday": 0,
+        "time": "09:00"
+      },
+      "notify": {
+        "title": "Plant Pal 🌱",
+        "body": "Sunday watering time!"
+      }
+    }
+  ]
+}

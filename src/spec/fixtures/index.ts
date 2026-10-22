@@ -1,1 +1,23 @@
-export {};
+import h1 from './h1.json';
+import h2 from './h2.json';
+import h3 from './h3.json';
+import badJson from './invalid/badJson';
+import version from './invalid/version';
+import shape from './invalid/shape';
+import component from './invalid/component';
+import prop from './invalid/prop';
+import reference from './invalid/reference';
+import state from './invalid/state';
+import type from './invalid/type';
+import orphan from './invalid/orphan';
+import cycle from './invalid/cycle';
+import reuse from './invalid/reuse';
+import value from './invalid/value';
+import item from './invalid/item';
+import action from './invalid/action';
+import limit from './invalid/limit';
+import ai from './invalid/ai';
+
+export { h1, h2, h3 };
+export const validFixtures = { h1, h2, h3 };
+export const invalidFixtures = { badJson, version, shape, component, prop, reference, state, type, orphan, cycle, reuse, value, item, action, limit, ai };
