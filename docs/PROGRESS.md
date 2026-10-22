@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-33 (Claude Code, 2026-10-23):** 13 P0 components in `src/catalog/<Name>/<Name>.tsx` take already-resolved props + callbacks (no spec/AI/storage imports). Tokens in `src/ui/theme.ts` (`useTheme()` follows system light/dark; `space`, `radius`, `MIN_TARGET` 44). Calm warm palette, one sage accent. NumberInput `slider` is a stepper + bar (shortcut, no native slider in core RN). ImageInput shows camera + library buttons. List delete = ✕ button on all platforms. 2 label/a11y tests; check green (13 suites / 451 tests). Not yet viewed on web/device: T-32/T-35 follow.
+
 > **T-31 (Codex, 2026-10-22):** `createActionEngine({spec, store, services, getValueContext})` in `src/runtime/actions.ts` exposes `run(id, {item?, index?}?)`, `isBusy(id)` and `subscribe(listener)` for UI snapshots. Requires an already semantically validated, parsed spec. All seven state ops validate candidates with `StateDeclSchema` before a single immutable write; indices are range-checked, resolver numeric warnings/fallbacks preserved, resets cloned. Steps await services sequentially with fresh state/settings and captured List context; duplicate IDs are suppressed, distinct IDs independent. Declined confirm stops quietly; failures log action/step details, preserve earlier writes and toast; busy always clears. Inject share/toast/confirm/navigate and optional notify/ai handlers (sync or async); missing handlers toast and stop. AI receives resolved prompt/image plus output/into/mode/defaults and owns state writes. 33 fake-service tests passed independently; `npm run check` green (12 suites / 449 tests). No dependencies, contract changes, native integrations, model runs or device/browser UI tests. **Next:** Claude Code review; T-32/T-35 wire the engine to renderer/store/capabilities. T-41 supplies AI output validation/retry/defaults, live prompt limit, abort and timeout; T-52 supplies notification scheduling.
 
 > **T-34 (Claude Code, 2026-10-22):** `@/capabilities` exports `pickImage({source})` (→ downscaled ≤1024 px JPEG 0.8 data URI, `null` on cancel, throws friendly error if permission denied), `share(text)` (`share.web.ts`: Web Share → clipboard + toast; `share.native.ts`: RN Share) and `toast(msg)`/`subscribeToast`. `src/ui/Toaster.tsx` is mounted in the root layout. `source:'any'` opens the library (shortcut: T-33 ImageInput should render a camera button too). 10 tests with mocked picker/manipulator; check green (416 tests); web export OK. **Not tested on a device:** Android camera, share sheet, permission prompts.
@@ -72,6 +74,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-23 | Claude Code | T-33 | 13 P0 components + theme tokens, light/dark, labels, 44 px targets; check green (451 tests) | see git log |
 | 2026-10-22 | Codex | T-31 | Action engine, immutable validated state ops, async service delegation and busy subscriptions; check green (12 suites / 449 tests) | see git log |
 | 2026-10-22 | Claude Code | T-34 | pickImage with downscale, platform-split share, toast + Toaster; check green (416 tests) | see git log |
 | 2026-10-22 | Claude Code | T-30 | Store with defaults, persist filter, 500 ms debounced AsyncStorage save, load; AT-05 tests; check green (406 tests) | see git log |
