@@ -19,3 +19,5 @@ export async function writeJson(key: string, value: unknown): Promise<void> {
     console.warn(`storage: could not write ${key}`, e);
   }
 }
+
+export const specKey = (appId: string) => `jackapp:spec:${appId}`;

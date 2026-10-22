@@ -31,6 +31,8 @@ interface Ctx {
 }
 
 const LOCALE = Intl.DateTimeFormat().resolvedOptions();
+// shortcut: fixed USD until a currency setting exists (T-40 settings), then read it from there.
+const CURRENCY = 'USD';
 const FORMATS = new Set(['number', 'currency', 'percent', 'date', 'ago', 'text']);
 
 function formatStat(value: unknown, format: string, ctx: ValueContext): string {
@@ -149,7 +151,7 @@ export function Renderer({ spec, store, engine, onReady }: RendererProps) {
   useEffect(() => onReady?.({ navigate }), [onReady, navigate]);
 
   const base = useMemo<ValueContext>(() => ({
-    state, now: new Date(), locale: LOCALE.locale, timeZone: LOCALE.timeZone,
+    state, now: new Date(), locale: LOCALE.locale, timeZone: LOCALE.timeZone, currency: CURRENCY,
     onWarning: (m) => console.warn(`spec: ${m}`),
   }), [state]);
   const busy = useMemo(() => new Set(busySnap ? busySnap.split(',') : []), [busySnap]);

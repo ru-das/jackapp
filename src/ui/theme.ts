@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react';
 import { useColorScheme } from 'react-native';
 
 const light = {
@@ -14,4 +15,12 @@ export const space = { none: 0, sm: 8, md: 16, lg: 24 } as const;
 export const radius = { card: 20, control: 14, pill: 999 } as const;
 export const MIN_TARGET = 44;
 
-export const useTheme = (): Palette => (useColorScheme() === 'dark' ? dark : light);
+// The static web export is rendered light on the server. A dark first client render would hydrate-mismatch and
+// React would never patch the stale attributes, so hydration uses the server snapshot (false) and then flips.
+const noop = () => () => {};
+const useHydrated = (): boolean => useSyncExternalStore(noop, () => true, () => false);
+
+export const useTheme = (): Palette => {
+  const scheme = useColorScheme();
+  return useHydrated() && scheme === 'dark' ? dark : light;
+};
