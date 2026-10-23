@@ -161,3 +161,5 @@ Automated checks in `src/ai/generator/__tests__/eval.test.ts` use mock/scripted
 providers to cover sequencing, filtering, both pipeline modes, repair accounting,
 refusals, provider failure, requirements, denominators, median, and error ranking.
 These checks establish runner correctness, not real-model quality or phone speed.
+
+On the phone: open `jackapp://dev/eval`, choose model and mode, Run, then **Save file** and copy the JSON to `evals/results/`.

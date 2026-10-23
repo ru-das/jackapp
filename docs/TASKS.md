@@ -68,6 +68,7 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 
 - [ ] **T-60 (P0) Eval on the phone.** Codex: `src/ai/generator/eval.ts` (pure TS runner, any provider, tested with mock) + 30 prompts in `evals/prompts.json` (10 hero-like, 15 everyday chores, 5 should-be-unsupported). Claude Code: hidden screen `src/app/dev/eval.tsx` runs it with the local provider and shares the results JSON. Metrics: valid on first try, valid after repair, unsupported precision, median latency (target ≤ 90 s). With and without the plan stage. Human saves the shared JSON to `evals/results/<timestamp>.json`. → AT-14
   - [x] **Codex runner + corpus (2026-10-23):** sequential `runEval`, no-plan mode, diagnostic snapshots, scoring/targets/top errors, and 30 prompts; mock-only check green (25 suites / 554 tests). Overall T-60 remains pending Claude Code's screen and human phone runs in both modes.
+  - [x] **Claude Code screen (2026-10-23):** hidden `src/app/dev/eval.tsx` (model E2B/E4B, skip-plan switch, one prompt or all, live rows, metrics table, Share + Save file via new `saveFile` capability); mock-tested (557 tests). T-60 stays unchecked until the human's phone runs in both modes are saved to `evals/results/`.
 - [ ] **T-61 (P0) Fix the top 3 failure modes** found by the eval (prompts, hints, validator messages). Re-run and record the before/after.
 - [ ] **T-62 (P0) Security pass**: forbidden-API grep, HTML-in-spec test, import validation. → AT-12
 - [ ] **T-63 (P0) Web deploy**: static export + PWA manifest/icons, hosted. → AT-13

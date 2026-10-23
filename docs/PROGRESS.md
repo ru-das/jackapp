@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M0 — Setup done except T-04 CI; T-14 decisions drafted (ADR-003/005 await human Accept); M1 phone spikes pending |
-| Last updated | 2026-10-23 by Codex |
+| Last updated | 2026-10-23 by Claude Code |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -20,6 +20,10 @@
 | — | — | — | — |
 
 ## Handoff note (latest)
+
+> **T-60 screen (Claude Code, 2026-10-23):** `src/app/dev/eval.tsx` (hidden; open `jackapp://dev/eval`). Pick E2B/E4B (screen-only, Settings untouched), "Skip plan stage" switch, "All 30" or one prompt id, Run. Model not downloaded → card pointing to Settings (never auto-downloads); downloaded → `load()`. Live "n / total · seconds" bar and one row per prompt (✓ as expected, ⊘ wrong outcome, ✗ failed); then metrics table (count/denominator, %, target ✓/✗/—) and top errors. **Share** sends the pretty JSON as text; **Save file** (new `saveFile` capability: Android folder picker via `expo-file-system`, web download) writes `eval-<startedAt>-<model>-<plan|noplan>.json`. Full runs are large, so prefer Save file; Share text can be cut off on Android. Shortcut: no cancel (`runEval` has no signal), leave the screen or restart the app. 3 RNTL tests with the mock; check green (26 suites / 557 tests); web export builds. **Not run on a device or with a real model.**
+>
+> **Phone steps (H):** `npx expo start --dev-client` → open `jackapp://dev/eval` → E2B, plan on, All 30, Run → Save file → copy into `evals/results/`. Repeat with Skip plan stage on (and E4B if RAM allows). Then T-60 can be ticked and Codex starts T-61 from the top errors.
 
 > **T-60 runner (Codex, 2026-10-23):** `runEval(provider, model, {noPlan?, only?, onResult?})` exported from `src/ai/generator/eval.ts`. Caller selects/loads the provider; runner does inference only, sequentially in `e01`–`e30` corpus order. Unknown ids reject before calls; generation failures stay rows. Returns serializable timestamps/provider/model/options/rows/metrics/targets/topErrors. Callback receives an isolated row copy; observer failure does not stop the suite. Rows retain full GenerationResult, expectations, duration, firstFillValid, missingRequirements and per-attempt diagnostics. `generate({noPlan:true})` starts directly at FILL; default unchanged. Repairing/failed progress events now include copied errors. PLAN repairs do not disqualify first-FILL validity; recovered + terminal errors counted once per occurrence, requirements separate. TESTING §6 and ARCHITECTURE §13 document fields and denominators. Full `npm run check -- -- --runInBand --roots src --watchman=false`: typecheck/lint and 25 suites / 554 tests pass. **Next for Claude Code:** build hidden `src/app/dev/eval.tsx`, load selected local provider/model, await runner, use onResult for live rows and share returned JSON. Human runs both modes on phone and saves `evals/results/<timestamp>.json`; T-60 remains unchecked until screen + phone results. No dependencies, provider/UI changes, native/device or real-model runs.
 
@@ -98,6 +102,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-23 | Claude Code | T-60 screen | Hidden dev/eval screen: model/no-plan/one-prompt controls, live rows, metrics table, Share + Save file; mock-tested (557 tests), phone runs pending | see git log |
 | 2026-10-23 | Codex | T-60 runner | Sequential pure TS eval + 30 prompts, no-plan/diagnostics, scoring and regression tests; check green (554 tests); screen/phone pending | see git log |
 | 2026-10-23 | Claude Code | T-47 | Create screen: chips, staged progress, live Renderer preview, save/try again, unsupported card; mock-tested (540 tests), phone AT-07 pending | see git log |
 | 2026-10-23 | Claude Code | T-41 | `ai.run` service: schema, retry, coercion/defaults, 120 s timeout, abort; session factory; check green (537 tests) | see git log |
