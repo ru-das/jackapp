@@ -1,6 +1,6 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { AppState, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, AppState, StyleSheet, Text, View } from 'react-native';
 import type { createActionEngine } from '@/runtime/actions';
 import { Renderer, type RendererHandle } from '@/runtime/Renderer';
 import { createSession } from '@/runtime/session';
@@ -50,6 +50,7 @@ export default function Run() {
   return (
     <View style={[styles.fill, { backgroundColor: t.bg }]}>
       <Stack.Screen options={{ title }} />
+      {phase.kind === 'loading' ? <ActivityIndicator accessibilityLabel="Opening mini-app" color={t.accent} style={styles.spin} /> : null}
       {phase.kind === 'ready' ? <Renderer spec={phase.spec} store={phase.store} engine={phase.engine} onReady={(h) => { navigateRef.current = h.navigate; }} /> : null}
       {phase.kind === 'error' ? (
         <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
@@ -63,6 +64,7 @@ export default function Run() {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
+  spin: { marginTop: space.lg * 2 },
   card: { margin: space.lg, padding: space.lg, gap: space.sm, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth },
   h: { fontSize: 19, fontWeight: '600' },
 });

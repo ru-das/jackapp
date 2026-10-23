@@ -69,7 +69,7 @@ test('a broken element shows the "this part broke" card and siblings survive', a
     services: { share: jest.fn(), toast: jest.fn(), confirm: jest.fn(), navigate: jest.fn() },
     getValueContext: () => ({ now: new Date(), locale: 'en-US', timeZone: 'UTC' }) });
   await render(<Renderer spec={spec} store={store} engine={engine} />);
-  expect(screen.getByText(/This part broke/)).toBeTruthy();
+  expect(screen.getByText(/This bit dozed off/)).toBeTruthy();
   expect(screen.getByText('Grocery list')).toBeTruthy();
 });
 

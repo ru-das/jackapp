@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { generate, type GenerationProgress } from '@/ai/generator/generate';
 import type { Unsupported } from '@/ai/generator/outputSchemas';
 import { getActiveProvider } from '@/ai/provider';
@@ -144,7 +144,12 @@ export default function Create() {
       {busy ? <ActionButton kind="quiet" label="Cancel" onPress={cancel} />
         : <ActionButton label="Build" disabled={!prompt.trim()} onPress={() => void build(prompt)} />}
 
-      {phase.kind === 'loading' ? <Text accessibilityLiveRegion="polite" style={{ color: t.muted, fontSize: 16 }}>Getting the model ready…</Text> : null}
+      {phase.kind === 'loading' ? (
+        <View accessibilityLiveRegion="polite" style={styles.wait}>
+          <ActivityIndicator color={t.accent} />
+          <Text style={{ color: t.muted, fontSize: 16 }}>Waking the model up…</Text>
+        </View>
+      ) : null}
       {phase.kind === 'working' ? <GenerationStages progress={phase.progress} /> : null}
       {phase.kind === 'needsModel' ? (
         <View style={card}>
@@ -174,6 +179,7 @@ const styles = StyleSheet.create({
   content: { padding: space.lg, gap: space.md, maxWidth: 640, width: '100%', alignSelf: 'center' },
   label: { fontSize: 18, fontWeight: '600' },
   input: { minHeight: 110, padding: space.md, borderRadius: radius.control, borderWidth: 1, fontSize: 16, textAlignVertical: 'top' },
+  wait: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   chip: { minHeight: MIN_TARGET, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill },
   card: { padding: space.lg, gap: space.sm, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth },

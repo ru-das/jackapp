@@ -9,10 +9,10 @@ export function UnsupportedCard({ unsupported, onBuildSuggestion }: Props) {
   const t = useTheme();
   return (
     <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
-      <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>I can&apos;t build that one yet</Text>
+      <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>🦥 That one&apos;s out of my reach (for now)</Text>
       <Text style={{ color: t.text, fontSize: 16 }}>{unsupported.reason}</Text>
-      <Text style={{ color: t.muted, fontSize: 15 }}>Missing: {unsupported.missing.join(', ')}</Text>
-      <Text style={{ color: t.text, fontSize: 16, fontWeight: '600' }}>What I can do instead</Text>
+      <Text style={{ color: t.muted, fontSize: 15 }}>I&apos;d need: {unsupported.missing.join(', ')}</Text>
+      <Text style={{ color: t.text, fontSize: 16, fontWeight: '600' }}>But I could do this</Text>
       <Text style={{ color: t.text, fontSize: 16 }}>{unsupported.suggestion}</Text>
       <ActionButton label="Build the suggestion" onPress={onBuildSuggestion} />
     </View>

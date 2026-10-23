@@ -9,7 +9,7 @@ interface Props {
 
 export function List({ rows, emptyText, onToggle, onDelete, onPress }: Props) {
   const t = useTheme();
-  if (rows.length === 0) return <Text style={[styles.empty, { color: t.muted }]}>{emptyText}</Text>;
+  if (rows.length === 0) return <Text style={[styles.empty, { color: t.muted }]}>🦥 {emptyText}</Text>;
   return (
     <View>
       {rows.map((r, i) => (

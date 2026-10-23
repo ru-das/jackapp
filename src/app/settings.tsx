@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { confirm } from '@/capabilities';
 import { ggufBytes, MODELS, type ModelId } from '@/ai/models';
 import { getProvider } from '@/ai/provider';
@@ -55,8 +55,8 @@ export default function SettingsScreen() {
     refresh();
   };
 
-  if (!settings || !provider) return <View style={{ flex: 1, backgroundColor: t.bg }} />;
-  const status = progress ? 'Downloading…' : provider.status() === 'ready' ? 'Loaded' : downloaded ? 'Downloaded' : 'Not downloaded';
+  if (!settings || !provider) return <View style={{ flex: 1, backgroundColor: t.bg }}><ActivityIndicator accessibilityLabel="Loading settings" color={t.accent} style={{ marginTop: space.lg * 2 }} /></View>;
+  const status = progress ? 'Downloading…' : provider.status() === 'ready' ? 'Ready' : downloaded ? 'Downloaded' : 'Not downloaded';
   const pct = progress ? Math.min(100, Math.round((progress.loaded / Math.max(progress.total, 1)) * 100)) : 0;
   const card = [styles.card, { backgroundColor: t.surface, borderColor: t.border }];
 

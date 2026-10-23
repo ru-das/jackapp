@@ -75,7 +75,8 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
   - [ ] **Human phone acceptance:** full web/Android session network logs (download, generate, photo, save/reopen, offline); verify model-source-only external requests and local WebGPU/WASM assets/cache/redirects. Record results before ticking T-62/AT-12.
 - [x] **T-63 (P0) Web deploy**: static export + PWA manifest/icons, hosted. → AT-13
 - [ ] **T-64 (P0) Android APK** via EAS `preview`, attached to a GitHub release. → AT-13
-- [ ] **T-65 (P1) Accessibility and visual polish pass.** → AT-16
+- [~] **T-65 (P1) Accessibility and visual polish pass.** → AT-16
+  - Code done (2026-10-23, Claude Code): light palette now ≥4.5:1 (guarded by `src/ui/__tests__/theme.test.ts`), themed element-error fallback, spinners + elapsed time for slow model, sloth copy on Home empty state / unsupported card / empty List, Settings "Ready". Mock-only `EXPO_PUBLIC_MOCK_DELAY_MS` simulates a slow model on web. **Pending (human):** walk each screen on phone at 130% font + dark + real model; then tick.
 
 ## M7 — Ship (Sun → Mon 11:00 IST)
 

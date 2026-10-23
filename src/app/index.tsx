@@ -28,7 +28,13 @@ export default function Home() {
   return (
     <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={styles.content}>
       <Text accessibilityRole="header" style={[styles.title, { color: t.text }]}>JackApp</Text>
-      <Text style={[styles.sub, { color: t.muted }]}>My mini-apps will live here</Text>
+      <View style={[styles.card, styles.empty, { backgroundColor: t.surface, borderColor: t.border }]}>
+        <Text style={styles.icon}>🦥</Text>
+        <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>No mini-apps yet</Text>
+        <Text style={{ color: t.muted, fontSize: 16, textAlign: 'center' }}>
+          Tell me a chore you’d rather not do. I’ll build the app. Slowly.
+        </Text>
+      </View>
       {([['New mini-app', '/create'], ['Settings', '/settings']] as const).map(([label, to]) => (
         <Pressable
           key={to} accessibilityRole="button" onPress={() => router.push(to)}
@@ -67,7 +73,7 @@ export default function Home() {
 const styles = StyleSheet.create({
   content: { padding: space.lg, gap: space.md, maxWidth: 640, width: '100%', alignSelf: 'center' },
   title: { fontSize: 34, fontWeight: '700' },
-  sub: { fontSize: 16, marginBottom: space.sm },
+  empty: { alignItems: 'center' },
   card: { padding: space.lg, gap: space.sm, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth },
   h: { fontSize: 17, fontWeight: '600', marginBottom: space.sm },
   row: { minHeight: MIN_TARGET + 12, flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.control },

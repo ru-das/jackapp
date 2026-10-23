@@ -46,6 +46,10 @@ export const mockProvider: LLMProvider = {
   async remove() {},
   async generate({ system, messages, jsonSchema, signal }) {
     if (signal?.aborted) throw new Error('aborted');
+    // Dev-only: lets the slow-model UI be walked through on web without a model (ADR-012).
+    const delay = Number(process.env.EXPO_PUBLIC_MOCK_DELAY_MS) || 0;
+    if (delay) await new Promise((r) => setTimeout(r, delay));
+    if (signal?.aborted) throw new Error('aborted');
     const text = (messages.at(-1)?.content ?? '').toLowerCase();
     const plan = system.includes('PLAN: return');
     if (plan && /physics|simulat|3d game/.test(text)) {
