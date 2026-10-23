@@ -26,7 +26,7 @@ Rules:
 
 ## 2. Eval on the phone
 
-Runner: `src/ai/generator/eval.ts` (pure TS, any provider, unit-tested with `mock`). The hidden screen `src/app/dev/eval.tsx` runs it with the local provider, with options for the model (E2B/E4B), no-plan, and a single prompt id, then shares the results JSON.
+Runner: `src/ai/generator/eval.ts` (pure TS, any provider, unit-tested with `mock`). The hidden screen `src/app/dev/eval.tsx` runs it with the local provider, with options for the model (E2B/E4B/Qwen3.5-2B), no-plan, and a single prompt id, then shares the results JSON.
 
 - Input: `evals/prompts.json`
 
@@ -98,9 +98,9 @@ Exported JSON re-imports as an identical spec. A tampered file (unknown componen
 - A spec with `"<b>hi</b><script>"` in a Text value renders literally.
 - Only configured model downloads/required metadata (and their signed storage redirects) appear as external requests during a full session; app and pinned runtime assets load from the app origin. There are no URL fields in Settings.
 - `security.test.ts` tests actual renderer text preservation (including event-handler strings), rejects forbidden components/actions/props, malformed JSON, remote images and semantic reference failures; invalid fixture saves/stored specs never reach navigation/session creation; restored remote images reach neither image display component. Non-image restoration behavior remains unchanged.
-- Worker tests mock fetch/decoding/inference: both configured model repositories and local runtime/image requests pass, arbitrary repositories/destinations/uploads and remote/non-image inputs fail before delegation. No weights or real inference.
+- Worker tests mock fetch/decoding/inference: all three configured model repositories and local runtime/image requests pass, arbitrary repositories/destinations/uploads and remote/non-image inputs fail before delegation. No weights or real inference.
 - Run `npm test -- --runInBand --roots src --watchman=false --runTestsByPath src/__tests__/security.test.ts`, the exact grep above, then `npm run check -- -- --runInBand --roots src --watchman=false`. On the 4 GB laptop a cold first renderer mount can exceed Jest's 5 s default; focused runs may append `--testTimeout=15000` (assertions unchanged).
-- Run `npm run export:web`, then `node scripts/security-web-smoke.mjs <chromium executable>`. The dependency-free smoke server uses CSP to block external connections; imports the real local Transformers/ONNX modules and worker without inference, then tests a worker with stubbed inference (both repositories, remote image rejection, local image generation). All runtime assets must be requested from the app origin.
+- Run `npm run export:web`, then `node scripts/security-web-smoke.mjs <chromium executable>`. The dependency-free smoke server uses CSP to block external connections; imports the real local Transformers/ONNX modules and worker without inference, then tests a worker with stubbed inference (all three repositories, remote image rejection, local image generation). All runtime assets must be requested from the app origin.
 - **Pending phone acceptance:** capture a full web and Android session network log (download, generate, photo `ai.run`, save/reopen, offline reload); verify only model-source traffic externally and no user data uploads, plus WebGPU/WASM local asset compatibility and signed download/cache behavior. Record device/browser/results in PROGRESS. T-62/AT-12 remain incomplete until this is done. Import/edit UI remains outside T-62; T-53/T-51 must validate before saving/rendering when implemented.
 
 ### AT-13 Builds (W + A)
@@ -168,3 +168,9 @@ refusals, provider failure, requirements, denominators, median, and error rankin
 These checks establish runner correctness, not real-model quality or phone speed.
 
 On the phone: open `jackapp://dev/eval`, choose model and mode, Run, then **Save file** and copy the JSON to `evals/results/`.
+
+## 7. Qwen3.5-2B addition (T-48)
+
+Automated mock checks cover persisted Qwen selection/restoration in Settings, exact GGUF/projector downloads and byte counts, GPU-offload configuration with thinking off, isolated model deletion, eval model identity, web repository selection and the worker's Qwen class/quantization on WebGPU and WASM. Browser smoke checks the real pinned Qwen class export and stubbed load/photo generation for all three repositories; no model weights or inference on the laptop.
+
+Phone acceptance (Moto G45, 8 GB; 6 GB remains an unverified target): Settings → Qwen3.5-2B → Download model (~1.95 GB Android, including projector) → generate a hero mini-app → run its photo action → save/reopen offline. Restart the app with Qwen selected and verify Settings checks/downloads Qwen. Switch to Gemma and back; delete Qwen and verify Gemma files remain. Run `jackapp://dev/eval` with Qwen, with and without PLAN; save both result files. Record RAM, latency, tokens/s, repairs and heat. Repeat text/photo/offline checks in phone Chrome using the ONNX model (a different download/quantization from GGUF). Agents have not validated real-model quality, RAM fit or acceleration on a device.

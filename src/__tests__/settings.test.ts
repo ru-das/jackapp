@@ -7,6 +7,8 @@ test('settings default, round-trip and survive junk', async () => {
   expect(await loadSettings()).toEqual({ provider: 'local', model: 'E2B' });
   await saveSettings({ provider: 'mock', model: 'E4B' });
   expect(await loadSettings()).toEqual({ provider: 'mock', model: 'E4B' });
+  await saveSettings({ provider: 'local', model: 'Qwen3.5-2B' });
+  expect(await loadSettings()).toEqual({ provider: 'local', model: 'Qwen3.5-2B' });
   await saveSettings({ provider: 'http://evil', model: 'X' } as never);
   expect(await loadSettings()).toEqual({ provider: 'local', model: 'E2B' });
 });

@@ -19,7 +19,12 @@ export default function SettingsScreen() {
   const [checks, setChecks] = useState(0);
   const refresh = () => setChecks((n) => n + 1);
 
-  useEffect(() => { void loadSettings().then(setSettings); }, []);
+  useEffect(() => {
+    void loadSettings().then(async (saved) => {
+      await getProvider(saved.provider).setModel(saved.model);
+      setSettings(saved);
+    });
+  }, []);
   useEffect(() => {
     let live = true;
     void (provider?.isDownloaded() ?? Promise.resolve(false)).then((d) => { if (live) setDownloaded(d); });

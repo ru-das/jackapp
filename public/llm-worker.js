@@ -2,11 +2,13 @@ import {
   env,
   AutoProcessor,
   Gemma4ForConditionalGeneration,
+  Qwen3_5ForConditionalGeneration,
   InterruptableStoppingCriteria,
   RawImage,
 } from './vendor/transformers.min.js';
 
-const MODEL_REPOS = ['onnx-community/gemma-4-E2B-it-ONNX', 'onnx-community/gemma-4-E4B-it-ONNX'];
+const QWEN_REPO = 'onnx-community/Qwen3.5-2B-ONNX';
+const MODEL_REPOS = ['onnx-community/gemma-4-E2B-it-ONNX', 'onnx-community/gemma-4-E4B-it-ONNX', QWEN_REPO];
 const runtimeFiles = ['transformers.min.js', 'ort-wasm-simd-threaded.asyncify.mjs', 'ort-wasm-simd-threaded.asyncify.wasm'];
 const vendor = new URL('./vendor/', import.meta.url);
 const imageData = (url) => typeof url === 'string' && /^data:image\/[a-zA-Z0-9.+-]+[;,]/.test(url);
@@ -51,7 +53,8 @@ async function load(MODEL) {
   // q4f16 needs fp16 shaders, which wasm lacks.
   const dtype = gpu ? 'q4f16' : 'q4';
   processor = await AutoProcessor.from_pretrained(MODEL);
-  model = await Gemma4ForConditionalGeneration.from_pretrained(MODEL, {
+  const Model = MODEL === QWEN_REPO ? Qwen3_5ForConditionalGeneration : Gemma4ForConditionalGeneration;
+  model = await Model.from_pretrained(MODEL, {
     dtype,
     device,
     progress_callback: (i) => {

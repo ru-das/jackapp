@@ -5,7 +5,6 @@ import { ggufBytes, MODELS, type ModelId } from '../models';
 import type { LLMProvider, ProviderStatus } from '../provider';
 
 const DIR = `${FileSystem.documentDirectory ?? ''}models/`;
-// Q4_0: the only quant (with Q6_K) that Android GPU offload supports.
 type FileInfo = { name: string; size: number };
 
 let model: ModelId = 'E2B';
@@ -15,7 +14,7 @@ let state: ProviderStatus = 'unloaded';
 let queue: Promise<unknown> = Promise.resolve();
 
 const files = (): readonly FileInfo[] => MODELS[model].gguf.files;
-// mmproj has the same name in both repos; E2B stays unprefixed so the spike's earlier download is still valid.
+// Repos share the projector filename; E2B stays unprefixed to reuse the earlier spike download.
 const path = (f: FileInfo) => `${DIR}${model === 'E2B' ? '' : `${model}-`}${f.name}`;
 
 export const lastTimings = { tokensPerSec: 0 };
@@ -70,7 +69,7 @@ async function doLoad(onProgress?: (p: { loaded: number; total: number }) => voi
 
 export const localProvider: LLMProvider = {
   id: 'local',
-  label: 'On-device (Gemma 4)',
+  label: 'On-device model',
   caps: { vision: true, jsonSchema: true, contextTokens: 8192 },
   status: () => state,
   async setModel(next) {

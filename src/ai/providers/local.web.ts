@@ -106,7 +106,7 @@ function run(req: Parameters<LLMProvider['generate']>[0]) {
 
 export const localProvider: LLMProvider = {
   id: 'local',
-  label: 'In-browser (Gemma 4)',
+  label: 'In-browser model',
   caps: { vision: true, jsonSchema: false, contextTokens: 4096 },
   status: () => state,
   async setModel(next) {
@@ -126,7 +126,7 @@ export const localProvider: LLMProvider = {
   async remove() {
     await inflight?.catch(() => {});
     stopWorker();
-    // shortcut: clears every cached model, not just the selected one; fine while two models exist.
+    // shortcut: clears every cached model; filter cache keys if selective deletion is needed.
     await caches.delete(CACHE);
   },
   load(onProgress) {

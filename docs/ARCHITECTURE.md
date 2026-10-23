@@ -6,7 +6,7 @@ This document defines **how the system is built and which boundaries must never 
 
 ## 1. One-paragraph overview
 
-JackApp is a single **Expo (React Native + React Native Web)** TypeScript app that ships to **web (PWA)** and **Android**, with iOS possible from the same code. A user prompt goes to a **generator** that asks an **open model (Gemma 4)** for a **mini-app spec** (JSON, see `SCHEMA.md`). The spec is **validated**, then rendered by a **runtime** that maps spec elements to **pre-built components** (see `COMPONENTS.md`). Mini-apps can call the model again at runtime through the `ai.run` action. All data stays on the device. There is no backend.
+JackApp is a single **Expo (React Native + React Native Web)** TypeScript app that ships to **web (PWA)** and **Android**, with iOS possible from the same code. A user prompt goes to a **generator** that asks an **open model (Gemma 4 or Qwen3.5)** for a **mini-app spec** (JSON, see `SCHEMA.md`). The spec is **validated**, then rendered by a **runtime** that maps spec elements to **pre-built components** (see `COMPONENTS.md`). Mini-apps can call the model again at runtime through the `ai.run` action. All data stays on the device. There is no backend.
 
 ```mermaid
 flowchart LR
@@ -33,7 +33,7 @@ flowchart LR
 | Notifications | `expo-notifications` (native) | Web: best-effort, only while the tab is open |
 | Tests | `jest-expo`, `@testing-library/react-native` | |
 | Inference: web | Transformers.js (`@huggingface/transformers`) with WebGPU, in a Web Worker | Spike T-11 decides feasibility |
-| Inference: Android | `llama.rn` + Gemma 4 GGUF (+ mmproj for images) | Needs a dev build, not Expo Go. Ported from the human's earlier shipped app (ADR-012). T-10 |
+| Inference: Android | `llama.rn` + Gemma 4 / Qwen3.5 GGUF (+ mmproj for images) | Needs a dev build, not Expo Go. Ported from the human's earlier shipped app (ADR-012). T-10 |
 | Inference: tests / agents | `mock` provider | No model ever runs on the dev laptop (4 GB RAM) |
 | Optional renderer lib | Vercel `json-render` | Spike T-13 decides (ADR-005). Our spec stays canonical either way |
 
@@ -53,7 +53,7 @@ jackapp/
     │   ├── create.tsx         # Prompt → generate → preview → save
     │   ├── run/[id].tsx       # Run a mini-app
     │   ├── edit/[id].tsx      # Edit-by-chat
-    │   ├── settings.tsx       # Model choice (E2B/E4B), download progress, delete model
+    │   ├── settings.tsx       # Model choice (E2B/E4B/Qwen3.5-2B), download progress, delete model
     │   └── dev/               # hidden dev screens, run on the phone
     │       ├── spike.tsx      # 5 JSON prompts + 1 photo prompt: load time, tokens/s, valid JSON
     │       └── eval.tsx       # runs generator/eval.ts with the local provider, shares results JSON
@@ -106,7 +106,7 @@ export interface LLMProvider {
   label: string;
   caps: { vision: boolean; jsonSchema: boolean; contextTokens: number };
   status(): ProviderStatus;                 // 'unloaded' | 'downloading' | 'ready' | 'error'
-  setModel(model: 'E2B' | 'E4B'): Promise<void>;   // releases a loaded different model
+  setModel(model: 'E2B' | 'E4B' | 'Qwen3.5-2B'): Promise<void>;   // releases a loaded different model
   isDownloaded(): Promise<boolean>;         // load() will not download
   remove(): Promise<void>;                  // release + delete downloaded files
   load(onProgress?: (p: { loaded: number; total: number }) => void): Promise<void>;
@@ -126,7 +126,9 @@ export interface LLMProvider {
 - **local (native)**: `llama.rn`. GGUF model file is downloaded once into app storage with progress. JSON output uses llama.rn grammar / JSON-schema mode. Images go through the mmproj file. Ported from the human's earlier app (credit in README).
 
 Default models (confirm in spike, record in ADR-003):
-- User picks **E2B** or **E4B** in Settings. Generation and `ai.run` use the chosen model.
+- User picks **E2B**, **E4B**, or **Qwen3.5-2B** in Settings. Generation and `ai.run` use the chosen model; E2B remains the default.
+- Qwen Android: `unsloth/Qwen3.5-2B-GGUF`, `Qwen3.5-2B-Q4_K_M.gguf` + `mmproj-F16.gguf` (~1.95 GB combined). Retains the existing GPU-offload request (`n_gpu_layers: 99`, projector `use_gpu: true`); installed llama.rn source includes Q4_K/Q6_K kernels, though device acceleration is unverified. Files use a `Qwen3.5-2B-` prefix, isolated from both Gemma downloads. Thinking stays disabled.
+- Qwen web: `onnx-community/Qwen3.5-2B-ONNX`, loaded with the pinned runtime's `Qwen3_5ForConditionalGeneration` (`q4f16` WebGPU / `q4` WASM). Web uses ONNX, not the Android GGUF quant. Settings and eval enumerate the shared registry; saved choices are restored into the provider before Settings checks/downloads. Real phone speed, RAM and photo acceptance are pending (ADR-020).
 
 ## 6. Generation pipeline
 
@@ -174,7 +176,7 @@ Rules:
 | `jackapp:apps` | index: `[{id, name, icon, updatedAt}]` |
 | `jackapp:spec:<id>` | the spec JSON |
 | `jackapp:data:<id>` | persisted state for that mini-app |
-| `jackapp:settings` | model choice (E2B/E4B) |
+| `jackapp:settings` | model choice (E2B/E4B/Qwen3.5-2B) |
 
 ## 9. Platform matrix
 
@@ -203,7 +205,7 @@ Rules:
 
 `npm run web` / `npm run export:web` run `scripts/prepare-web-runtime.mjs` first. It verifies the SHA-256 manifest (`scripts/web-runtime-assets.json`), downloads missing/changed files and licenses, and refuses mismatches before writing an asset. `public/vendor/` is ignored and exported with the app. Direct `npx expo start --web` or `npx expo export -p web` requires `npm run prepare:web` first. No weights are prepared by this script.
 
-The first-party worker restricts model ids to E2B/E4B repositories and images to local image data URLs. Global fetch and Transformers' `env.fetch` delegate only known model files, exact same-origin runtime assets and image data URLs (GET/HEAD, credentials omitted); Hugging Face may redirect weight downloads to its signed storage. Explicit local WASM paths, one thread and disabled proxy/blob-module caching avoid CDN and nested-worker fetches. Store restoration validates image values against the existing state schema before either image renderer can see them; defaults survive rejected values. No spec or public TypeScript API change.
+The first-party worker restricts model ids to E2B/E4B/Qwen3.5-2B repositories and images to local image data URLs. Global fetch and Transformers' `env.fetch` delegate only known model files, exact same-origin runtime assets and image data URLs (GET/HEAD, credentials omitted); Hugging Face may redirect weight downloads to its signed storage. Explicit local WASM paths, one thread and disabled proxy/blob-module caching avoid CDN and nested-worker fetches. Store restoration validates image values against the existing state schema before either image renderer can see them; defaults survive rejected values. No spec or public TypeScript API change.
 
 ## 12. Deployment
 

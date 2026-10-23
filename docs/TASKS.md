@@ -54,6 +54,9 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 - [x] **T-46 (P0) Unsupported path** in plan and fill; friendly UI. → AT-06
   - Generator complete (2026-10-23): validated refusals from PLAN/FILL/REPAIR, malformed refusals repaired. **Friendly UI now exists (T-47, `UnsupportedCard`); mock-tested. Ticked 2026-10-23 on the human's word that the phone check passed.**
 - [x] **T-47 (P0) Create screen**: prompt box, progress stages, live preview, save, retry. → AT-07
+- [ ] **T-48 (P0, human-requested) Add Qwen3.5-2B Q4_K_M alongside Gemma.** Persisted Settings/eval selection, exact native GGUF + vision-projector downloads, existing native offload path, corresponding allowlisted ONNX web model. → TESTING §7
+  - [x] **Code (2026-10-24, Codex):** shared registry, Settings restoration, provider labels and Qwen worker class; no dependency or spec-format change. Regression tests cover Settings/eval persistence, native downloads/offload/deletion and browser selection/security. `npm run check`: typecheck/lint + 30 suites / 635 tests pass. Web export and blocked-network browser smoke pass with inference mocked.
+  - [ ] **Human phone acceptance:** download/load/generate/photo/offline, switch/delete isolation and eval both modes on Moto G45; record results. No inference on the dev laptop. Keep unchecked until device acceptance.
 
 ## M5 — App features (Fri afternoon)
 

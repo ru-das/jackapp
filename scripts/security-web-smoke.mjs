@@ -23,7 +23,8 @@ export const AutoProcessor = {from_pretrained: async model => {
 }};
 export const Gemma4ForConditionalGeneration = {from_pretrained: async () => ({
   generate: async () => ({slice: () => ({dims:[1]})})
-})};`;
+})};
+export const Qwen3_5ForConditionalGeneration = Gemma4ForConditionalGeneration;`;
 const page = `<!doctype html><meta charset="utf-8"><pre id="result">RUNNING</pre>
 <script type="module">
 const result = document.querySelector('#result');
@@ -38,12 +39,13 @@ try {
   // Import the real pinned modules, without instantiating WASM or any model.
   const lib = await import('/vendor/transformers.min.js');
   assert(lib.env.version==='4.3.1','runtime version');
+  assert(typeof lib.Qwen3_5ForConditionalGeneration.from_pretrained==='function','Qwen runtime export');
   assert(typeof (await import('/vendor/ort-wasm-simd-threaded.asyncify.mjs')).default==='function','ONNX module');
   const real = new Worker('/llm-worker.js',{type:'module'});
   assert((await call(real,{type:'load',model:'attacker/model'})).message==='Unknown model.','real worker import');
   real.terminate();
   const worker=new Worker('/worker-mock.js',{type:'module'});
-  for(const model of ['onnx-community/gemma-4-E2B-it-ONNX','onnx-community/gemma-4-E4B-it-ONNX']) {
+  for(const model of ['onnx-community/gemma-4-E2B-it-ONNX','onnx-community/gemma-4-E4B-it-ONNX','onnx-community/Qwen3.5-2B-ONNX']) {
     assert((await call(worker,{type:'load',model})).type==='ready','mock load');
   }
   assert((await call(worker,{type:'generate',id:1,system:'safe',messages:[{role:'user',content:'photo',images:['https://evil.example/photo.png']}]})).type==='error','remote image');

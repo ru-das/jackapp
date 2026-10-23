@@ -42,3 +42,17 @@ test('model not downloaded: points to Settings', async () => {
   await fireEvent.press(screen.getByText('Run'));
   expect(await screen.findByText(/in Settings first/)).toBeTruthy();
 });
+
+test('Qwen can be selected and is retained in saved eval results', async () => {
+  const setModel = jest.spyOn(mockProvider, 'setModel');
+  await render(<EvalScreen />);
+  await fireEvent.press(screen.getByLabelText('Qwen3.5-2B'));
+  await fireEvent.press(screen.getByLabelText('Prompt e01'));
+  await fireEvent.press(screen.getByText('Run'));
+  await screen.findByText('Results');
+  expect(setModel).toHaveBeenCalledWith('Qwen3.5-2B');
+  await fireEvent.press(screen.getByText('Save file'));
+  const [name, json] = (saveFile as jest.Mock).mock.calls.at(-1);
+  expect(name).toMatch(/-Qwen3\.5-2B-plan\.json$/);
+  expect(JSON.parse(json).model).toBe('Qwen3.5-2B');
+});

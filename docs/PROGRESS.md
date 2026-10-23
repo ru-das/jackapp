@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M0 — Setup done except T-04 CI; T-14 decisions drafted (ADR-003/005 await human Accept); M1 phone spikes pending |
-| Last updated | 2026-10-23 by Claude Code |
+| Last updated | 2026-10-24 by Codex |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,10 @@
 
 ## Handoff note (latest)
 
+> **T-48 Qwen addition (Codex, 2026-10-24, human-requested):** `Qwen3.5-2B` is now beside E2B/E4B in Settings and dev/eval (both enumerate `MODELS`). Native: verified `unsloth/Qwen3.5-2B-GGUF` → `Qwen3.5-2B-Q4_K_M.gguf` (1,280,835,840 B) + `mmproj-F16.gguf` (668,227,264 B), total 1,949,063,104 B. Downloads/deletion use the `Qwen3.5-2B-` prefix; Gemma paths/default stay intact. Existing native GPU-offload request + thinking-off configuration retained: installed llama.rn source has Q4_K/Q6_K OpenCL kernels, superseding older quant-support notes (ADR-020); actual Moto G45 acceleration unverified. Web: allowlisted `onnx-community/Qwen3.5-2B-ONNX`, pinned runtime's Qwen class, q4f16 WebGPU / q4 WASM. Settings now restores the saved choice into the provider before download status/actions, fixing cold-start E2B mismatch. No dependencies/spec changes. `npm run check -- -- --runInBand --roots src --watchman=false`: typecheck/lint and **30 suites / 635 tests pass**; `npm run export:web` and blocked-external-network Chromium smoke pass (real runtime/Qwen export, mocked model load/photo). Forbidden-API search matches only the security test. Initial check caught an unsupported test matcher, and the next run caught a missing filesystem mock export; both test harness issues fixed without weakening assertions. No weights downloaded or inference run on the laptop. Preserved pre-existing `tsconfig.json` and `.agents/` changes.
+>
+> **Next / phone acceptance:** Moto G45 **8 GB RAM** is confirmed; **6 GB** is the requested target, not a measured result. Reload the app → Settings → Qwen3.5-2B → Download model (~1.95 GB incl. photo support) → generate a hero app → photo action → save/reopen offline. Restart with Qwen selected; switch Gemma/Qwen, delete Qwen and confirm Gemma still loads. Run `jackapp://dev/eval` with Qwen in both PLAN/no-plan modes, save results, record latency/RAM/heat and actual GPU use. Repeat text/photo/offline in phone Chrome using ONNX. T-48 code is checked; overall task remains unchecked until device checks (TESTING §7). Ask Claude Code to review this commit, including the requested provider/storage/Settings changes.
+>
 > **Prompt contradiction pass (Claude Code, 2026-10-24, at the human's request, edited Codex-owned `src/ai/generator/**`):** removed soft conflicts in `prompts.ts`: refusal is now only `{"unsupported":{…}}` with no other fields (PLAN sets `unsupported:null`); build a simpler supported version instead of refusing; request is followed unless it conflicts with rules; `ai.run` prompts may ask only for schema data; PLAN names must be exact catalog names. `fill.ts`: spec/repair `maxTokens` 3072→4096, repair temperature 0→0.1 (a temp-0 repair of a truncated output repeats itself). Four tests updated to the new values/wording. `npm run check`: 29 suites / 629 tests pass. **Human: re-run both eval modes on the phone**; compare against the T-60 baseline to confirm fewer repairs and no truncation.
 >
 > **T-65 polish (Claude Code, 2026-10-23):** contrast fixed in `theme.ts` (light accent/muted/danger darkened), loading spinners, sloth copy. Not verified visually: headless web screenshot was pre-hydration and unusable. Human: check 130% font + dark on phone (Home, Create idle/working/unsupported, Run, Settings); `EXPO_PUBLIC_MOCK_DELAY_MS=4000 npm run web` fakes a slow model. T-53/54/55 not started: P0 tasks are still open.
@@ -121,6 +125,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-24 | Codex | T-48 code | Optional Qwen3.5-2B Q4_K_M + vision/ONNX, persisted Settings/eval selection, cold-start restoration; 635 tests/export/browser smoke pass; phone acceptance pending | see git log |
 | 2026-10-23 | Claude Code | T-63 | Sloth icon set, PWA manifest, `+html.tsx`, Pages workflow, `baseUrl` `/jackapp`; export verified under subpath; installability on phone pending (AT-13) | see git log |
 | 2026-10-23 | Claude Code | T-10, T-11, T-46 | Ticked at the human's instruction ("everything works fine"); no spike numbers recorded, ADR-003 spike table still empty | see git log |
 | 2026-10-23 | Claude Code | T-50 | Home: my mini-apps (open/rename/duplicate/delete), template gallery with Try + Remix, `storage/apps.ts`; check green (629 tests); not device-checked | see git log |

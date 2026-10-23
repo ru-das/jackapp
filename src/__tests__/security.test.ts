@@ -173,15 +173,17 @@ function worker() {
   const fetch = jest.fn(async (input: unknown, init?: unknown) => ({ ok: true, input, init }));
   const fromURL = jest.fn(async () => { throw new Error('local decoder reached'); });
   const from_pretrained = jest.fn(async () => ({}));
+  const qwenLoad = jest.fn(async () => ({}));
   const env = { backends: { onnx: { wasm: {} } }, fetch: undefined };
   const context = { URL, fetch, env, navigator: {}, postMessage: jest.fn(), onmessage: null,
     AutoProcessor: { from_pretrained }, Gemma4ForConditionalGeneration: { from_pretrained },
+    Qwen3_5ForConditionalGeneration: { from_pretrained: qwenLoad },
     InterruptableStoppingCriteria: class { interrupt() {} }, RawImage: { fromURL } };
   const code = readFileSync(resolve('public/llm-worker.js'), 'utf8')
     .replace(/^import \{[\s\S]*?\} from '[^']+';/, '')
     .replaceAll('import.meta.url', JSON.stringify('https://app.example/llm-worker.js'));
   runInNewContext(code, context);
-  return { context, fetch, fromURL, from_pretrained,
+  return { context, fetch, fromURL, from_pretrained, qwenLoad,
     send: (data: unknown) => (context.onmessage as unknown as (event: { data: unknown }) => Promise<void>)({ data }) };
 }
 
@@ -193,15 +195,28 @@ test('worker configures local WASM and guarded Transformers fetch', () => {
       wasm: 'https://app.example/vendor/ort-wasm-simd-threaded.asyncify.wasm' } });
 });
 
-test.each(['onnx-community/gemma-4-E2B-it-ONNX', 'onnx-community/gemma-4-E4B-it-ONNX'])
+test.each(['onnx-community/gemma-4-E2B-it-ONNX', 'onnx-community/gemma-4-E4B-it-ONNX', 'onnx-community/Qwen3.5-2B-ONNX'])
 ('worker accepts configured repository %s without inference', async (model) => {
   const w = worker(); await w.send({ type: 'load', model });
   expect(w.from_pretrained).toHaveBeenCalledWith(model);
   expect(w.context.postMessage).toHaveBeenCalledWith({ type: 'ready', device: 'wasm' });
-  for (const file of ['config.json', 'tokenizer.json', 'onnx/model_q4.onnx', 'onnx/model_q4.onnx_data']) {
+  for (const file of ['config.json', 'tokenizer.json', 'onnx/decoder_model_merged_q4.onnx', 'onnx/decoder_model_merged_q4.onnx_data']) {
     await w.context.fetch(`https://huggingface.co/${model}/resolve/main/${file}`);
   }
   expect(w.fetch).toHaveBeenCalledTimes(4);
+});
+
+test('worker selects Qwen class and quantization for the detected browser backend', async () => {
+  for (const gpu of [false, true]) {
+    const w = worker();
+    Object.assign(w.context.navigator, gpu ? { gpu: { requestAdapter: async () => ({}) } } : {});
+    const repo = 'onnx-community/Qwen3.5-2B-ONNX';
+    await w.send({ type: 'load', model: repo });
+    expect(w.qwenLoad).toHaveBeenCalledWith(repo, expect.objectContaining({
+      device: gpu ? 'webgpu' : 'wasm', dtype: gpu ? 'q4f16' : 'q4',
+    }));
+    expect(w.from_pretrained).toHaveBeenCalledTimes(1);
+  }
 });
 
 test('worker rejects arbitrary repositories before loading', async () => {

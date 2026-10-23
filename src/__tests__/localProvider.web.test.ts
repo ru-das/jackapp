@@ -90,3 +90,17 @@ test('worker error gives friendly message and error status', async () => {
   await expect(localProvider.load()).rejects.toThrow("This browser can't run the model");
   expect(localProvider.status()).toBe('error');
 });
+
+test('switching to Qwen loads its configured ONNX repository', async () => {
+  device = 'webgpu';
+  failLoad = false;
+  const { localProvider } = fresh();
+  await localProvider.load();
+  await localProvider.setModel('Qwen3.5-2B');
+  expect(localProvider.status()).toBe('unloaded');
+  await localProvider.load();
+  expect(posted.filter((m) => m.type === 'load').map((m) => m.model)).toEqual([
+    'onnx-community/gemma-4-E2B-it-ONNX', 'onnx-community/Qwen3.5-2B-ONNX',
+  ]);
+  expect(localProvider.status()).toBe('ready');
+});

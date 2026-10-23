@@ -5,7 +5,7 @@ export const SETTINGS_KEY = 'jackapp:settings';
 
 const SettingsSchema = z.object({
   provider: z.enum(['local', 'mock']).catch('local'),
-  model: z.enum(['E2B', 'E4B']).catch('E2B'),
+  model: z.enum(['E2B', 'E4B', 'Qwen3.5-2B']).catch('E2B'),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 

@@ -163,3 +163,15 @@ The worker accepts only the two configured ONNX repositories, decodes only image
 
 2026-10-23 · Accepted · Claude Code
 Host the static export on GitHub Pages from a Pages workflow (no deploy branch) under `/jackapp`. Cloudflare Pages is out: its 25 MiB per-file limit rejects the 26.9 MB ONNX wasm. No service worker: Chrome on Android installs from the manifest alone; add one only if the install prompt fails. Deep links use the `404.html` copy of `index.html`. A .tech domain is optional; with one, drop `experiments.baseUrl`.
+
+## ADR-020: Optional Qwen3.5-2B alongside Gemma (T-48)
+
+2026-10-24 · Accepted · human (explicit request to add Qwen3.5-2B Q4_K_M)
+
+**Decision.** Add `Qwen3.5-2B` to the shared registry, Settings persistence and eval selection; E2B remains the default and existing Gemma downloads remain reusable.
+
+- Android: [Unsloth GGUF](https://huggingface.co/unsloth/Qwen3.5-2B-GGUF), `Qwen3.5-2B-Q4_K_M.gguf` **1,280,835,840 B** plus `mmproj-F16.gguf` **668,227,264 B**, verified using Hugging Face repository metadata on 2026-10-24. Total **1,949,063,104 B**. Both files use the `Qwen3.5-2B-` local prefix. Retain the existing GPU-offload request for model and projector (`n_gpu_layers: 99`, `use_gpu: true`). Installed llama.rn source includes Q4_K/Q6_K OpenCL kernels; this supersedes ADR-003/013’s assertion that only Q4_0/Q6_K is supported. Actual Moto G45 acceleration remains unverified. Existing Gemma Q4_0 configuration is unchanged. Thinking stays disabled.
+- Web: [ONNX Community conversion](https://huggingface.co/onnx-community/Qwen3.5-2B-ONNX). The existing pinned Transformers.js 4.3.1 exports `Qwen3_5ForConditionalGeneration`; the worker selects it only for this repository, retaining `q4f16` WebGPU / `q4` WASM and the exact-repository request allowlist. Verified ONNX file variants and processor config; the browser does not consume GGUF.
+- Restore the saved model into the provider before Settings queries download status or starts a download; otherwise a cold start could use E2B while displaying Qwen.
+
+**Consequences.** No new dependencies, URLs in Settings, model runs on the laptop or spec-format changes. Model files remain runtime downloads. Native source includes Qwen3.5 support, but real loading, JSON quality, photo processing, RAM, heat and speed still require Moto G45/Chrome checks (TESTING §7). A 6 GB target is not a measured acceptance result. Only Gemma is the current default; choosing a faster default requires phone eval evidence.
