@@ -1,6 +1,8 @@
 import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { h1, h2, h3 } from '@/spec/fixtures';
+import { validate } from '@/spec/validate';
+import { toast } from '@/capabilities';
 import { specKey, writeJson } from '@/storage';
 import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
 
@@ -14,6 +16,12 @@ export default function Home() {
   const t = useTheme();
   const router = useRouter();
   const open = async (id: string, spec: unknown) => {
+    const errors = validate(spec);
+    if (errors.length) {
+      console.error('home: fixture invalid', errors);
+      toast("This template is damaged, so we can't open it.");
+      return;
+    }
     await writeJson(specKey(id), spec);
     router.push({ pathname: '/run/[id]', params: { id } });
   };

@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { dataKey, readJson, writeJson } from '@/storage';
 import type { Spec, StateDecl } from '@/spec/types';
+import { StateDeclSchema } from '@/spec/schema';
 
 export type State = Record<string, unknown>;
 export type Store = ReturnType<typeof createStore>;
@@ -13,7 +14,8 @@ function fits(decl: StateDecl, v: unknown): boolean {
     case 'number': return typeof v === 'number' && Number.isFinite(v);
     case 'boolean': return typeof v === 'boolean';
     case 'list': return Array.isArray(v);
-    default: return v === null || typeof v === 'string'; // date, image
+    case 'image': return StateDeclSchema.safeParse({ ...decl, default: v }).success;
+    default: return v === null || typeof v === 'string'; // date
   }
 }
 

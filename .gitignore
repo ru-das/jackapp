@@ -39,3 +39,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Downloaded, checksum-verified web inference runtime
+/public/vendor/

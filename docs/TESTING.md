@@ -17,7 +17,7 @@ Three layers:
 | Renderer + components | `src/runtime/__tests__/render.test.tsx` | H1–H3 fixtures render; input binding; checkbox; delete; navigate |
 | Generator | `src/ai/generator/__tests__/*.test.ts` | JSON extraction from messy output; repair loop with scripted mock responses; unsupported path |
 | Catalog docs sync | `src/catalog/__tests__/docs-sync.test.ts` | Registry names match P0 `### <Name>` headings in `docs/COMPONENTS.md` in both directions (P1 joins in T-55) |
-| Security | `src/__tests__/security.test.ts` | Forbidden API scan over `src/`; HTML strings render as plain text |
+| Security | `src/__tests__/security.test.ts` | Forbidden API scan over `src/` and first-party worker; literal/template HTML, validator/save/load boundaries, restored images and worker network guards |
 
 Rules:
 - Tests never hit the network or a real model. Use `mock`.
@@ -96,7 +96,12 @@ Exported JSON re-imports as an identical spec. A tampered file (unknown componen
 ### AT-12 Security (auto + review)
 - `grep -rnE "eval\(|new Function|dangerouslySetInnerHTML|WebView" src/` returns nothing (except the test itself).
 - A spec with `"<b>hi</b><script>"` in a Text value renders literally.
-- Only the model source appears in network logs during a full session. There are no URL fields in Settings.
+- Only configured model downloads/required metadata (and their signed storage redirects) appear as external requests during a full session; app and pinned runtime assets load from the app origin. There are no URL fields in Settings.
+- `security.test.ts` tests actual renderer text preservation (including event-handler strings), rejects forbidden components/actions/props, malformed JSON, remote images and semantic reference failures; invalid fixture saves/stored specs never reach navigation/session creation; restored remote images reach neither image display component. Non-image restoration behavior remains unchanged.
+- Worker tests mock fetch/decoding/inference: both configured model repositories and local runtime/image requests pass, arbitrary repositories/destinations/uploads and remote/non-image inputs fail before delegation. No weights or real inference.
+- Run `npm test -- --runInBand --roots src --watchman=false --runTestsByPath src/__tests__/security.test.ts`, the exact grep above, then `npm run check -- -- --runInBand --roots src --watchman=false`. On the 4 GB laptop a cold first renderer mount can exceed Jest's 5 s default; focused runs may append `--testTimeout=15000` (assertions unchanged).
+- Run `npm run export:web`, then `node scripts/security-web-smoke.mjs <chromium executable>`. The dependency-free smoke server uses CSP to block external connections; imports the real local Transformers/ONNX modules and worker without inference, then tests a worker with stubbed inference (both repositories, remote image rejection, local image generation). All runtime assets must be requested from the app origin.
+- **Pending phone acceptance:** capture a full web and Android session network log (download, generate, photo `ai.run`, save/reopen, offline reload); verify only model-source traffic externally and no user data uploads, plus WebGPU/WASM local asset compatibility and signed download/cache behavior. Record device/browser/results in PROGRESS. T-62/AT-12 remain incomplete until this is done. Import/edit UI remains outside T-62; T-53/T-51 must validate before saving/rendering when implemented.
 
 ### AT-13 Builds (W + A)
 The static web build loads from the hosted URL on a phone and desktop and is installable as a PWA. The APK installs on a clean Android phone and launches with no dev server.

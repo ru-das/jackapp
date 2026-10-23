@@ -16,7 +16,7 @@ export default {
     ],
     "elements": {
       "root": {
-        "type": "WebView",
+        "type": "UnknownWidget",
         "props": {},
         "children": []
       }

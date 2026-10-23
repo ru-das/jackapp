@@ -147,3 +147,14 @@ Agents may add **Proposed** entries. Only the human marks them **Accepted**, or 
 
 2026-10-23 · Accepted · Claude Code
 Both E2B eval runs failed all 30 prompts with `[json.exception.type_error.302] type must be string, but is object`: llama.rn's grammar converter rejects the 22 KB spec schema, while the 3 KB plan schema works. `callStage` now sends `jsonSchema` only for the plan target. The FILL/REPAIR spec output relies on the prompt examples, the parser, `validate()` and the two-repair budget. Revisit if a simpler spec schema is found that llama.cpp accepts (then constraining FILL may raise first-fill validity).
+
+## ADR-018: Same-origin web runtime and security trust boundaries (T-62)
+2026-10-23 · Proposed · Codex (implementation authorized by the human's T-62 plan)
+
+**Decision.** Keep the closed catalog and spec v0.1 unchanged. Validate fixture saves as well as generated/stored specs. Revalidate restored image state with `StateDeclSchema`; invalid values retain defaults. Other restored state types keep their existing behavior.
+
+Prepare Transformers.js **4.3.1** and its package-declared ONNX Runtime **1.31.0-dev.20260914-8d85527a0** JavaScript/WASM using a dependency-free Node script and committed SHA-256 manifest. The runtime asset hashes were cross-checked against jsDelivr's package manifests. Assets, upstream licenses and ONNX third-party notices go into ignored `public/vendor/`, included in the static export; no model weights or runtime binaries are committed. ONNX's npm package omits license files, so retain them from its exact source revision `8d85527a0`. `npm run web` prepares/verifies assets first; `npm run export:web` does the same before export. Build/development preparation needs internet once; deployed clients fetch runtime code only from the app origin.
+
+The worker accepts only the two configured ONNX repositories, decodes only image data URLs, and delegates GET/HEAD fetches only for known same-origin runtime files, image data URLs, and those repositories' model weights/tokenizer/processor/config metadata. Both Transformers' captured `env.fetch` and global fetch use the guard. Omit credentials/referrers. Hugging Face controls signed storage redirects from allowed model downloads; these remain model-source traffic. WASM paths stay local; disable blob WASM caching/proxy workers and use one thread so nested workers cannot bypass the fetch guard. This supersedes ADR-012's CDN exception and the PRD CDN mitigation.
+
+**Verification limit.** Agent tests use mocked inference and blocked external connections; no model runs on the laptop. Real WebGPU/WASM compatibility, signed-download redirects, cache/offline behavior and full-session phone network logs still require phone acceptance before T-62/AT-12 are complete. Import UI is absent and edit UI is a placeholder; implementing them remains T-53/T-51, with validation required at their future save/render boundaries.

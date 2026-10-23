@@ -95,7 +95,7 @@ jackapp/
 4. **`src/runtime/` never imports `src/ai/generator/`.** The runtime only knows the `LLMProvider` interface, for `ai.run`.
 5. **Catalog components never call AI or storage directly.** They get props and callbacks from the runtime.
 6. **Platform differences live in `.web.ts` / `.native.ts` files** behind one interface. No `Platform.OS` branching in feature code, except for small UI tweaks.
-7. **No network calls** except model weight downloads from the configured model source. No user-set URLs, no analytics, no telemetry.
+7. **No network calls** except model downloads (weights and required tokenizer/processor/config metadata) from the configured model source. App/runtime files load from the app origin. No user-set URLs, no analytics, no telemetry.
 8. **No new dependency** without a line in `DECISIONS.md` saying why.
 
 ## 5. LLM provider interface
@@ -122,7 +122,7 @@ export interface LLMProvider {
 ```
 
 - **mock**: returns fixtures by keyword. Used by tests, UI work, and agents without a model.
-- **local (web)**: Transformers.js + WebGPU in a Web Worker (`public/llm-worker.js`, library from jsDelivr; client in `local.web.ts`). The main thread talks to it via `postMessage`. No WebGPU → falls back to wasm CPU with a one-time slow warning. `jsonSchema` is not enforced on web (the repair loop covers it). Model files are cached by the browser. If the browser has no WebGPU or the model fails to load, the web build shows "this browser can't run the model, use the Android app".
+- **local (web)**: Transformers.js + WebGPU in a Web Worker (`public/llm-worker.js`, checksum-pinned library/WASM served from same-origin `public/vendor/`; client in `local.web.ts`; see ADR-018). The main thread talks to it via `postMessage`. No WebGPU → falls back to wasm CPU with a one-time slow warning. `jsonSchema` is not enforced on web (the repair loop covers it). Model files are cached by the browser. If the browser has no WebGPU or the model fails to load, the web build shows "this browser can't run the model, use the Android app".
 - **local (native)**: `llama.rn`. GGUF model file is downloaded once into app storage with progress. JSON output uses llama.rn grammar / JSON-schema mode. Images go through the mmproj file. Ported from the human's earlier app (credit in README).
 
 Default models (confirm in spike, record in ADR-003):
@@ -196,12 +196,18 @@ Rules:
 
 - Specs are imported only after validation. Bad imports are rejected with readable errors.
 - Template rendering produces **plain text** only. No HTML, no markdown links that open URLs.
-- No URL fields anywhere. The only network traffic is model downloads. Never send user data anywhere.
+- No URL fields anywhere. The only external network traffic is model downloads and required metadata; app/runtime assets load from the app origin. Never send user data anywhere.
 - No secrets in the repo. The app needs none.
+
+### Web runtime preparation and request policy (T-62)
+
+`npm run web` / `npm run export:web` run `scripts/prepare-web-runtime.mjs` first. It verifies the SHA-256 manifest (`scripts/web-runtime-assets.json`), downloads missing/changed files and licenses, and refuses mismatches before writing an asset. `public/vendor/` is ignored and exported with the app. Direct `npx expo start --web` or `npx expo export -p web` requires `npm run prepare:web` first. No weights are prepared by this script.
+
+The first-party worker restricts model ids to E2B/E4B repositories and images to local image data URLs. Global fetch and Transformers' `env.fetch` delegate only known model files, exact same-origin runtime assets and image data URLs (GET/HEAD, credentials omitted); Hugging Face may redirect weight downloads to its signed storage. Explicit local WASM paths, one thread and disabled proxy/blob-module caching avoid CDN and nested-worker fetches. Store restoration validates image values against the existing state schema before either image renderer can see them; defaults survive rejected values. No spec or public TypeScript API change.
 
 ## 12. Deployment
 
-- **Web**: `npx expo export -p web` → static host (.tech domain optional). Add a PWA manifest and icons.
+- **Web**: `npm run export:web` → static host (.tech domain optional). Add a PWA manifest and icons.
 - **Android**: EAS Build `preview` profile with `"buildType": "apk"`. Attach the APK to a GitHub release.
 - **iOS / stores**: after the challenge (ADR-006).
 
