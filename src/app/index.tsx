@@ -32,6 +32,12 @@ export default function Home() {
       {__DEV__ ? (
         <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Dev: load a fixture</Text>
+          <Pressable
+            accessibilityRole="button" onPress={() => router.push('/dev/eval')}
+            style={[styles.row, { backgroundColor: t.accentSoft }]}
+          >
+            <Text style={[styles.name, { color: t.text }]}>Run model eval</Text>
+          </Pressable>
           {FIXTURES.map(({ id, spec }) => (
             <Pressable
               key={id} accessibilityRole="button" accessibilityLabel={`Open ${spec.meta.name}`}
