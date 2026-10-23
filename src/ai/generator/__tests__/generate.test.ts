@@ -77,13 +77,14 @@ test('invalid registered names are repaired before FILL', async () => {
   expect(calls.mock.calls[2][0].system).toContain('FILL:');
 });
 
-test.each([true, false])('schema capability %s applies to every stage', async (enabled) => {
+test.each([true, false])('schema capability %s applies to PLAN stages only', async (enabled) => {
   const { options, calls } = setup(['{}', plan, bad, spec]);
   options.provider.caps = { ...options.provider.caps, jsonSchema: enabled };
   expect(await generate(options)).toMatchObject({ status: 'done', repairs: 2 });
   for (const [request] of calls.mock.calls) {
-    expect(Object.hasOwn(request, 'jsonSchema')).toBe(enabled);
-    if (enabled) expect(request.jsonSchema).toHaveProperty('$defs');
+    const planStage = request.system.includes('PLAN:') || request.system.includes('REPAIR target: plan');
+    expect(Object.hasOwn(request, 'jsonSchema')).toBe(enabled && planStage);
+    if (enabled && planStage) expect(request.jsonSchema).toHaveProperty('$defs');
   }
 });
 

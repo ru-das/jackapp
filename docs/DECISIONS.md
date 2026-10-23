@@ -142,3 +142,8 @@ Agents may add **Proposed** entries. Only the human marks them **Accepted**, or 
 2026-10-22 · Accepted · Claude Code
 
 `@react-native-async-storage/async-storage` (ADR-001 storage; web uses localStorage, ships a jest mock) and `expo-image-manipulator` (downscale to ≤1024 px JPEG 0.8 on native and web). No clipboard library: web uses `navigator.share` then `navigator.clipboard`, native uses React Native `Share`. Picked images are stored as `data:image/jpeg;base64,…` URIs so they persist and satisfy the `image` state type.
+
+## ADR-017: JSON Schema constrains PLAN only (T-60)
+
+2026-10-23 · Accepted · Claude Code
+Both E2B eval runs failed all 30 prompts with `[json.exception.type_error.302] type must be string, but is object`: llama.rn's grammar converter rejects the 22 KB spec schema, while the 3 KB plan schema works. `callStage` now sends `jsonSchema` only for the plan target. The FILL/REPAIR spec output relies on the prompt examples, the parser, `validate()` and the two-repair budget. Revisit if a simpler spec schema is found that llama.cpp accepts (then constraining FILL may raise first-fill validity).

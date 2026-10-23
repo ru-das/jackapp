@@ -1,0 +1,1552 @@
+{
+  "startedAt": "2026-10-23T13:30:20.531Z",
+  "finishedAt": "2026-10-23T13:30:24.299Z",
+  "provider": "local",
+  "model": "E2B",
+  "options": {
+    "noPlan": true,
+    "only": null
+  },
+  "rows": [
+    {
+      "id": "e01",
+      "prompt": "Make me a shopping list from a photo of my fridge, with boxes to tick when bought.",
+      "expect": "spec",
+      "mustUse": [
+        "ImageInput",
+        "List"
+      ],
+      "mustOps": [
+        "ai.run"
+      ],
+      "durationMs": 89,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "ImageInput",
+          "List"
+        ],
+        "ops": [
+          "ai.run"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e02",
+      "prompt": "Snap my pantry and suggest groceries I need in a list.",
+      "expect": "spec",
+      "mustUse": [
+        "ImageInput",
+        "List"
+      ],
+      "mustOps": [
+        "ai.run"
+      ],
+      "durationMs": 108,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "ImageInput",
+          "List"
+        ],
+        "ops": [
+          "ai.run"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e03",
+      "prompt": "Let me photograph the fridge and add a note about what we need, then make a grocery list.",
+      "expect": "spec",
+      "mustUse": [
+        "ImageInput",
+        "TextInput",
+        "List"
+      ],
+      "mustOps": [
+        "ai.run"
+      ],
+      "durationMs": 105,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "ImageInput",
+          "TextInput",
+          "List"
+        ],
+        "ops": [
+          "ai.run"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e04",
+      "prompt": "Use a cupboard photo to make a shopping checklist I can share.",
+      "expect": "spec",
+      "mustUse": [
+        "ImageInput",
+        "List"
+      ],
+      "mustOps": [
+        "ai.run",
+        "share"
+      ],
+      "durationMs": 106,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "ImageInput",
+          "List"
+        ],
+        "ops": [
+          "ai.run",
+          "share"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e05",
+      "prompt": "Track my plants in a list and tap a plant to record when I watered it.",
+      "expect": "spec",
+      "mustUse": [
+        "List"
+      ],
+      "mustOps": [
+        "state.update"
+      ],
+      "durationMs": 132,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "List"
+        ],
+        "ops": [
+          "state.update"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e06",
+      "prompt": "A little plant watering tracker: add plant names and mark each watered today.",
+      "expect": "spec",
+      "mustUse": [
+        "List",
+        "TextInput"
+      ],
+      "mustOps": [
+        "state.append",
+        "state.update"
+      ],
+      "durationMs": 115,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "List",
+          "TextInput"
+        ],
+        "ops": [
+          "state.append",
+          "state.update"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e07",
+      "prompt": "Show my plants and how long since each was watered; tapping one records watering now.",
+      "expect": "spec",
+      "mustUse": [
+        "List"
+      ],
+      "mustOps": [
+        "state.update"
+      ],
+      "durationMs": 117,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "List"
+        ],
+        "ops": [
+          "state.update"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e08",
+      "prompt": "Read a receipt photo into a list of prices and show how much each person pays, with a people count input.",
+      "expect": "spec",
+      "mustUse": [
+        "ImageInput",
+        "List",
+        "Stat",
+        "NumberInput"
+      ],
+      "mustOps": [
+        "ai.run"
+      ],
+      "durationMs": 120,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "ImageInput",
+          "List",
+          "Stat",
+          "NumberInput"
+        ],
+        "ops": [
+          "ai.run"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e09",
+      "prompt": "Split a restaurant bill from a photo equally among a number of friends I enter.",
+      "expect": "spec",
+      "mustUse": [
+        "ImageInput",
+        "NumberInput",
+        "Stat"
+      ],
+      "mustOps": [
+        "ai.run"
+      ],
+      "durationMs": 119,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "ImageInput",
+          "NumberInput",
+          "Stat"
+        ],
+        "ops": [
+          "ai.run"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e10",
+      "prompt": "Take a bill photo, list the charges, let me enter how many people, and share the split.",
+      "expect": "spec",
+      "mustUse": [
+        "ImageInput",
+        "List",
+        "NumberInput"
+      ],
+      "mustOps": [
+        "ai.run",
+        "share"
+      ],
+      "durationMs": 116,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "ImageInput",
+          "List",
+          "NumberInput"
+        ],
+        "ops": [
+          "ai.run",
+          "share"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e11",
+      "prompt": "A packing checklist where I type new items, tick packed things and delete items.",
+      "expect": "spec",
+      "mustUse": [
+        "TextInput",
+        "List"
+      ],
+      "mustOps": [
+        "state.append"
+      ],
+      "durationMs": 121,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "TextInput",
+          "List"
+        ],
+        "ops": [
+          "state.append"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e12",
+      "prompt": "A cleaning checklist with rooms I can add and tick off.",
+      "expect": "spec",
+      "mustUse": [
+        "TextInput",
+        "List"
+      ],
+      "mustOps": [
+        "state.append"
+      ],
+      "durationMs": 120,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "TextInput",
+          "List"
+        ],
+        "ops": [
+          "state.append"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e13",
+      "prompt": "Log expenses with a name and amount and show the total spent.",
+      "expect": "spec",
+      "mustUse": [
+        "TextInput",
+        "NumberInput",
+        "List",
+        "Stat"
+      ],
+      "mustOps": [
+        "state.append"
+      ],
+      "durationMs": 117,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "TextInput",
+          "NumberInput",
+          "List",
+          "Stat"
+        ],
+        "ops": [
+          "state.append"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e14",
+      "prompt": "Count glasses of water with an add one button and a reset button.",
+      "expect": "spec",
+      "mustUse": [
+        "Button",
+        "Stat"
+      ],
+      "mustOps": [
+        "state.increment",
+        "state.reset"
+      ],
+      "durationMs": 122,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "Button",
+          "Stat"
+        ],
+        "ops": [
+          "state.increment",
+          "state.reset"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e15",
+      "prompt": "Keep household tasks in a checklist and let me add tasks.",
+      "expect": "spec",
+      "mustUse": [
+        "List",
+        "TextInput"
+      ],
+      "mustOps": [
+        "state.append"
+      ],
+      "durationMs": 127,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "List",
+          "TextInput"
+        ],
+        "ops": [
+          "state.append"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e16",
+      "prompt": "A laundry checklist with clothes to wash that I can tick and delete.",
+      "expect": "spec",
+      "mustUse": [
+        "List"
+      ],
+      "durationMs": 127,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "List"
+        ],
+        "ops": []
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e17",
+      "prompt": "Track when I fed each pet; tap a pet in a list to record feeding now.",
+      "expect": "spec",
+      "mustUse": [
+        "List"
+      ],
+      "mustOps": [
+        "state.update"
+      ],
+      "durationMs": 129,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "List"
+        ],
+        "ops": [
+          "state.update"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e18",
+      "prompt": "List my subscriptions with their monthly cost, let me add one and show the total.",
+      "expect": "spec",
+      "mustUse": [
+        "List",
+        "TextInput",
+        "NumberInput",
+        "Stat"
+      ],
+      "mustOps": [
+        "state.append"
+      ],
+      "durationMs": 130,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "List",
+          "TextInput",
+          "NumberInput",
+          "Stat"
+        ],
+        "ops": [
+          "state.append"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e19",
+      "prompt": "Keep a list of things I lend out, with who borrowed them and a button to add a loan.",
+      "expect": "spec",
+      "mustUse": [
+        "List",
+        "TextInput"
+      ],
+      "mustOps": [
+        "state.append"
+      ],
+      "durationMs": 130,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "List",
+          "TextInput"
+        ],
+        "ops": [
+          "state.append"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e20",
+      "prompt": "Plan gift spending: enter recipient and budget, add to a list and show the total.",
+      "expect": "spec",
+      "mustUse": [
+        "TextInput",
+        "NumberInput",
+        "List",
+        "Stat"
+      ],
+      "mustOps": [
+        "state.append"
+      ],
+      "durationMs": 131,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "TextInput",
+          "NumberInput",
+          "List",
+          "Stat"
+        ],
+        "ops": [
+          "state.append"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e21",
+      "prompt": "I type ingredients I have; suggest meal ideas in a list.",
+      "expect": "spec",
+      "mustUse": [
+        "TextInput",
+        "List"
+      ],
+      "mustOps": [
+        "ai.run"
+      ],
+      "durationMs": 128,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "TextInput",
+          "List"
+        ],
+        "ops": [
+          "ai.run"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e22",
+      "prompt": "A leftovers list I can add food to, tick when eaten, and delete.",
+      "expect": "spec",
+      "mustUse": [
+        "TextInput",
+        "List"
+      ],
+      "mustOps": [
+        "state.append"
+      ],
+      "durationMs": 144,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "TextInput",
+          "List"
+        ],
+        "ops": [
+          "state.append"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e23",
+      "prompt": "Log study sessions by subject and minutes, and show total minutes.",
+      "expect": "spec",
+      "mustUse": [
+        "TextInput",
+        "NumberInput",
+        "List",
+        "Stat"
+      ],
+      "mustOps": [
+        "state.append"
+      ],
+      "durationMs": 138,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "TextInput",
+          "NumberInput",
+          "List",
+          "Stat"
+        ],
+        "ops": [
+          "state.append"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e24",
+      "prompt": "Add shopping items and prices to a list and show my total.",
+      "expect": "spec",
+      "mustUse": [
+        "TextInput",
+        "NumberInput",
+        "List",
+        "Stat"
+      ],
+      "mustOps": [
+        "state.append"
+      ],
+      "durationMs": 138,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "TextInput",
+          "NumberInput",
+          "List",
+          "Stat"
+        ],
+        "ops": [
+          "state.append"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e25",
+      "prompt": "Make an errands checklist I can add to and share with my family.",
+      "expect": "spec",
+      "mustUse": [
+        "TextInput",
+        "List"
+      ],
+      "mustOps": [
+        "state.append",
+        "share"
+      ],
+      "durationMs": 147,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [
+          "TextInput",
+          "List"
+        ],
+        "ops": [
+          "state.append",
+          "share"
+        ]
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e26",
+      "prompt": "Build an interactive physics simulation with bouncing objects and collisions.",
+      "expect": "unsupported",
+      "durationMs": 136,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [],
+        "ops": []
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e27",
+      "prompt": "Make a 3D racing game I can steer in real time.",
+      "expect": "unsupported",
+      "durationMs": 135,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [],
+        "ops": []
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e28",
+      "prompt": "Build an online multiplayer game to play live with friends.",
+      "expect": "unsupported",
+      "durationMs": 128,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [],
+        "ops": []
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e29",
+      "prompt": "Show live weather fetched automatically for my location.",
+      "expect": "unsupported",
+      "durationMs": 143,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [],
+        "ops": []
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e30",
+      "prompt": "Automatically connect to my email and clean up my inbox.",
+      "expect": "unsupported",
+      "durationMs": 141,
+      "result": {
+        "status": "failed",
+        "repairs": 0,
+        "message": "The model couldn’t finish. Please try again.",
+        "errors": [
+          {
+            "code": "SHAPE",
+            "path": "spec",
+            "message": "[json.exception.type_error.302] type must be string, but is object",
+            "hint": "Check the loaded provider and try again."
+          }
+        ]
+      },
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [],
+        "ops": []
+      },
+      "diagnostics": [
+        {
+          "target": "spec",
+          "attempt": 0,
+          "errors": [
+            {
+              "code": "SHAPE",
+              "path": "spec",
+              "message": "[json.exception.type_error.302] type must be string, but is object",
+              "hint": "Check the loaded provider and try again."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metrics": {
+    "firstFillValidity": {
+      "count": 0,
+      "denominator": 25,
+      "rate": 0
+    },
+    "validWithinTwoRepairs": {
+      "count": 0,
+      "denominator": 25,
+      "rate": 0
+    },
+    "requirementsSatisfied": {
+      "count": 0,
+      "denominator": 0,
+      "rate": null
+    },
+    "correctRefusals": {
+      "count": 0,
+      "denominator": 5,
+      "rate": 0
+    },
+    "refusalRecall": {
+      "count": 0,
+      "denominator": 5,
+      "rate": 0
+    },
+    "refusalPrecision": {
+      "count": 0,
+      "denominator": 0,
+      "rate": null
+    },
+    "falseRefusals": {
+      "count": 0,
+      "denominator": 25,
+      "rate": 0
+    },
+    "medianLatencyMs": null,
+    "latencySamples": 0
+  },
+  "targets": {
+    "firstFillValidity": {
+      "minimumRate": 0.5,
+      "met": false
+    },
+    "validWithinTwoRepairs": {
+      "minimumRate": 0.8,
+      "met": false
+    },
+    "requirementsSatisfied": {
+      "minimumRate": 0.8,
+      "met": null
+    },
+    "correctRefusals": {
+      "minimumCount": 4,
+      "denominator": 5,
+      "met": false
+    },
+    "falseRefusals": {
+      "maximumCount": 2,
+      "denominator": 25,
+      "met": true
+    },
+    "medianLatencyMs": {
+      "maximumMs": 90000,
+      "met": null
+    }
+  },
+  "topErrors": [
+    {
+      "code": "SHAPE",
+      "count": 30
+    }
+  ]
+}
