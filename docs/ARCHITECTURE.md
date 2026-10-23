@@ -207,7 +207,7 @@ The first-party worker restricts model ids to E2B/E4B repositories and images to
 
 ## 12. Deployment
 
-- **Web**: `npm run export:web` → static host (.tech domain optional). Add a PWA manifest and icons.
+- **Web**: `npm run export:web` → GitHub Pages at `https://ru-das.github.io/jackapp/` via `.github/workflows/pages.yml` (ADR-019). Base path comes from `app.json` `experiments.baseUrl`; `+html.tsx` and `local.web.ts` read `EXPO_BASE_URL`. `public/manifest.webmanifest` uses relative `start_url`/`scope`. Workflow copies `index.html` to `404.html` so deep links (`/run/<id>`) reach the client router. Moving to a .tech root domain: remove `baseUrl`.
 - **Android**: EAS Build `preview` profile with `"buildType": "apk"`. Attach the APK to a GitHub release.
 - **iOS / stores**: after the challenge (ADR-006).
 

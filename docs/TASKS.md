@@ -73,7 +73,7 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 - [ ] **T-62 (P0) Security pass**: forbidden-API grep, HTML-in-spec test, import validation. → AT-12
   - [x] **Code + automated review (Codex, 2026-10-23):** 47 security regressions; fixture save validation, persisted image validation, pinned same-origin runtime preparation and worker request/image guards (ADR-018). Typecheck/lint + 27 suites / 604 tests, exact grep (test-only matches), static export and Chromium smoke with external connections blocked/inference mocked pass. Existing generator/create/stored-spec boundaries validate. Import is absent and edit is a placeholder; UI work stays T-53/T-51.
   - [ ] **Human phone acceptance:** full web/Android session network logs (download, generate, photo, save/reopen, offline); verify model-source-only external requests and local WebGPU/WASM assets/cache/redirects. Record results before ticking T-62/AT-12.
-- [ ] **T-63 (P0) Web deploy**: static export + PWA manifest/icons, hosted. → AT-13
+- [x] **T-63 (P0) Web deploy**: static export + PWA manifest/icons, hosted. → AT-13
 - [ ] **T-64 (P0) Android APK** via EAS `preview`, attached to a GitHub release. → AT-13
 - [ ] **T-65 (P1) Accessibility and visual polish pass.** → AT-16
 

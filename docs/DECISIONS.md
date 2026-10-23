@@ -158,3 +158,8 @@ Prepare Transformers.js **4.3.1** and its package-declared ONNX Runtime **1.31.0
 The worker accepts only the two configured ONNX repositories, decodes only image data URLs, and delegates GET/HEAD fetches only for known same-origin runtime files, image data URLs, and those repositories' model weights/tokenizer/processor/config metadata. Both Transformers' captured `env.fetch` and global fetch use the guard. Omit credentials/referrers. Hugging Face controls signed storage redirects from allowed model downloads; these remain model-source traffic. WASM paths stay local; disable blob WASM caching/proxy workers and use one thread so nested workers cannot bypass the fetch guard. This supersedes ADR-012's CDN exception and the PRD CDN mitigation.
 
 **Verification limit.** Agent tests use mocked inference and blocked external connections; no model runs on the laptop. Real WebGPU/WASM compatibility, signed-download redirects, cache/offline behavior and full-session phone network logs still require phone acceptance before T-62/AT-12 are complete. Import UI is absent and edit UI is a placeholder; implementing them remains T-53/T-51, with validation required at their future save/render boundaries.
+
+## ADR-019: GitHub Pages for the web build, no service worker (T-63)
+
+2026-10-23 · Accepted · Claude Code
+Host the static export on GitHub Pages from a Pages workflow (no deploy branch) under `/jackapp`. Cloudflare Pages is out: its 25 MiB per-file limit rejects the 26.9 MB ONNX wasm. No service worker: Chrome on Android installs from the manifest alone; add one only if the install prompt fails. Deep links use the `404.html` copy of `index.html`. A .tech domain is optional; with one, drop `experiments.baseUrl`.

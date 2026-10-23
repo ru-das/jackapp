@@ -30,7 +30,7 @@ function stopWorker() {
 }
 
 function getWorker() {
-  worker ??= new Worker('/llm-worker.js', { type: 'module' });
+  worker ??= new Worker(`${process.env.EXPO_BASE_URL ?? ''}/llm-worker.js`, { type: 'module' });
   return worker;
 }
 
