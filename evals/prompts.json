@@ -1,1 +1,340 @@
-[]
+[
+  {
+    "id": "e01",
+    "prompt": "Make me a shopping list from a photo of my fridge, with boxes to tick when bought.",
+    "expect": "spec",
+    "mustUse": [
+      "ImageInput",
+      "List"
+    ],
+    "mustOps": [
+      "ai.run"
+    ]
+  },
+  {
+    "id": "e02",
+    "prompt": "Snap my pantry and suggest groceries I need in a list.",
+    "expect": "spec",
+    "mustUse": [
+      "ImageInput",
+      "List"
+    ],
+    "mustOps": [
+      "ai.run"
+    ]
+  },
+  {
+    "id": "e03",
+    "prompt": "Let me photograph the fridge and add a note about what we need, then make a grocery list.",
+    "expect": "spec",
+    "mustUse": [
+      "ImageInput",
+      "TextInput",
+      "List"
+    ],
+    "mustOps": [
+      "ai.run"
+    ]
+  },
+  {
+    "id": "e04",
+    "prompt": "Use a cupboard photo to make a shopping checklist I can share.",
+    "expect": "spec",
+    "mustUse": [
+      "ImageInput",
+      "List"
+    ],
+    "mustOps": [
+      "ai.run",
+      "share"
+    ]
+  },
+  {
+    "id": "e05",
+    "prompt": "Track my plants in a list and tap a plant to record when I watered it.",
+    "expect": "spec",
+    "mustUse": [
+      "List"
+    ],
+    "mustOps": [
+      "state.update"
+    ]
+  },
+  {
+    "id": "e06",
+    "prompt": "A little plant watering tracker: add plant names and mark each watered today.",
+    "expect": "spec",
+    "mustUse": [
+      "List",
+      "TextInput"
+    ],
+    "mustOps": [
+      "state.append",
+      "state.update"
+    ]
+  },
+  {
+    "id": "e07",
+    "prompt": "Show my plants and how long since each was watered; tapping one records watering now.",
+    "expect": "spec",
+    "mustUse": [
+      "List"
+    ],
+    "mustOps": [
+      "state.update"
+    ]
+  },
+  {
+    "id": "e08",
+    "prompt": "Read a receipt photo into a list of prices and show how much each person pays, with a people count input.",
+    "expect": "spec",
+    "mustUse": [
+      "ImageInput",
+      "List",
+      "Stat",
+      "NumberInput"
+    ],
+    "mustOps": [
+      "ai.run"
+    ]
+  },
+  {
+    "id": "e09",
+    "prompt": "Split a restaurant bill from a photo equally among a number of friends I enter.",
+    "expect": "spec",
+    "mustUse": [
+      "ImageInput",
+      "NumberInput",
+      "Stat"
+    ],
+    "mustOps": [
+      "ai.run"
+    ]
+  },
+  {
+    "id": "e10",
+    "prompt": "Take a bill photo, list the charges, let me enter how many people, and share the split.",
+    "expect": "spec",
+    "mustUse": [
+      "ImageInput",
+      "List",
+      "NumberInput"
+    ],
+    "mustOps": [
+      "ai.run",
+      "share"
+    ]
+  },
+  {
+    "id": "e11",
+    "prompt": "A packing checklist where I type new items, tick packed things and delete items.",
+    "expect": "spec",
+    "mustUse": [
+      "TextInput",
+      "List"
+    ],
+    "mustOps": [
+      "state.append"
+    ]
+  },
+  {
+    "id": "e12",
+    "prompt": "A cleaning checklist with rooms I can add and tick off.",
+    "expect": "spec",
+    "mustUse": [
+      "TextInput",
+      "List"
+    ],
+    "mustOps": [
+      "state.append"
+    ]
+  },
+  {
+    "id": "e13",
+    "prompt": "Log expenses with a name and amount and show the total spent.",
+    "expect": "spec",
+    "mustUse": [
+      "TextInput",
+      "NumberInput",
+      "List",
+      "Stat"
+    ],
+    "mustOps": [
+      "state.append"
+    ]
+  },
+  {
+    "id": "e14",
+    "prompt": "Count glasses of water with an add one button and a reset button.",
+    "expect": "spec",
+    "mustUse": [
+      "Button",
+      "Stat"
+    ],
+    "mustOps": [
+      "state.increment",
+      "state.reset"
+    ]
+  },
+  {
+    "id": "e15",
+    "prompt": "Keep household tasks in a checklist and let me add tasks.",
+    "expect": "spec",
+    "mustUse": [
+      "List",
+      "TextInput"
+    ],
+    "mustOps": [
+      "state.append"
+    ]
+  },
+  {
+    "id": "e16",
+    "prompt": "A laundry checklist with clothes to wash that I can tick and delete.",
+    "expect": "spec",
+    "mustUse": [
+      "List"
+    ]
+  },
+  {
+    "id": "e17",
+    "prompt": "Track when I fed each pet; tap a pet in a list to record feeding now.",
+    "expect": "spec",
+    "mustUse": [
+      "List"
+    ],
+    "mustOps": [
+      "state.update"
+    ]
+  },
+  {
+    "id": "e18",
+    "prompt": "List my subscriptions with their monthly cost, let me add one and show the total.",
+    "expect": "spec",
+    "mustUse": [
+      "List",
+      "TextInput",
+      "NumberInput",
+      "Stat"
+    ],
+    "mustOps": [
+      "state.append"
+    ]
+  },
+  {
+    "id": "e19",
+    "prompt": "Keep a list of things I lend out, with who borrowed them and a button to add a loan.",
+    "expect": "spec",
+    "mustUse": [
+      "List",
+      "TextInput"
+    ],
+    "mustOps": [
+      "state.append"
+    ]
+  },
+  {
+    "id": "e20",
+    "prompt": "Plan gift spending: enter recipient and budget, add to a list and show the total.",
+    "expect": "spec",
+    "mustUse": [
+      "TextInput",
+      "NumberInput",
+      "List",
+      "Stat"
+    ],
+    "mustOps": [
+      "state.append"
+    ]
+  },
+  {
+    "id": "e21",
+    "prompt": "I type ingredients I have; suggest meal ideas in a list.",
+    "expect": "spec",
+    "mustUse": [
+      "TextInput",
+      "List"
+    ],
+    "mustOps": [
+      "ai.run"
+    ]
+  },
+  {
+    "id": "e22",
+    "prompt": "A leftovers list I can add food to, tick when eaten, and delete.",
+    "expect": "spec",
+    "mustUse": [
+      "TextInput",
+      "List"
+    ],
+    "mustOps": [
+      "state.append"
+    ]
+  },
+  {
+    "id": "e23",
+    "prompt": "Log study sessions by subject and minutes, and show total minutes.",
+    "expect": "spec",
+    "mustUse": [
+      "TextInput",
+      "NumberInput",
+      "List",
+      "Stat"
+    ],
+    "mustOps": [
+      "state.append"
+    ]
+  },
+  {
+    "id": "e24",
+    "prompt": "Add shopping items and prices to a list and show my total.",
+    "expect": "spec",
+    "mustUse": [
+      "TextInput",
+      "NumberInput",
+      "List",
+      "Stat"
+    ],
+    "mustOps": [
+      "state.append"
+    ]
+  },
+  {
+    "id": "e25",
+    "prompt": "Make an errands checklist I can add to and share with my family.",
+    "expect": "spec",
+    "mustUse": [
+      "TextInput",
+      "List"
+    ],
+    "mustOps": [
+      "state.append",
+      "share"
+    ]
+  },
+  {
+    "id": "e26",
+    "prompt": "Build an interactive physics simulation with bouncing objects and collisions.",
+    "expect": "unsupported"
+  },
+  {
+    "id": "e27",
+    "prompt": "Make a 3D racing game I can steer in real time.",
+    "expect": "unsupported"
+  },
+  {
+    "id": "e28",
+    "prompt": "Build an online multiplayer game to play live with friends.",
+    "expect": "unsupported"
+  },
+  {
+    "id": "e29",
+    "prompt": "Show live weather fetched automatically for my location.",
+    "expect": "unsupported"
+  },
+  {
+    "id": "e30",
+    "prompt": "Automatically connect to my email and clean up my inbox.",
+    "expect": "unsupported"
+  }
+]

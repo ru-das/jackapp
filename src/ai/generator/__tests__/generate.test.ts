@@ -32,7 +32,7 @@ test('AT-06 repairs a bad spec once; stamps metadata and returns parsed defaults
   expect(result.spec.state.notes.persist).toBe(true);
   expect(calls.mock.calls.map(([req]) => [req.temperature, req.maxTokens])).toEqual([[0.4, 1024], [0.2, 3072], [0, 3072]]);
   expect(events.map((e) => e.stage)).toEqual(['planning', 'checking', 'building', 'checking', 'repairing', 'checking', 'done']);
-  expect(events.filter((e) => e.stage === 'repairing')).toEqual([{ stage: 'repairing', target: 'spec', attempt: 1 }]);
+  expect(events.filter((e) => e.stage === 'repairing')).toEqual([{ stage: 'repairing', target: 'spec', attempt: 1, errors: expect.any(Array) }]);
 });
 
 test('AT-06 stops after exactly two repairs and exposes no partial spec', async () => {
@@ -42,7 +42,7 @@ test('AT-06 stops after exactly two repairs and exposes no partial spec', async 
   expect(result).not.toHaveProperty('spec');
   expect(calls).toHaveBeenCalledTimes(4);
   expect(events.filter((e) => ['done', 'failed', 'unsupported'].includes(e.stage))).toEqual([
-    { stage: 'failed', target: 'spec', attempt: 2 },
+    { stage: 'failed', target: 'spec', attempt: 2, errors: expect.any(Array) },
   ]);
 });
 
@@ -165,4 +165,32 @@ test('scripted mocks are isolated, ordered, abortable and throw on exhaustion; s
   await expect(a.generate(request)).resolves.toBe('two');
   await expect(a.generate(request)).rejects.toThrow('exhausted');
   await expect(mockProvider.generate(request)).resolves.toBe('{"ok":true}');
+});
+
+test('no-plan starts at FILL, omits plan payload, and retains repairs and metadata', async () => {
+  const { options, calls, events } = setup(['{broken}', spec]);
+  expect(await generate({ ...options, noPlan: true })).toMatchObject({ status: 'done', repairs: 1,
+    spec: { meta: { sourcePrompt: options.prompt, generatedBy: { provider: 'mock', model: options.model } } } });
+  expect(JSON.parse(calls.mock.calls[0][0].messages[0].content)).toEqual({ request: options.prompt });
+  expect(calls.mock.calls[0][0]).toMatchObject({ temperature: 0.2, maxTokens: 3072 });
+  expect(events.map((event) => event.stage)).toEqual(['building', 'checking', 'repairing', 'checking', 'done']);
+});
+
+test('diagnostic snapshots cannot mutate repair feedback or failed results', async () => {
+  const { options, calls } = setup(['{broken}', '{broken}', '{broken}']);
+  const result = await generate({ ...options, noPlan: true, onProgress: (event) => {
+    if (event.errors) { event.errors[0].code = 'TREE'; event.errors.length = 0; }
+  } });
+  expect(JSON.parse(calls.mock.calls[1][0].messages[0].content).errors[0].code).toBe('BAD_JSON');
+  expect(result).toMatchObject({ status: 'failed', errors: [{ code: 'BAD_JSON' }] });
+});
+
+test('no-plan preserves cancellation and refusals', async () => {
+  const { options, calls } = setup([JSON.stringify({ unsupported: {
+    reason: 'Needs physics', missing: ['physics'], suggestion: 'Try a calculator',
+  } })]);
+  expect(await generate({ ...options, noPlan: true })).toMatchObject({ status: 'unsupported', repairs: 0 });
+  const controller = new AbortController(); controller.abort();
+  expect(await generate({ ...options, noPlan: true, signal: controller.signal })).toMatchObject({ status: 'failed', message: 'Generation cancelled.' });
+  expect(calls).toHaveBeenCalledTimes(1);
 });

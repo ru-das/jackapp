@@ -28,7 +28,7 @@ export async function callStage(options: StageRequest & {
   return raw;
 }
 
-export function fill(options: StageRequest & { plan: Plan }) {
+export function fill(options: StageRequest & { plan?: Plan }) {
   return callStage({ ...options, stage: 'fill', target: 'spec',
     content: JSON.stringify({ request: options.prompt, plan: options.plan }) });
 }

@@ -204,3 +204,24 @@ Rules:
 - **Web**: `npx expo export -p web` → static host (.tech domain optional). Add a PWA manifest and icons.
 - **Android**: EAS Build `preview` profile with `"buildType": "apk"`. Attach the APK to a GitHub release.
 - **iOS / stores**: after the challenge (ADR-006).
+
+## 13. Generator eval interface (T-60)
+
+`runEval(provider, model, { noPlan?, only?, onResult? } = {})` in
+`src/ai/generator/eval.ts` runs the corpus sequentially through `generate()`.
+The caller supplies a selected, loaded provider; the runner imports its type only
+and never loads/downloads models or touches storage. Unknown prompt ids reject
+before inference; generation failures remain rows and the suite continues.
+`onResult(row)` receives a copied row after each prompt; observer exceptions are
+logged without stopping the run. The returned object is JSON-serializable:
+`startedAt`, `finishedAt` (ISO), `provider`, `model`, normalized `options`
+(`noPlan: false`, `only: null` by default), `rows`, `metrics`, `targets`, `topErrors`.
+Rows retain corpus expectations/requirements, `durationMs`, full `result`,
+`firstFillValid`, `missingRequirements: {components, ops}`, and stage/attempt error
+`diagnostics`. See TESTING §2 for scoring.
+
+`generate({..., noPlan: true})` starts at FILL with no plan payload; default is
+still PLAN → FILL. Both modes preserve validation, metadata stamping, refusal,
+cancellation and the shared two-repair limit. `repairing` and `failed` progress
+events include copied `errors: SpecError[]`; other events omit diagnostics.
+Observers cannot mutate validation/repair feedback through these snapshots.

@@ -126,3 +126,38 @@ Every input has a label read by TalkBack or the browser's screen reader. Touch t
 - [ ] README: setup, models, credits, post-deadline section
 - [ ] Demo video uploaded; the post embeds the video and the repo
 - [ ] Challenge tags present; partner categories listed only where truly used
+
+## 6. Eval scoring conventions (T-60)
+
+Run `runEval(provider, model, { noPlan?, only?, onResult? })` after loading the
+provider. Corpus order is stable (`e01`–`e30`): 10 hero variants, 15 everyday
+chores, 5 unsupported requests. Capture both default and `noPlan: true` runs on
+the phone; no real model runs on the dev laptop.
+
+- `firstFillValidity`: successful expected-spec rows without a spec repair / all
+  expected-spec rows. PLAN repairs do not disqualify first-FILL success.
+- `validWithinTwoRepairs`: all successful expected-spec rows / all expected-spec
+  rows, including zero-repair successes.
+- `requirementsSatisfied`: successful expected-spec rows containing every
+  `mustUse` component and `mustOps` action op / successful expected-spec rows.
+  Presence checks are structural, not a behavioral correctness assessment.
+  Built-in List checkbox/delete behavior does not require an explicit action op.
+- `correctRefusals` and `refusalRecall`: unsupported expectations refused / all
+  unsupported expectations. `refusalPrecision` uses all refusals as denominator.
+  `falseRefusals`: expected-spec rows refused / all expected-spec rows.
+- Ratio metrics include `count`, `denominator`, `rate` (0–1 or `null` for an empty
+  denominator). Median latency includes PLAN and all repairs for successful
+  expected-spec generations only, averages the middle pair for even samples,
+  and is `null` without samples; `latencySamples` reports its sample count.
+- `targets` retain the §2 thresholds and a `met` assessment. A filtered run
+  (`only`) has all assessments `null`; metrics still report actual observations.
+- `topErrors` counts each diagnostic occurrence from every failed attempt,
+  including recovered errors and terminal/provider failures. Terminal errors
+  are counted from the failed event only, not again from the result. Sort by
+  descending count, then alphabetical code, retaining five. Missing requirements
+  remain separate from validator diagnostics.
+
+Automated checks in `src/ai/generator/__tests__/eval.test.ts` use mock/scripted
+providers to cover sequencing, filtering, both pipeline modes, repair accounting,
+refusals, provider failure, requirements, denominators, median, and error ranking.
+These checks establish runner correctness, not real-model quality or phone speed.

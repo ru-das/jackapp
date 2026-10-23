@@ -13,26 +13,28 @@ export type GenerationResult =
   | { status: 'failed'; message: string; errors: SpecError[]; repairs: number };
 export type GenerationProgress = {
   stage: 'planning' | 'building' | 'checking' | 'repairing' | GenerationResult['status'];
-  target: TargetStage; attempt: number;
+  target: TargetStage; attempt: number; errors?: SpecError[];
 };
 export type GenerateOptions = StageRequest & {
-  model: string; onProgress?: (event: GenerationProgress) => void;
+  model: string; noPlan?: boolean; onProgress?: (event: GenerationProgress) => void;
 };
 
 export async function generate(options: GenerateOptions): Promise<GenerationResult> {
   let repairs = 0;
-  let target: TargetStage = 'plan';
+  let target: TargetStage = options.noPlan ? 'spec' : 'plan';
   let errors: SpecError[] = [];
-  const emit = (stage: GenerationProgress['stage'], attempt = repairs) => {
+  const emit = (stage: GenerationProgress['stage'], attempt = repairs, diagnostics?: SpecError[]) => {
     // An observer failure must not turn a terminal event into a second terminal event.
-    try { options.onProgress?.({ stage, target, attempt }); }
+    try { options.onProgress?.({ stage, target, attempt,
+      ...(diagnostics ? { errors: diagnostics.map((error) => ({ ...error })) } : {}) }); }
     catch (error) { console.warn('Generation progress listener failed', error); }
   };
-  const finish = (result: GenerationResult) => { emit(result.status); return result; };
+  const finish = (result: GenerationResult) => { emit(result.status, repairs, result.status === 'failed' ? result.errors : undefined); return result; };
   try {
     checkCancellation(options.signal);
-    emit('planning');
-    let raw = await callStage({ ...options, stage: 'plan', target, content: JSON.stringify({ request: options.prompt }) });
+    emit(options.noPlan ? 'building' : 'planning');
+    let raw = options.noPlan ? await fill(options)
+      : await callStage({ ...options, stage: 'plan', target, content: JSON.stringify({ request: options.prompt }) });
     let plan: Plan | undefined;
     for (;;) {
       checkCancellation(options.signal);
@@ -67,7 +69,7 @@ export async function generate(options: GenerateOptions): Promise<GenerationResu
       }
       if (repairs === 2) return finish({ status: 'failed', repairs, errors,
         message: 'I couldn’t build this mini-app. Try a simpler request.' });
-      emit('repairing', repairs + 1);
+      emit('repairing', repairs + 1, errors);
       raw = await repair({ ...options, target, raw, errors });
       repairs++;
     }
