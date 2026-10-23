@@ -6,7 +6,7 @@ import { saveSettings } from '@/storage/settings';
 
 const mockReplace = jest.fn();
 const mockPush = jest.fn();
-jest.mock('expo-router', () => ({ useRouter: () => ({ replace: mockReplace, push: mockPush }) }));
+jest.mock('expo-router', () => ({ useRouter: () => ({ replace: mockReplace, push: mockPush }), useLocalSearchParams: () => ({}) }));
 jest.mock('@react-native-async-storage/async-storage', () =>
   jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'));
 

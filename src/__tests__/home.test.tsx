@@ -16,3 +16,12 @@ test('dev menu lists the three fixtures', async () => {
     expect(screen.getByLabelText(`Open ${name}`)).toBeTruthy();
   }
 });
+
+test('empty Home invites a first build and offers templates with Remix', async () => {
+  await render(<Home />);
+  expect(await screen.findByText('No mini-apps yet')).toBeTruthy();
+  for (const name of ['Fridge Snap', 'Plant Pal', 'Bill Splitter']) {
+    expect(screen.getByText(`Try ${name}`)).toBeTruthy();
+    expect(screen.getByText(`Remix ${name}`)).toBeTruthy();
+  }
+});

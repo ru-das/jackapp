@@ -120,6 +120,7 @@
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
 | 2026-10-23 | Claude Code | T-63 | Sloth icon set, PWA manifest, `+html.tsx`, Pages workflow, `baseUrl` `/jackapp`; export verified under subpath; installability on phone pending (AT-13) | see git log |
+| 2026-10-23 | Claude Code | T-50 | Home: my mini-apps (open/rename/duplicate/delete), template gallery with Try + Remix, `storage/apps.ts`; check green (629 tests); not device-checked | see git log |
 | 2026-10-23 | Claude Code | T-65 code | AA contrast fix (light palette + test), loading states, sloth copy; check green (624 tests); 130%/dark phone walkthrough pending | see git log |
 | 2026-10-23 | Codex | T-62 code/review | 47 security regressions, validation/image guards, pinned local web runtime + fetch policy; 604 tests/export/blocked-network browser smoke pass; phone logs pending | see git log |
 | 2026-10-23 | Claude Code | T-60 screen | Hidden dev/eval screen: model/no-plan/one-prompt controls, live rows, metrics table, Share + Save file; mock-tested (557 tests), phone runs pending | see git log |

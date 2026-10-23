@@ -57,7 +57,8 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 
 ## M5 — App features (Fri afternoon)
 
-- [ ] **T-50 (P0) Home**: my mini-apps (open, rename, duplicate, delete) + template gallery (H1–H3) with "Remix" (prefilled edit prompt).
+- [x] **T-50 (P0) Home**: my mini-apps (open, rename, duplicate, delete) + template gallery (H1–H3) with "Remix" (prefilled edit prompt).
+  - Done 2026-10-23 (Claude Code): `src/storage/apps.ts` + `src/ui/AppRow.tsx`; "Try" saves a template as the user's own copy; "Remix" opens Create with a prefilled prompt. Duplicate copies the spec only (fresh data). Mock/jest-tested; not yet checked on a device.
 - [ ] **T-51 (P1) Edit-by-chat** keeping compatible state. → AT-08
 - [ ] **T-52 (P1) Triggers**: schedule/cancel native local notifications; web best-effort; tap opens the mini-app. → AT-09
 - [ ] **T-53 (P1) Export/import** spec JSON (share sheet / file). → AT-11

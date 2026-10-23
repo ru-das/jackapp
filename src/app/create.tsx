@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { generate, type GenerationProgress } from '@/ai/generator/generate';
@@ -10,6 +10,7 @@ import { createSession } from '@/runtime/session';
 import type { Spec } from '@/spec/types';
 import { validate } from '@/spec/validate';
 import { dataKey, removeKey, specKey, writeJson } from '@/storage';
+import { notifyAppsChanged } from '@/storage/apps';
 import { ActionButton } from '@/ui/ActionButton';
 import { GenerationStages } from '@/ui/GenerationStages';
 import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
@@ -33,7 +34,8 @@ type Phase =
 export default function Create() {
   const t = useTheme();
   const router = useRouter();
-  const [prompt, setPrompt] = useState('');
+  const params = useLocalSearchParams<{ prompt?: string }>();
+  const [prompt, setPrompt] = useState(params.prompt ?? '');
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' });
   const run = useRef(0);
   const abort = useRef<AbortController | null>(null);
@@ -100,6 +102,7 @@ export default function Create() {
     if (validate(d.spec).length) return toast("This mini-app can't be saved.");
     await writeJson(specKey(d.id), d.spec);
     await d.session.store.flush();
+    notifyAppsChanged();
     draft.current = null; // saved: the data now belongs to the mini-app
     router.replace({ pathname: '/run/[id]', params: { id: d.id } });
   };
