@@ -30,7 +30,7 @@ test('AT-06 repairs a bad spec once; stamps metadata and returns parsed defaults
   expect(result.spec.meta.sourcePrompt).toBe(options.prompt);
   expect(result.spec.meta.generatedBy).toEqual({ provider: 'mock', model: 'test-model' });
   expect(result.spec.state.notes.persist).toBe(true);
-  expect(calls.mock.calls.map(([req]) => [req.temperature, req.maxTokens])).toEqual([[0.4, 1024], [0.2, 3072], [0, 3072]]);
+  expect(calls.mock.calls.map(([req]) => [req.temperature, req.maxTokens])).toEqual([[0.4, 1024], [0.2, 4096], [0.1, 4096]]);
   expect(events.map((e) => e.stage)).toEqual(['planning', 'checking', 'building', 'checking', 'repairing', 'checking', 'done']);
   expect(events.filter((e) => e.stage === 'repairing')).toEqual([{ stage: 'repairing', target: 'spec', attempt: 1, errors: expect.any(Array) }]);
 });
@@ -53,7 +53,7 @@ test('plan and spec repairs share a budget and preserve complete latest feedback
   const firstRepair = JSON.parse(calls.mock.calls[1][0].messages[0].content);
   expect(firstRepair).toMatchObject({ request: options.prompt, target: 'plan', previousResponse: '{broken}',
     errors: [expect.objectContaining({ code: 'BAD_JSON', hint: expect.any(String) })] });
-  expect(calls.mock.calls[1][0]).toMatchObject({ temperature: 0, maxTokens: 1024 });
+  expect(calls.mock.calls[1][0]).toMatchObject({ temperature: 0.1, maxTokens: 1024 });
   const secondRepair = JSON.parse(calls.mock.calls[3][0].messages[0].content);
   const stamped = { ...badSpec, meta: { ...badSpec.meta, sourcePrompt: options.prompt,
     generatedBy: { provider: 'mock', model: options.model } } };
@@ -173,7 +173,7 @@ test('no-plan starts at FILL, omits plan payload, and retains repairs and metada
   expect(await generate({ ...options, noPlan: true })).toMatchObject({ status: 'done', repairs: 1,
     spec: { meta: { sourcePrompt: options.prompt, generatedBy: { provider: 'mock', model: options.model } } } });
   expect(JSON.parse(calls.mock.calls[0][0].messages[0].content)).toEqual({ request: options.prompt });
-  expect(calls.mock.calls[0][0]).toMatchObject({ temperature: 0.2, maxTokens: 3072 });
+  expect(calls.mock.calls[0][0]).toMatchObject({ temperature: 0.2, maxTokens: 4096 });
   expect(events.map((event) => event.stage)).toEqual(['building', 'checking', 'repairing', 'checking', 'done']);
 });
 

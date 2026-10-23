@@ -7,7 +7,7 @@ import { h1Plan, systemPrompt, unsupportedExample } from '../prompts';
 test.each([['plan', 'plan'], ['fill', 'spec'], ['repair', 'plan'], ['repair', 'spec']] as const)(
   '%s/%s prompt contains shared instructions and exactly two valid examples', (stage, target) => {
     const prompt = systemPrompt(stage, target);
-    for (const text of ['JSON only', 'only catalog components', 'unsupported', 'A great mini-app has 5–15 elements.']) {
+    for (const text of ['JSON only', 'only catalog components', 'unsupported', 'Aim for 5–15 elements', 'with no other fields', 'ai.run prompts must ask only']) {
       expect(prompt).toContain(text);
     }
     expect(prompt.match(/Example \d/g)).toHaveLength(2);

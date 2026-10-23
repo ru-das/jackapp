@@ -21,8 +21,8 @@ export async function callStage(options: StageRequest & {
     system: systemPrompt(stage, target), messages: [{ role: 'user', content }],
     // llama.cpp rejects the 22 KB spec schema ("type must be string, but is object"), so only PLAN is grammar-constrained; the validator and repair loop guard the spec.
     ...(provider.caps.jsonSchema && target === 'plan' ? { jsonSchema: outputSchema(target) } : {}),
-    maxTokens: target === 'plan' ? 1024 : 3072,
-    temperature: stage === 'repair' ? 0 : stage === 'plan' ? 0.4 : 0.2,
+    maxTokens: target === 'plan' ? 1024 : 4096,
+    temperature: stage === 'repair' ? 0.1 : stage === 'plan' ? 0.4 : 0.2,
     ...(signal ? { signal } : {}),
   });
   checkCancellation(signal);
