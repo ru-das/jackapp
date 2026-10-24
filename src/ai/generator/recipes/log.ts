@@ -2,53 +2,72 @@ import { assemble, NOW, ref, reminderTrigger, tree, type Obj, type Reminder } fr
 import { cleanText, first, flag, icon, identifier, nameFromRequest, reminder, type Settings } from './settings';
 import type { Recipe } from './types';
 
-export type FieldType = 'text' | 'number' | 'money' | 'date';
-export type LogField = { key: string; label: string; type: FieldType };
+export type FieldType = 'text' | 'longtext' | 'number' | 'money' | 'date' | 'choice' | 'rating';
+export type LogField = { key: string; label: string; type: FieldType; options?: string[] };
+export type TotalOp = 'sum' | 'avg' | 'min' | 'max' | 'count';
+export type LogTotal = { op: TotalOp; field?: string; label: string };
+export type LogTap = { kind: 'date' | 'add'; field: string } | null;
 export type LogConfig = {
   name: string; icon: string; description: string; noun: string;
-  fields: LogField[]; checkbox: boolean;
-  total: { field: string; label: string } | null;
-  tap: string | null; share: boolean; reminder: Reminder | null;
+  fields: LogField[]; checkbox: boolean; totals: LogTotal[]; tap: LogTap;
+  sort: { field: string; dir: 'asc' | 'desc' } | null; share: boolean; reminder: Reminder | null;
 };
 
-const stateType = { text: 'string', number: 'number', money: 'number', date: 'date' } as const;
+const stateType = { text: 'string', longtext: 'string', choice: 'string', number: 'number', money: 'number', rating: 'number', date: 'date' } as const;
 const cap = (text: string) => text[0].toUpperCase() + text.slice(1);
+const numeric = (f: LogField) => f.type === 'number' || f.type === 'money' || f.type === 'rating';
 
 export function buildLog(c: LogConfig): Obj {
   const t = tree();
   const title = c.fields.find((f) => f.type === 'text') ?? c.fields[0];
   const typed = c.fields.filter((f) => f.type !== 'date');
   const draft = (f: LogField) => `new${cap(f.key)}`;
+  const draftDefault = (f: LogField) => f.type === 'choice' ? (f.options ?? [''])[0] : f.type === 'rating' ? 3 : f.type === 'text' || f.type === 'longtext' ? '' : 0;
   const state: Obj = {
     items: { type: 'list', of: { ...Object.fromEntries(c.fields.map((f) => [f.key, stateType[f.type]])), ...(c.checkbox ? { done: 'boolean' } : {}) }, default: [] },
-    ...Object.fromEntries(typed.map((f) => [draft(f), { type: stateType[f.type], default: f.type === 'text' ? '' : 0, persist: false }])),
+    ...Object.fromEntries(typed.map((f) => [draft(f), { type: stateType[f.type], default: draftDefault(f), persist: false }])),
   };
 
-  const inputs = typed.map((f) => f.type === 'text'
-    ? t.add('TextInput', { bind: draft(f), label: f.label, ...(typed.every((x) => x.type === 'text') ? { onSubmit: 'add' } : {}) })
-    : t.add('NumberInput', { bind: draft(f), label: f.label, min: 0, mode: f.type === 'money' ? 'field' : 'stepper' }));
+  const inputs = typed.map((f) => {
+    if (f.type === 'text') return t.add('TextInput', { bind: draft(f), label: f.label, ...(typed.every((x) => x.type === 'text') ? { onSubmit: 'add' } : {}) });
+    if (f.type === 'longtext') return t.add('TextInput', { bind: draft(f), label: f.label, multiline: true });
+    if (f.type === 'choice') return t.add('Select', { bind: draft(f), label: f.label, options: f.options });
+    if (f.type === 'rating') return t.add('NumberInput', { bind: draft(f), label: f.label, min: 1, max: 5, mode: 'slider' });
+    return t.add('NumberInput', { bind: draft(f), label: f.label, min: 0, mode: f.type === 'money' ? 'field' : 'stepper' });
+  });
   const addButton = t.add('Button', { label: `Add ${c.noun}`, onPress: 'add', variant: 'primary' });
   const addCard = t.add('Card', { title: `New ${c.noun}` }, [...inputs, addButton]);
 
   const others = c.fields.filter((f) => f !== title);
-  const subtitle = others.map((f) => f.type === 'money' ? `{{$item.${f.key}|currency}}`
-    : f.type === 'date' ? (f.key === c.tap ? `${f.label}: {{$item.${f.key}|ago}}` : `{{$item.${f.key}|date}}`)
-      : f.type === 'number' ? `${f.label}: {{$item.${f.key}}}` : `{{$item.${f.key}}}`).join(' · ');
+  const part = (f: LogField) => {
+    const v = `{{$item.${f.key}}}`;
+    if (f.type === 'money') return `{{$item.${f.key}|currency}}`;
+    if (f.type === 'date') return c.tap?.kind === 'date' && c.tap.field === f.key ? `${f.label}: {{$item.${f.key}|ago}}` : `{{$item.${f.key}|date}}`;
+    return f.type === 'number' || f.type === 'rating' ? `${f.label}: ${v}` : v;
+  };
+  const subtitle = others.map(part).join(' · ');
   const list = t.add('List', {
     items: 'items', title: `{{$item.${title.key}}}`, ...(subtitle ? { subtitle } : {}),
     ...(c.checkbox ? { checkField: 'done' } : {}), deletable: true, ...(c.tap ? { onItemPress: 'record' } : {}),
-    emptyText: `Add your first ${c.noun}`,
+    ...(c.sort ? { sort: c.sort } : {}), emptyText: `Add your first ${c.noun}`,
   });
   const listKids = [list];
-  if (c.total) {
-    const money = c.fields.find((f) => f.key === c.total?.field)?.type === 'money';
-    listKids.push(t.add('Stat', { label: c.total.label, value: { $agg: { op: 'sum', of: 'items', field: c.total.field } }, format: money ? 'currency' : 'number' }));
+  for (const total of c.totals) {
+    const field = c.fields.find((f) => f.key === total.field);
+    listKids.push(t.add('Stat', {
+      label: total.label, format: field?.type === 'money' && total.op !== 'count' ? 'currency' : 'number',
+      value: { $agg: total.op === 'count' ? { op: 'count', of: 'items' } : { op: total.op, of: 'items', field: total.field } },
+    }));
   }
   if (c.checkbox) listKids.push(t.add('Button', { label: 'Clear done', onPress: 'clearDone', variant: 'secondary' }));
   if (c.share) listKids.push(t.add('Button', { label: 'Share', onPress: 'share', variant: 'secondary' }));
   const listCard = t.add('Card', { title: `${cap(c.noun)} list` }, listKids);
   const root = t.add('Stack', { gap: 'md' }, [addCard, listCard]);
 
+  const dateField = c.fields.find((f) => f.type === 'date');
+  const record = c.tap?.kind === 'add'
+    ? { [c.tap.field]: { $math: ['+', ref(`$item.${c.tap.field}`), 1] }, ...(dateField ? { [dateField.key]: NOW } : {}) }
+    : c.tap ? { [c.tap.field]: NOW } : undefined;
   const actions: Obj = {
     add: { steps: [
       { op: 'state.append', path: 'items', value: {
@@ -56,7 +75,7 @@ export function buildLog(c: LogConfig): Obj {
         ...(c.checkbox ? { done: false } : {}) } },
       ...typed.map((f) => ({ op: 'state.reset', path: draft(f) })),
     ] },
-    ...(c.tap ? { record: { steps: [{ op: 'state.update', path: 'items', index: ref('$index'), set: { [c.tap]: NOW } }] } } : {}),
+    ...(record ? { record: { steps: [{ op: 'state.update', path: 'items', index: ref('$index'), set: record }] } } : {}),
     ...(c.checkbox ? { clearDone: { steps: [{ op: 'state.remove', path: 'items', where: { field: 'done', equals: true } }] } } : {}),
     ...(c.share ? { share: { steps: [{ op: 'share', text: `${c.name}: {{items|count}} ${c.noun}s` }] } } : {}),
   };
@@ -66,27 +85,75 @@ export function buildLog(c: LogConfig): Obj {
 
 const TYPES: [RegExp, FieldType][] = [
   [/^(money|price|cost|currency|amount|dollars?|usd|eur|cash|budget)$/, 'money'],
-  [/^(number|num|count|int|integer|qty|quantity|minutes?|hours?|mins?)$/, 'number'],
+  [/^(number|num|count|int|integer|qty|quantity|minutes?|hours?|mins?|weight|distance)$/, 'number'],
   [/^(date|time|when|datetime|day)$/, 'date'],
-  [/^(text|string|name|word|words|note|notes)$/, 'text'],
+  [/^(rating|stars?|rank)$/, 'rating'],
+  [/^(choice|select|dropdown|status|option|options|category|priority|mood)$/, 'choice'],
+  [/^(longtext|long|multiline|paragraph|description|notes?|journal|comment|memo|body)$/, 'longtext'],
+  [/^(text|string|name|word|words)$/, 'text'],
 ];
 const typeOf = (word: string | undefined) => TYPES.find(([re]) => re.test(word ?? ''))?.[1];
+const TYPE_WORD = /^(text|string|number|money|date|time|price|amount|count|integer|choice|select|rating|longtext)$/i;
+const DEFAULT_OPTIONS = ['To do', 'In progress', 'Done'];
 
-const TYPE_WORD = /^(text|string|number|money|date|time|price|amount|count|integer)$/i;
+function options(tokens: string[]): { label: string; options: string[] | undefined } {
+  const at = tokens.findIndex((t) => t.includes('|') || /^options?$/i.test(t));
+  if (at < 0) return { label: tokens.join(' '), options: undefined };
+  const list = tokens.slice(at).join(' ').replace(/^options?\s*/i, '').split(/[|,]/).map((o) => cleanText(o, 24)).filter(Boolean);
+  return { label: tokens.slice(0, at).join(' '), options: [...new Set(list)].slice(0, 12) };
+}
 
 function parseFields(lines: string[]): LogField[] {
   const out: LogField[] = [];
   for (const line of lines) {
-    const words = line.replace(/[:=,|]/g, ' ').split(/\s+/).filter(Boolean);
+    const words = line.replace(/[:=]/g, ' ').split(/\s+/).filter(Boolean);
     if (!words.length || out.length >= 4) continue;
     const type = typeOf(words[1]?.toLowerCase());
+    const { label: rawLabel, options: choices } = options(words.slice(type ? 2 : 1));
     // A 2B model sometimes repeats the type as the label ("water date date"); show the field name instead.
-    const given = cleanText(words.slice(type ? 2 : 1).join(' '), 30);
+    const given = cleanText(rawLabel, 30);
     const label = !given || TYPE_WORD.test(given) ? cleanText(cap(words[0].replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()), 30) : given;
+    const kind = type ?? 'text';
     const key = identifier(words[0], 'name', [...out.map((f) => f.key), 'done', 'items']);
-    out.push({ key, label, type: type ?? 'text' });
+    out.push({ key, label, type: kind, ...(kind === 'choice' ? { options: choices && choices.length >= 2 ? choices : DEFAULT_OPTIONS } : {}) });
   }
   return out;
+}
+
+const OPS: [RegExp, TotalOp][] = [[/^(sum|total)$/i, 'sum'], [/^(avg|average|mean)$/i, 'avg'], [/^(min|minimum|lowest|least)$/i, 'min'], [/^(max|maximum|highest|most)$/i, 'max'], [/^count$/i, 'count']];
+
+const OP_WORD: Record<TotalOp, string> = { sum: 'Total', avg: 'Average', min: 'Lowest', max: 'Highest', count: 'Count' };
+
+function parseTotals(lines: string[], fields: LogField[]): LogTotal[] {
+  const out: LogTotal[] = [];
+  for (const line of lines) {
+    const words = line.split(/\s+/).filter(Boolean);
+    if (!words.length || /^(none|no|off)$/i.test(words[0]) || out.length >= 3) continue;
+    const op = OPS.find(([re]) => re.test(words[0]))?.[1];
+    const rest = op ? words.slice(1) : words;
+    if (op === 'count' || (!op && /^count/i.test(words[0]))) { out.push({ op: 'count', label: cleanText(rest.join(' '), 30) || 'How many' }); continue; }
+    const key = identifier(rest[0], '');
+    const field = fields.find((f) => f.key === key && numeric(f)) ?? (rest.length || op ? fields.find(numeric) : undefined);
+    if (!field) continue;
+    const label = cleanText((fields.some((f) => f.key === key) ? rest.slice(1) : rest).join(' '), 30);
+    const chosen = op ?? 'sum';
+    out.push({ op: chosen, field: field.key, label: label || `${OP_WORD[chosen]} ${field.label.toLowerCase()}` });
+  }
+  return out;
+}
+
+function parseTap(value: string | undefined, fields: LogField[]): { tap: LogTap; fields: LogField[] } {
+  if (!value || /^(none|no|off)\b/i.test(value)) return { tap: null, fields };
+  const words = value.split(/\s+/).filter(Boolean);
+  const kind = /^(add|plus|increase|count)$/i.test(words[0]) ? 'add' : 'date';
+  const key = identifier(kind === 'add' || /^(date|set|now)$/i.test(words[0]) ? words[1] : words[0], '');
+  if (kind === 'add') {
+    const field = fields.find((f) => f.key === key && (f.type === 'number' || f.type === 'money')) ?? fields.find((f) => f.type === 'number' || f.type === 'money');
+    return field ? { tap: { kind: 'add', field: field.key }, fields } : { tap: null, fields };
+  }
+  const date = fields.find((f) => f.key === key && f.type === 'date') ?? fields.find((f) => f.type === 'date');
+  if (date) return { tap: { kind: 'date', field: date.key }, fields };
+  return fields.length < 4 ? { tap: { kind: 'date', field: 'lastDone' }, fields: [...fields, { key: 'lastDone', label: 'Last done', type: 'date' }] } : { tap: null, fields };
 }
 
 export function parseLog(s: Settings, request: string): LogConfig {
@@ -94,35 +161,31 @@ export function parseLog(s: Settings, request: string): LogConfig {
   const noun = cleanText(first(s, 'noun') ?? first(s, 'item'), 24, 'item').toLowerCase();
   let fields = parseFields(s.get('field') ?? []);
   if (!fields.some((f) => f.type === 'text')) fields = [{ key: 'name', label: cap(noun), type: 'text' as FieldType }, ...fields].slice(0, 4);
-  const totalWords = (first(s, 'total') ?? '').split(/\s+/).filter(Boolean);
-  const totalField = fields.find((f) => f.key === identifier(totalWords[0], '') && (f.type === 'number' || f.type === 'money'))
-    ?? (totalWords.length && !/^(none|no|off)$/i.test(totalWords[0]) ? fields.find((f) => f.type === 'number' || f.type === 'money') : undefined);
-  const tapWord = identifier((first(s, 'tap') ?? '').split(/\s+/)[0], '');
-  let tap = fields.find((f) => f.key === tapWord && f.type === 'date')?.key ?? null;
-  if (!tap && first(s, 'tap') && !/^(none|no|off)\b/i.test(first(s, 'tap') ?? '')) {
-    const date = fields.find((f) => f.type === 'date');
-    if (date) tap = date.key;
-    else if (fields.length < 4) { fields.push({ key: 'lastDone', label: 'Last done', type: 'date' }); tap = 'lastDone'; }
-  }
+  const totals = parseTotals(s.get('total') ?? [], fields);
+  const tapped = parseTap(first(s, 'tap'), fields);
+  fields = tapped.fields;
+  const sortWords = (first(s, 'sort') ?? '').split(/\s+/).filter(Boolean);
+  const sortField = fields.find((f) => f.key === identifier(sortWords[0], ''));
   return {
     name, icon: icon(first(s, 'icon'), '📝'), description: cleanText(first(s, 'description'), 140, `Keep track of your ${noun}s`), noun, fields,
-    checkbox: flag(first(s, 'checkbox'), false),
-    total: totalField ? { field: totalField.key, label: cleanText(totalWords.slice(1).join(' '), 30) || `Total ${totalField.label.toLowerCase()}` } : null,
-    tap, share: flag(first(s, 'share'), false), reminder: reminder(first(s, 'reminder'), name),
+    checkbox: flag(first(s, 'checkbox'), false), totals, tap: tapped.tap,
+    sort: sortField ? { field: sortField.key, dir: /^(desc|descending|high|newest|latest)/i.test(sortWords[1] ?? '') ? 'desc' : 'asc' } : null,
+    share: flag(first(s, 'share'), false), reminder: reminder(first(s, 'reminder'), name),
   };
 }
 
 export const logRecipe: Recipe = {
   id: 'log', title: 'List app',
-  summary: 'A list the user adds items to with a small form. Each item has up to 4 fields. It can have tick boxes, a running total, a tap-to-record date, a share button and a reminder.',
+  summary: 'A list the user adds items to with a small form. Each item has up to 4 fields. It can have tick boxes, totals, a tap action, sorting, a share button and a reminder. Use it for checklists, logs, trackers, journals, collections and inventories.',
   lines: `name <app name, 2-4 words>
 icon <one emoji>
 description <one short sentence>
 noun <what one item is called, e.g. expense>
-field <key> <text|number|money|date> <label>   (1 to 4 lines; the first text field is the item's title; date = filled with "now" when added)
+field <key> <text|longtext|number|money|date|choice|rating> <label>   (1 to 4 lines; the first text field is the item's title; date = filled with "now" when added; choice needs options: field status choice Status todo|doing|done; rating = 1 to 5)
 checkbox <yes|no>   (tick boxes for to-do style lists)
-total <field> <label> | none   (sum of a number or money field)
-tap <date field> | none   (tapping an item sets that date to now)
+total <sum|avg|min|max|count> <field> <label>   (up to 3 lines, or none)
+tap <date|add> <field> | none   (tapping an item sets a date to now, or adds 1 to a number)
+sort <field> <asc|desc> | none
 share <yes|no>
 reminder none | daily HH:MM <text> | weekly <0-6> HH:MM <text>`,
   example: {
@@ -134,8 +197,9 @@ noun expense
 field name text Expense
 field amount money Amount
 checkbox no
-total amount Total spent
+total sum amount Total spent
 tap none
+sort none
 share no
 reminder none`,
   },
