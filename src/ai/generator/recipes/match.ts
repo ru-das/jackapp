@@ -45,6 +45,10 @@ const RULES: Record<RecipeId, { min: number; rules: [RegExp, number][] }> = {
     [/\b(suggest\w*|ideas?|recommend\w*|generate\w*|what (should|can) i (cook|make|eat))\b/, 3],
     [/\b(groceries|grocery|pantry|fridge|cupboard|ingredients?|meals?)\b/, 1],
   ] },
+  calculator: { min: 3, rules: [
+    [/\b(calculators?|converters?|convert\w*|calculate\w*|compute\w*)\b/, 3],
+    [/\b(tip|bmi|bmr|mortgage|loans?|interest|tax|gst|vat|discount|percent\w*|salary|inflation|retirement|annuity|currency|exchange rate)\b/, 2],
+  ] },
   counter: { min: 3, rules: [
     [/\b(counters?|tally|tallies)\b/, 4], [/\bcount(ing)?\b/, 2], [/\b(plus one|\+ ?1|increment\w*|clickers?)\b/, 3], [/\badd one\b/, 1],
     [/\b(glasses|cups?|reps?|laps?|push-?ups?|sit-?ups?|cigarettes|coffees)\b/, 1],
@@ -53,7 +57,7 @@ const RULES: Record<RecipeId, { min: number; rules: [RegExp, number][] }> = {
     [/\b(lists?|check ?lists?|trackers?|track\w*|logs?|logging|record\w*|keep|manage|journal|diary|inventory|collection|to-?dos?|tasks?|items?|habits?|budget|expenses?|subscriptions?|plan|planner|organi[sz]e\w*|add)\b/, 1],
   ] },
 };
-const PRIORITY: RecipeId[] = ['splitter', 'ai-list', 'counter', 'log'];
+const PRIORITY: RecipeId[] = ['splitter', 'ai-list', 'calculator', 'counter', 'log'];
 
 export type Match = { id: RecipeId | undefined; scores: Record<RecipeId, number> };
 

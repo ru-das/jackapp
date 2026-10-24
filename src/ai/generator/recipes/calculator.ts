@@ -1,0 +1,121 @@
+import { compileFormula, FormulaError, parseFormula, type Step } from './formula';
+import { assemble, RecipeError, tree, type Obj } from './kit';
+import { cleanText, first, icon, identifier, nameFromRequest, type Settings } from './settings';
+import type { Recipe } from './types';
+
+export type CalcInput = { key: string; label: string; kind: 'number' | 'money' | 'percent'; value: number };
+export type CalcOutput = { label: string; formula: string; format: 'number' | 'currency' | 'percent' };
+export type CalcConfig = { name: string; icon: string; description: string; inputs: CalcInput[]; outputs: CalcOutput[] };
+
+const MAX_STEPS = 8;
+
+export function buildCalculator(c: CalcConfig): Obj {
+  const names = new Map(c.inputs.map((i) => [i.key.toLowerCase(), i.key]));
+  const taken = new Set(c.inputs.map((i) => i.key));
+  const fresh = (stem: string) => { let n = 1; while (taken.has(`${stem}${n}`)) n++; taken.add(`${stem}${n}`); return `${stem}${n}`; };
+
+  // Compile every output; keep as many as fit in one action. Formulas that need hidden values switch the whole app to a Calculate button.
+  const compiled: { out: CalcOutput; value: unknown; steps: Step[] }[] = [];
+  let used = 0;
+  for (const out of c.outputs) {
+    const { value, steps } = compileFormula(parseFormula(out.formula), (n) => names.get(n.toLowerCase()), () => fresh('calc'));
+    if (used + steps.length + 1 > MAX_STEPS) break;
+    used += steps.length + 1;
+    compiled.push({ out, value, steps });
+  }
+  if (!compiled.length) throw new RecipeError('No formula fits in one calculation.');
+  const button = compiled.some((x) => x.steps.length > 0);
+
+  const state: Obj = Object.fromEntries(c.inputs.map((i) => [i.key, { type: 'number', default: i.value }]));
+  const stepsOut: Obj[] = [];
+  const t = tree();
+  const fields = c.inputs.map((i) => t.add('NumberInput', { bind: i.key, label: i.kind === 'percent' && !i.label.includes('%') ? `${i.label} (%)` : i.label, mode: 'field' }));
+  const stats = compiled.map(({ out, value, steps }) => {
+    let shown = value;
+    if (button) {
+      for (const s of steps) { state[s.path] = { type: 'number', default: 0, persist: false }; stepsOut.push({ op: 'state.set', path: s.path, value: s.value }); }
+      const key = fresh('result');
+      state[key] = { type: 'number', default: 0, persist: false };
+      stepsOut.push({ op: 'state.set', path: key, value });
+      shown = { $ref: key };
+    }
+    return t.add('Stat', { label: out.label, value: shown, format: out.format });
+  });
+  const inputCard = t.add('Card', { title: 'Inputs' }, [...fields, ...(button ? [t.add('Button', { label: 'Calculate', onPress: 'calculate', variant: 'primary' })] : [])]);
+  const resultCard = t.add('Card', { title: 'Results' }, stats);
+  const root = t.add('Stack', { gap: 'md' }, [inputCard, resultCard]);
+  return assemble({ name: c.name, description: c.description, icon: c.icon }, state, root, t.elements,
+    button ? { calculate: { steps: stepsOut } } : {});
+}
+
+const KINDS = new Set(['number', 'money', 'percent']);
+
+function parseInputs(lines: string[]): CalcInput[] {
+  const out: CalcInput[] = [];
+  for (const line of lines) {
+    const words = line.replace(/[:=,|]/g, ' ').split(/\s+/).filter(Boolean);
+    if (!words.length || out.length >= 5) continue;
+    const kind = words[1] && KINDS.has(words[1].toLowerCase()) ? (words[1].toLowerCase() as CalcInput['kind']) : 'number';
+    let rest = words.slice(KINDS.has((words[1] ?? '').toLowerCase()) ? 2 : 1);
+    const last = rest[rest.length - 1];
+    const value = last !== undefined && /^-?\d+(\.\d+)?$/.test(last) ? Number(last) : 0;
+    if (last !== undefined && /^-?\d+(\.\d+)?$/.test(last)) rest = rest.slice(0, -1);
+    const key = identifier(words[0], 'value', out.map((x) => x.key));
+    out.push({ key, kind, value: Number.isFinite(value) ? value : 0, label: cleanText(rest.join(' '), 30) || cleanText(words[0].replace(/([a-z])([A-Z])/g, '$1 $2'), 30) || key });
+  }
+  return out;
+}
+
+function parseOutputs(lines: string[], inputs: CalcInput[]): CalcOutput[] {
+  const names = new Map(inputs.map((i) => [i.key.toLowerCase(), i.key]));
+  const out: CalcOutput[] = [];
+  for (const line of lines) {
+    const at = line.indexOf('=');
+    if (at < 1 || out.length >= 4) continue;
+    const label = cleanText(line.slice(0, at), 30);
+    let formula = line.slice(at + 1).trim();
+    const as = /\s+as\s+(\w+)\s*$/i.exec(formula);
+    if (as) formula = formula.slice(0, as.index);
+    const word = (as?.[1] ?? '').toLowerCase();
+    const format = /^(money|currency|dollars?)$/.test(word) ? 'currency' : word === 'percent' ? 'percent' : 'number';
+    try {
+      compileFormula(parseFormula(formula), (n) => names.get(n.toLowerCase()), () => 'probe');
+      out.push({ label: label || 'Result', formula, format });
+    } catch (error) {
+      if (!(error instanceof FormulaError)) throw error;
+    }
+  }
+  return out;
+}
+
+export function parseCalculator(s: Settings, request: string): CalcConfig {
+  const inputs = parseInputs(s.get('input') ?? []);
+  if (!inputs.length) throw new RecipeError('The calculator has no inputs.');
+  const outputs = parseOutputs(s.get('output') ?? [], inputs);
+  if (!outputs.length) throw new RecipeError('The calculator has no working formula.');
+  const name = cleanText(first(s, 'name'), 40, nameFromRequest(request));
+  return { name, icon: icon(first(s, 'icon'), '🧮'), description: cleanText(first(s, 'description'), 140, `${name}: type the numbers, see the result`), inputs, outputs };
+}
+
+export const calculatorRecipe: Recipe = {
+  id: 'calculator', title: 'Calculator',
+  summary: 'The user types some numbers and sees results computed from them: converters, tips, taxes, loans, health formulas and the like.',
+  lines: `name <app name, 2-4 words>
+icon <one emoji>
+description <one short sentence>
+input <key> <number|money|percent> <label> <starting value>   (1 to 5 lines; key = one word)
+output <label> = <formula using the input keys> as <number|money|percent>   (1 to 4 lines)
+Formulas: numbers, input keys, + - * / ^ ( ) and round(x, 2), min(a, b), max(a, b), sqrt(x). A percent input is a plain number, so 15% is 15 and you write tip / 100.`,
+  example: {
+    request: 'Tip calculator',
+    reply: `name Tip Calculator
+icon 💵
+description Work out the tip and what each person pays
+input bill money Bill amount 80
+input tip percent Tip 15
+input people number People 2
+output Tip = bill * tip / 100 as money
+output Each person pays = (bill + bill * tip / 100) / people as money`,
+  },
+  make: (s, request) => buildCalculator(parseCalculator(s, request)),
+};

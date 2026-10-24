@@ -8,7 +8,8 @@ export type Settings = Map<string, string[]>;
 export function readSettings(text: string): Settings {
   const out: Settings = new Map();
   for (const raw of text.split('\n')) {
-    const line = raw.replace(/^[\s>*\-•\d.)]+/, '').replace(/[*`]/g, '').trim();
+    // Only doubled asterisks (markdown bold) go: a single * is multiplication in a calculator formula.
+    const line = raw.replace(/^[\s>*\-•\d.)]+/, '').replace(/\*\*|`/g, '').trim();
     const match = /^([A-Za-z][A-Za-z_ ]{0,20}?)\s*[:=\s]\s*(.*)$/.exec(line);
     if (!match) continue;
     const key = match[1].trim().toLowerCase().split(/\s+/)[0];

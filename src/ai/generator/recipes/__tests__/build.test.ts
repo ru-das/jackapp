@@ -4,6 +4,7 @@ import { buildAiList } from '../aiList';
 import { buildCounter } from '../counter';
 import { RECIPES } from '../index';
 import { buildLog, type FieldType, type LogConfig, type LogField } from '../log';
+import { RecipeError } from '../kit';
 import { readSettings } from '../settings';
 import { buildSplitter } from '../splitter';
 
@@ -55,6 +56,9 @@ test.each(Object.values(RECIPES))('the $id example reply builds a valid spec', (
   check(recipe.make(readSettings(recipe.example.reply), recipe.example.request));
 });
 
-test('an empty reply still builds a valid app from the request alone', () => {
-  for (const recipe of Object.values(RECIPES)) check(recipe.make(readSettings(''), 'plant watering reminders'));
+test('an empty reply still builds a valid app from the request alone, except where there is nothing to guess', () => {
+  for (const recipe of Object.values(RECIPES)) {
+    if (recipe.id === 'calculator') expect(() => recipe.make(readSettings(''), 'tip calculator')).toThrow(RecipeError);
+    else check(recipe.make(readSettings(''), 'plant watering reminders'));
+  }
 });

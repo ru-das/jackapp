@@ -1,6 +1,9 @@
 // Helpers the recipe builders share. Builders return plain Spec-shaped objects; generateRecipe validates them like any other spec.
 export type Obj = Record<string, unknown>;
 
+/** The settings cannot make a working app of this type (e.g. no usable formula); the caller falls back to another path. */
+export class RecipeError extends Error {}
+
 /** Collects elements into the flat map, naming them `<type><n>` like the line parser does. */
 export function tree() {
   const elements: Record<string, Obj> = {};
