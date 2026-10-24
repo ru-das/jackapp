@@ -46,7 +46,7 @@ export function buildCatalogPrompt() {
     'Catalog (! required, ? optional; = default). Id: camelCase /^[a-z][a-zA-Z0-9]{0,31}$/; no unknown props.',
     ...components,
     'Ops: ' + ops.join('\n'),
-    'Value = string (literal or Template) | number | boolean | {$ref:Path} | {$agg:{op:count|sum|avg|min|max,of:Id,field?:Id,where?:Where}} | {$math:[+|-|*|/|round,Value,Value]} | {$now:true}. Math depth <=3; round third operand is digits. Aggregate field required except count.',
+    'Value = string (literal or Template) | number | boolean | {$ref:Path} | {$agg:{op:count|sum|avg|min|max,of:Id,field?:Id,where?:Where}} | {$math:[+|-|*|/|pow|min|max|round|days,Value,Value]} | {$now:true}. Math depth <=3; round third operand is digits; days = whole days from the first date to the second. Aggregate field required except count.',
     'Path = state key | $item.<field> | $index; item/index only inside List item context; no indexed paths such as items.0.name.',
     'Template = plain text with {{path}} or {{path|formatter}}; escape opener with \\{{. Formatters: count,date,time,ago,upper,lower,currency,fixed2.',
     'Where = {field:Id,equals:string|number|boolean|null}. state.remove requires exactly one of index or where.',

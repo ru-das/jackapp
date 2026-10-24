@@ -51,6 +51,16 @@ function aggregate(agg: Aggregate, context: ValueContext): number {
   return finite(result) ? result : invalidNumber(context);
 }
 
+/** Whole calendar days from `from` to `to` (negative when `to` is earlier); only the date part of each ISO value counts. */
+function daysBetween(from: unknown, to: unknown, context: ValueContext): number {
+  const day = (value: unknown) => {
+    const date = typeof value === 'string' && IsoDateSchema.safeParse(value).success ? value.slice(0, 10) : undefined;
+    return date === undefined ? NaN : Date.UTC(Number(date.slice(0, 4)), Number(date.slice(5, 7)) - 1, Number(date.slice(8, 10)));
+  };
+  const days = (day(to) - day(from)) / 86_400_000;
+  return Number.isFinite(days) ? Math.round(days) : invalidNumber(context);
+}
+
 export function resolveValue(value: Value, context: ValueContext): unknown {
   if (typeof value === 'string') return resolveTemplate(value, context);
   if (typeof value === 'number' || typeof value === 'boolean') return value;
@@ -64,6 +74,7 @@ export function resolveValue(value: Value, context: ValueContext): unknown {
   const [op, a, b] = value.$math;
   const left = resolveValue(a, context);
   const right = resolveValue(b, context);
+  if (op === 'days') return daysBetween(left, right, context);
   if (!finite(left) || !finite(right)) return invalidNumber(context);
   if (op === '/' && right === 0) {
     warn(context, 'Division by zero.');
@@ -75,6 +86,9 @@ export function resolveValue(value: Value, context: ValueContext): unknown {
     case '-': result = left - right; break;
     case '*': result = left * right; break;
     case '/': result = left / right; break;
+    case 'pow': result = left ** right; break;
+    case 'min': result = Math.min(left, right); break;
+    case 'max': result = Math.max(left, right); break;
     case 'round': {
       if (!Number.isInteger(right)) return invalidNumber(context);
       const factor = 10 ** right;

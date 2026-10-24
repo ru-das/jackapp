@@ -81,7 +81,7 @@ A prop that accepts a **Value** can be any of these:
 
 **`$agg` ops**: `count`, `sum`, `avg`, `min`, `max`. `field` is required except for `count`. `where` (optional) supports only `{ field, equals }`.
 
-**`$math`**: `[op, a, b]` with `op` in `+ - * /`, or `["round", a, digits]`. Operands are Values. Max nesting depth 3. Division by zero → `0` plus a runtime warning.
+**`$math`**: `[op, a, b]` with `op` in `+ - * / pow min max`, `["round", a, digits]`, or `["days", from, to]`. Operands are Values. Max nesting depth 3. Division by zero → `0` plus a runtime warning. `pow` is exponentiation (`sqrt(x)` is `pow(x, 0.5)`); a non-finite result is `0` plus a warning. `days` takes dates (a date state, `{"$now":true}` or an ISO date literal) and returns the whole calendar days from `from` to `to` (negative if `to` is earlier); only the date part counts (ADR-029).
 
 **Formatters** (templates only): `count` (list length), `date`, `time`, `ago` ("3 days ago"), `upper`, `lower`, `currency` (locale default currency, 2 decimals), `fixed2`.
 

@@ -80,8 +80,21 @@ test.each([
   [{ $ref: 'items.0.name' }, 'BAD_VALUE', 'elements.root.props.value'],
   [{ $math: ['+', '2', 3] }, 'TYPE_MISMATCH', 'elements.root.props.value.$math[1]'],
   [{ $math: ['round', 3, 0.5] }, 'BAD_VALUE', 'elements.root.props.value.$math[2]'],
-  [{ $math: ['pow', 2, 3] }, 'BAD_VALUE', 'elements.root.props.value'],
+  [{ $math: ['mod', 2, 3] }, 'BAD_VALUE', 'elements.root.props.value'],
 ])('Value checks %j', (value, code, path) => expectError(stat(value), code as string, path as string));
+test.each([
+  { $math: ['days', '2026-10-01', { $now: true }] }, { $math: ['pow', { $math: ['+', 1, 2] }, 2] }, { $math: ['min', 3, 4] }, { $math: ['max', 3, { $ref: 'people' }] },
+  { $math: ['days', { $ref: 'since' }, { $now: true }] },
+])('new math operators validate: %j', (value) => {
+  const s = { ...stat(value as Value), state: { people: { type: 'number', default: 2 }, since: { type: 'date', default: null } } };
+  expect(validate(s)).toEqual([]);
+});
+test.each([
+  [{ $math: ['days', 3, '2026-10-01'] }, 'TYPE_MISMATCH', 'elements.root.props.value.$math[1]'],
+  [{ $math: ['days', '2026-10-01', 'tomorrow'] }, 'TYPE_MISMATCH', 'elements.root.props.value.$math[2]'],
+  [{ $math: ['+', '2026-10-01', 1] }, 'TYPE_MISMATCH', 'elements.root.props.value.$math[1]'],
+  [{ $math: ['pow', '2', 2] }, 'TYPE_MISMATCH', 'elements.root.props.value.$math[1]'],
+])('new math operators check operand types %j', (value, code, path) => expectError(stat(value as Value), code as string, path as string));
 test('aggregates verify list, numeric field and typed filters', () => {
   const s = { ...stat({ $agg: { op: 'sum', of: 'items', field: 'name', where: { field: 'done', equals: 'false' } } }), state: h1.state };
   expectError(s, 'TYPE_MISMATCH', 'elements.root.props.value.$agg.field');
@@ -213,7 +226,7 @@ test('literal date/image assignments use their declared positions', () => {
 test('malformed action Values map to BAD_VALUE before BAD_ACTION/SHAPE', () => {
   for (const [step, path] of [
     [{ op: 'state.set', path: 'notes', value: { $ref: 'a.0' } }, 'value.$ref'],
-    [{ op: 'state.update', path: 'items', index: { $math: ['pow', 2, 3] }, set: {} }, 'index'],
+    [{ op: 'state.update', path: 'items', index: { $math: ['mod', 2, 3] }, set: {} }, 'index'],
     [{ op: 'state.increment', path: 'n', by: { $now: false } }, 'by'],
   ] as const) expectError(withSteps([step], h1.state), 'BAD_VALUE', `actions.test.steps[0].${path}`);
 });

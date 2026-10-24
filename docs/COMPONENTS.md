@@ -79,7 +79,7 @@ A big number with a label.
 | `value` | Value (number, string, or date) | ✓ | |
 | `format` | `number` \| `currency` \| `percent` \| `date` \| `ago` \| `text` | | `number` |
 
-Model hint: *"Show a computed number. Use $agg/$math for totals, averages, splits."*
+`number` shows up to 4 decimals in the user's locale; `percent` takes a fraction (0.125 → 12.5%); `currency` is fixed USD for now. Model hint: *"Show a computed number. Use $agg/$math for totals, averages, splits."*
 
 ---
 

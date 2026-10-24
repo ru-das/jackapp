@@ -49,7 +49,7 @@ export const AggregateSchema = z.strictObject({
   ]),
 });
 export const NowSchema = z.strictObject({ $now: z.literal(true) });
-export const MathOperatorSchema = z.enum(['+', '-', '*', '/', 'round']);
+export const MathOperatorSchema = z.enum(['+', '-', '*', '/', 'round', 'pow', 'min', 'max', 'days']);
 type RecursiveValue = string | number | boolean | z.infer<typeof RefSchema>
   | z.infer<typeof AggregateSchema> | z.infer<typeof NowSchema>
   | { $math: [z.infer<typeof MathOperatorSchema>, RecursiveValue, RecursiveValue] };

@@ -38,6 +38,13 @@ const FORMATS = new Set(['number', 'currency', 'percent', 'date', 'ago', 'text']
 function formatStat(value: unknown, format: string, ctx: ValueContext): string {
   const text = String(value ?? '');
   if (!FORMATS.has(format) || format === 'text') return text;
+  // `number` and `percent` have no template formatter (the default format rendered blank before); a non-number falls back to its text.
+  if (format === 'number' || format === 'percent') {
+    if (typeof value !== 'number' || !Number.isFinite(value)) return text;
+    try {
+      return new Intl.NumberFormat(ctx.locale, format === 'percent' ? { style: 'percent', maximumFractionDigits: 2 } : { maximumFractionDigits: 4 }).format(value);
+    } catch { return text; }
+  }
   // Reuse the template formatters so Stat and {{x|fmt}} always agree.
   return resolveTemplate(`{{$item.v|${format}}}`, { ...ctx, item: { v: value } });
 }

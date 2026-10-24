@@ -84,3 +84,17 @@ test('navigate switches screens and Back returns', async () => {
   await fireEvent.press(screen.getByLabelText('Back'));
   expect(screen.getByText('Grocery list')).toBeTruthy();
 });
+
+const statApp = (format: string) => ({
+  specVersion: '0.1', meta: { name: 'S', description: '', icon: '🔢' },
+  state: { n: { type: 'number', default: 0 } },
+  screens: [{ id: 'main', title: 'S', root: 'root' }],
+  elements: { root: { type: 'Stat', props: { label: 'Value', value: { $ref: 'n' }, format } } }, actions: {},
+});
+
+test.each([['number', 7, '7'], ['number', 1234.56789, '1,234.5679'], ['percent', 0.125, '12.5%'], ['currency', 12.5, '$12.50']])(
+  'Stat format %s shows %s as %s (the default number format used to render blank)', async (format, n, shown) => {
+    const f = mount(statApp(format), { n });
+    await render(f.ui);
+    expect(screen.getByLabelText(`Value: ${shown}`)).toBeTruthy();
+  });

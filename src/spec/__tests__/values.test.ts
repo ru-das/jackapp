@@ -32,6 +32,21 @@ describe('value resolution', () => {
     [{ $math: ['round', 123, -1] }, 120], [{ $math: ['round', -1.6, 0] }, -2],
     [{ $math: ['+', { $math: ['*', 2, 3] }, 4] }, 10],
   ])('math %j', (value, expected) => expect(resolveValue(value, context)).toBe(expected));
+  test.each<[Value, number]>([
+    [{ $math: ['pow', 2, 10] }, 1024], [{ $math: ['pow', 9, 0.5] }, 3], [{ $math: ['pow', 2, -1] }, 0.5],
+    [{ $math: ['min', 4, 2] }, 2], [{ $math: ['max', 4, 2] }, 4],
+    [{ $math: ['days', '2026-10-01', '2026-10-25'] }, 24], [{ $math: ['days', '2026-10-25', '2026-10-01'] }, -24],
+    [{ $math: ['days', '2026-10-19T23:59:00Z', '2026-10-20T00:01:00Z'] }, 1], [{ $math: ['days', { $ref: 'since' }, { $now: true }] }, 3],
+    [{ $math: ['days', '2024-02-28', '2024-03-01'] }, 2],
+  ])('more math %j', (value, expected) => expect(resolveValue(value, context)).toBe(expected));
+  test.each<Value>([
+    { $math: ['pow', -8, 0.5] }, { $math: ['pow', 10, 400] }, { $math: ['days', 'soon', '2026-10-25'] }, { $math: ['days', '2026-10-25', 5] },
+    { $math: ['days', { $ref: 'nil' }, '2026-10-25'] },
+  ])('invalid pow or days warns and returns zero %j', (value) => {
+    const onWarning = jest.fn();
+    expect(resolveValue(value, { ...context, onWarning })).toBe(0);
+    expect(onWarning).toHaveBeenCalledTimes(1);
+  });
   test.each<Value>([
     { $math: ['+', '2', 3] }, { $math: ['*', true, 3] }, { $math: ['-', { $ref: 'missing' }, 1] },
     { $math: ['/', { $ref: 'nil' }, 1] }, { $math: ['+', { $ref: 'bad' }, 1] },

@@ -66,8 +66,13 @@ export function valueType(ctx: ValidationContext, value: Value, path: string, it
     return { type: 'number' };
   }
   const [op, left, right] = value.$math;
-  expectType(ctx, valueType(ctx, left, `${path}.$math[1]`, item), { type: 'number' }, `${path}.$math[1]`);
-  expectType(ctx, valueType(ctx, right, `${path}.$math[2]`, item), { type: 'number' }, `${path}.$math[2]`);
+  // `days` is the one operator over dates; an ISO date literal is as good as a date value.
+  const operand = (side: Value, at: string) => {
+    if (op === 'days' && typeof side === 'string' && literalFits(side, 'date')) return;
+    expectType(ctx, valueType(ctx, side, at, item), { type: op === 'days' ? 'date' : 'number' }, at);
+  };
+  operand(left, `${path}.$math[1]`);
+  operand(right, `${path}.$math[2]`);
   if (op === 'round' && typeof right === 'number' && !Number.isInteger(right)) {
     ctx.add('BAD_VALUE', `${path}.$math[2]`, 'Rounding digits must be an integer.', 'Use an integer literal; check dynamic digits at runtime.');
   }

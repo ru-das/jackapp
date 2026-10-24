@@ -53,13 +53,13 @@ describe('structural contract', () => {
   test.each([
     'Hello', 3, true, { $ref: 'items' }, { $ref: '$item.name' }, { $ref: '$index' }, { $now: true },
     ...['count', 'sum', 'avg', 'min', 'max'].map((op) => ({ $agg: { op, of: 'items', ...(op === 'count' ? {} : { field: 'price' }), where: { field: 'done', equals: false } } })),
-    ...['+', '-', '*', '/', 'round'].map((op) => ({ $math: [op, 3, 2] })),
+    ...['+', '-', '*', '/', 'round', 'pow', 'min', 'max', 'days'].map((op) => ({ $math: [op, 3, 2] })),
   ])('Value accepts %j', (value) => expect(ValueSchema.safeParse(value).success).toBe(true));
   test.each([
     null, [], {}, { $ref: 'items.0.name' }, { $ref: '$item.name.foo' }, { $ref: 'a', extra: 1 },
     { $now: false }, { $now: true, extra: 1 }, { $agg: { op: 'sum', of: 'items' } },
     { $agg: { op: 'median', of: 'items', field: 'price' } }, { $agg: { op: 'count', of: 'items', where: { field: 'done', equals: false, extra: 1 } } },
-    { $math: ['pow', 2, 3] }, { $math: ['+', 1] }, { $math: ['+', 1, 2, 3] },
+    { $math: ['mod', 2, 3] }, { $math: ['+', 1] }, { $math: ['+', 1, 2, 3] },
   ])('Value rejects %j', (value) => expect(ValueSchema.safeParse(value).success).toBe(false));
   test('math depth boundary', () => {
     const a = { $math: ['+', 1, 2] };
