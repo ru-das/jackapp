@@ -6,6 +6,7 @@ import { PlanSchema, UnsupportedSchema, type Plan, type TargetStage, type Unsupp
 import { parseCompact, toCompact, toCompactSlice } from './compact';
 import { schemaErrors, validatePlan } from './plan';
 import { repair } from './repair';
+import { generateRecipe } from './recipes/generateRecipe';
 
 export type GenerationResult =
   | { status: 'done'; spec: Spec; repairs: number }
@@ -19,10 +20,13 @@ export type GenerateOptions = StageRequest & {
   model: string; noPlan?: boolean;
   /** Repair rounds before giving up (default 2). On-device each round costs minutes. */
   maxRepairs?: number;
+  /** On-device path (ADR-027): refuse in code, pick a ready-made app type, let the model fill in its settings. */
+  recipes?: boolean;
   onProgress?: (event: GenerationProgress) => void;
 };
 
 export async function generate(options: GenerateOptions): Promise<GenerationResult> {
+  if (options.recipes) return generateRecipe(options);
   let repairs = 0;
   let target: TargetStage = options.noPlan ? 'spec' : 'plan';
   let errors: SpecError[] = [];

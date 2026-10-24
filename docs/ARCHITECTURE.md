@@ -127,6 +127,8 @@ export interface LLMProvider {
 
 ## 6. Generation pipeline
 
+> **On-device (`local`) uses recipes** (ADR-027): a code gate refuses unsupported ideas, a keyword matcher picks one of four ready-made app types (`src/ai/generator/recipes/`), one short model call fills in its settings, and code builds the spec. The free-form pipeline below is the cloud path.
+
 > PLAN is **off by default** (ADR-025): Create and the eval screen call `generate` with `noPlan: true`, so the diagram's first `PLAN` call only happens with the eval switch off.
 
 ```mermaid

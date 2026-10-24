@@ -75,7 +75,7 @@ export default function Create() {
         // PLAN costs a whole extra call and made E2B's FILL worse on the phone (ADR-025); FILL can refuse by itself.
         noPlan: true,
         // On-device a repair costs minutes, and a third full rewrite rarely succeeds on E2B.
-        ...(provider.id === 'local' ? { maxRepairs: 1 } : {}),
+        ...(provider.id === 'local' ? { maxRepairs: 1, recipes: true } : {}),
         onProgress: (e) => {
           if (live() && (e.stage === 'planning' || e.stage === 'building' || e.stage === 'checking' || e.stage === 'repairing')) {
             setPhase({ kind: 'working', progress: e });

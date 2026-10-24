@@ -1,5 +1,6 @@
 import { h1, h2, h3 } from '@/spec/fixtures';
 import { toCompact, toCompactPlan, toCompactRefusal } from '../generator/compact';
+import { RECIPES } from '../generator/recipes';
 import type { LLMProvider } from '../provider';
 
 type Fixture = typeof h1 | typeof h2 | typeof h3;
@@ -48,6 +49,9 @@ export const mockProvider: LLMProvider = {
     if (delay) await new Promise((r) => setTimeout(r, delay));
     if (signal?.aborted) throw new Error('aborted');
     const text = (messages.at(-1)?.content ?? '').toLowerCase();
+    // The recipe path asks for setting lines; answer with that app type's example reply.
+    const recipe = Object.values(RECIPES).find((r) => system.includes(`App type: ${r.title}.`));
+    if (recipe) return recipe.example.reply;
     const plan = system.includes('PLAN lines:');
     // FILL can refuse by itself now that PLAN is off by default (ADR-025).
     if ((plan || system.includes('FILL: build')) && /physics|simulat|3d game/.test(text)) {

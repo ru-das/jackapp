@@ -88,3 +88,8 @@ test('while a call streams, the status line shows the stage, characters and spee
   expect(screen.getByText(/GPU: model load 0 ms/)).toBeTruthy();
   await screen.findByText('Results', {}, { timeout: 3000 });
 });
+
+test('the recipes switch is there and on by default', async () => {
+  await render(<EvalScreen />);
+  expect(screen.getByLabelText('Recipes').props.value).toBe(true);
+});

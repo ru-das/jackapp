@@ -55,6 +55,8 @@ export default function EvalScreen() {
   const [using, setUsing] = useState('');
   // On by default: the PLAN call cost 68 s and made E2B's FILL worse (ADR-025); switch it off to compare.
   const [noPlan, setNoPlan] = useState(true);
+  // On-device only (ADR-027): the free-form path stays available to compare.
+  const [recipes, setRecipes] = useState(true);
   const [only, setOnly] = useState<string | readonly string[] | null>(null);
   const [phase, setPhase] = useState<Phase>('idle');
   const [rows, setRows] = useState<EvalRow[]>([]);
@@ -125,12 +127,12 @@ export default function EvalScreen() {
       setElapsed(0);
       setPhase('running');
       const t = localModel.tuning;
-      push(`Starting ${order.current.length} prompt(s) on ${base.label} (${model}), plan stage ${noPlan ? 'off' : 'on'}${base.id === 'local' ? `, ${t.backend.toUpperCase()}, speculative ${t.speculative ? 'on' : 'off'}` : ''}`);
+      push(`Starting ${order.current.length} prompt(s) on ${base.label} (${model}), plan stage ${noPlan ? 'off' : 'on'}${base.id === 'local' ? `, ${t.backend.toUpperCase()}, speculative ${t.speculative ? 'on' : 'off'}, recipes ${recipes ? 'on' : 'off'}` : ''}`);
       // shortcut: no cancel, runEval takes no signal; leave the screen or restart the app to stop, add a signal when needed
       const out = await runEval(provider, model, {
         noPlan, only: only ?? undefined,
         // Same budget as Create, so the eval measures what the app does.
-        ...(base.id === 'local' ? { maxRepairs: 1 } : {}),
+        ...(base.id === 'local' ? { maxRepairs: 1, recipes } : {}),
         onResult: (row) => {
           push(`${rowMark(row)} ${row.result.status} after ${(row.durationMs / 1000).toFixed(1)} s, ${row.result.repairs} repair(s)${row.result.status === 'failed' ? `: ${row.result.message}` : ''}`);
           for (const d of row.diagnostics) for (const e of d.errors) push(`  ${d.target} attempt ${d.attempt}: ${e.code} ${e.path}: ${e.message}`);
@@ -188,6 +190,10 @@ export default function EvalScreen() {
         <View style={styles.switchRow}>
           <Text style={{ color: t.text, fontSize: 16, flex: 1 }}>Skip plan stage</Text>
           <Switch accessibilityLabel="Skip plan stage" value={noPlan} disabled={busy} onValueChange={setNoPlan} />
+        </View>
+        <View style={styles.switchRow}>
+          <Text style={{ color: t.text, fontSize: 16, flex: 1 }}>Recipes (on-device only)</Text>
+          <Switch accessibilityLabel="Recipes" value={recipes} disabled={busy} onValueChange={setRecipes} />
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
           {[{ id: null, label: `All ${PROMPTS.length}` }, { id: QUICK_IDS, label: `Quick ${QUICK_IDS.length}` }, ...PROMPTS.map((p) => ({ id: p.id, label: p.id }))].map((c) => {
