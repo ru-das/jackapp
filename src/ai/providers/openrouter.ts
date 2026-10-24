@@ -5,6 +5,8 @@ import type { LLMProvider } from '../provider';
 const URL = 'https://openrouter.ai/api/v1/chat/completions';
 const RETRIES = 3;
 const MAX_WAIT_MS = 20_000;
+// max_tokens counts reasoning tokens. Nemotron spent all 1024 of the PLAN cap thinking and returned no text (effort: low is ignored), so callers' limits get this much extra.
+const REASONING_HEADROOM = 6144;
 
 const NEEDS_KEY = 'Add your OpenRouter key in Settings first.';
 const BAD_KEY = 'OpenRouter did not accept your key. Check it in Settings.';
@@ -46,7 +48,7 @@ async function generate(req: Req): Promise<string> {
       // json_object, not json_schema: Nvidia's grammar compiler rejects our Zod-derived schema (`propertyNames`). The prompt and validator enforce the shape.
       ? { response_format: { type: 'json_object' } }
       : {}),
-    ...(req.maxTokens ? { max_tokens: req.maxTokens } : {}),
+    ...(req.maxTokens ? { max_tokens: req.maxTokens + REASONING_HEADROOM } : {}),
     ...(req.temperature !== undefined ? { temperature: req.temperature } : {}),
   });
 

@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **Third eval fix (Claude Code, 2026-10-24):** with `json_object`, Nemotron answered but `finish_reason: length`, `content: null`, `reasoning_tokens: 1024` of 1024: reasoning ate the PLAN cap; `reasoning.effort: low` is ignored by this model. OpenRouter provider now adds 6144 tokens of headroom to every `max_tokens`. If latency is high, try a non-reasoning PLAN model or lower the headroom. **Human: rerun Quick 6.**
+>
 > **Second eval fix (Claude Code, 2026-10-24):** Quick 6 run 2: all 6 failed in ~1 s with `Upstream error from Nvidia: Grammar error: Unimplemented keys: ["propertyNames"]`. The strict `json_schema` response_format is compiled to a grammar upstream and our Zod-derived PLAN schema is not accepted. OpenRouter provider now sends `json_object` only. Ollama still sends `format: <schema>` (llama.cpp grammar; may hit the same key, fix there if it does). **Human: rerun Quick 6.**
 >
 > **First eval fix (Claude Code, 2026-10-24):** first Quick 6 run: refusals 2/2, all 4 spec prompts failed. Cause: `nvidia/nemotron-3-super-120b-a12b:free` was down (endpoint status -5, uptime 0), so my `openrouter/free` fallback served PLAN from `liquid/lfm-2.5-2.6b:free`, which returned no text (`finish_reason length`). Fix: PLAN model is now `nvidia/nemotron-3.5-super-vl:free`, fallbacks are named models only, requests send `reasoning.effort: low`. Check a model is up with `curl https://openrouter.ai/api/v1/models/<id>/endpoints` (status 0 = ok). FILL failure on e05 (69 s) is undiagnosed. **Human: rerun Quick 6.**

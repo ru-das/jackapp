@@ -31,7 +31,7 @@ test('sends the stage model with a fallback, the key, and no schema unless given
     models: [OPENROUTER_MODELS.repair, ...OPENROUTER_FALLBACKS],
     reasoning: { effort: 'low' },
     messages: [{ role: 'system', content: 'S' }, { role: 'user', content: 'hi' }],
-    max_tokens: 9, temperature: 0.1,
+    max_tokens: 9 + 6144, temperature: 0.1,
   });
 });
 
