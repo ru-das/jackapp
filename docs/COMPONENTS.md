@@ -78,8 +78,9 @@ A big number with a label.
 | `label` | Template | ✓ | |
 | `value` | Value (number, string, or date) | ✓ | |
 | `format` | `number` \| `currency` \| `percent` \| `date` \| `ago` \| `text` | | `number` |
+| `currency` | Template → 3-letter code (e.g. `EUR`) | | app default |
 
-`number` shows up to 4 decimals in the user's locale; `percent` takes a fraction (0.125 → 12.5%); `currency` is fixed USD for now. Model hint: *"Show a computed number. Use $agg/$math for totals, averages, splits."*
+`number` shows up to 4 decimals in the user's locale; `percent` takes a fraction (0.125 → 12.5%); `currency` is USD unless the `currency` prop gives a code; a bad code falls back to USD. Model hint: *"Show a computed number. Use $agg/$math for totals, averages, splits."*
 
 ---
 

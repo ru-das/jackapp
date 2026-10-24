@@ -23,7 +23,7 @@ export function elements(ctx: ValidationContext, invalidProps: Set<string>): Cal
     if (element.type === 'Button' && typeof p.onPress === 'string') call(p.onPress, `${base}.onPress`);
     if (element.type === 'TextInput' && typeof p.onSubmit === 'string') call(p.onSubmit, `${base}.onSubmit`);
     const templates: Partial<Record<typeof element.type, string[]>> = {
-      Card: ['title', 'subtitle'], Text: ['value'], Stat: ['label'], Button: ['label'], Timer: ['label'],
+      Card: ['title', 'subtitle'], Text: ['value'], Stat: ['label', 'currency'], Button: ['label'], Timer: ['label'],
     };
     for (const key of templates[element.type] ?? []) {
       if (typeof p[key] === 'string') template(ctx, p[key], `${base}.${key}`);

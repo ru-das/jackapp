@@ -32,9 +32,9 @@ export function reminderTrigger(name: string, reminder: Reminder) {
 }
 
 export function assemble(meta: { name: string; description: string; icon: string }, state: Obj, root: string,
-  elements: Record<string, Obj>, actions: Obj, triggers: Obj[] = []): Obj {
+  elements: Record<string, Obj>, actions: Obj, triggers: Obj[] = [], more: { id: string; title: string; root: string }[] = []): Obj {
   return {
-    specVersion: '0.1', meta, state, screens: [{ id: 'main', title: meta.name, root }], elements, actions,
+    specVersion: '0.1', meta, state, screens: [{ id: 'main', title: meta.name, root }, ...more], elements, actions,
     ...(triggers.length ? { triggers } : {}),
   };
 }

@@ -112,3 +112,12 @@ test('DateInput and Timer render through the runtime (recipes use both)', async 
   await render(calc.ui);
   expect(screen.getByDisplayValue('2000-01-01')).toBeTruthy();
 });
+
+test.each([['EUR', '€12.50'], ['not a code', '$12.50']])('Stat currency %s shows %s', async (currency, shown) => {
+  const app = statApp('currency') as Record<string, any>;
+  app.state.cur = { type: 'string', default: currency };
+  app.elements.root.props.currency = '{{cur}}';
+  const f = mount(app, { n: 12.5 });
+  await render(f.ui);
+  expect(screen.getByLabelText(`Value: ${shown}`)).toBeTruthy();
+});

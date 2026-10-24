@@ -7,7 +7,7 @@ import { buildLog, type FieldType, type LogConfig, type LogField } from '../log'
 import { RecipeError } from '../kit';
 import { readSettings } from '../settings';
 import { buildReminder } from '../reminder';
-import { buildSplitter } from '../splitter';
+import { buildSplitter, CURRENCIES } from '../splitter';
 import { buildTimer } from '../timer';
 
 const f = (key: string, type: FieldType, options?: string[]): LogField => ({ key, label: key[0].toUpperCase() + key.slice(1), type, ...(options ? { options } : {}) });
@@ -61,7 +61,7 @@ const weekly = { kind: 'weekly' as const, weekday: 6, time: '21:30', body: 'Plan
 test.each([[[some], false], [[some, weekly], true], [[some, weekly, { ...some, time: '12:00' }], true]] as const)('reminder %j done=%s', (reminders, done) =>
   check(buildReminder({ name: 'Water', icon: '💧', description: 'd', message: 'Drink', reminders: [...reminders], done })));
 
-test.each([false, true])('splitter share=%s', (share) => check(buildSplitter({ name: 'Bill', icon: '🧾', description: 'd', share })));
+test.each(CURRENCIES)('splitter %s', (currency) => check(buildSplitter({ name: 'Bill', icon: '🧾', description: 'd', currency })));
 
 describe('ai recipe builds a valid spec for every combination', () => {
   const photo: AiInput = { key: 'photo', label: 'Photo', kind: 'photo' };

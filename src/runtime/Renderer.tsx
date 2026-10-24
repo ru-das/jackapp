@@ -37,7 +37,7 @@ const LOCALE = Intl.DateTimeFormat().resolvedOptions();
 const CURRENCY = 'USD';
 const FORMATS = new Set(['number', 'currency', 'percent', 'date', 'ago', 'text']);
 
-function formatStat(value: unknown, format: string, ctx: ValueContext): string {
+function formatStat(value: unknown, format: string, ctx: ValueContext, currency?: string): string {
   const text = String(value ?? '');
   if (!FORMATS.has(format) || format === 'text') return text;
   // `number` and `percent` have no template formatter (the default format rendered blank before); a non-number falls back to its text.
@@ -48,7 +48,8 @@ function formatStat(value: unknown, format: string, ctx: ValueContext): string {
     } catch { return text; }
   }
   // Reuse the template formatters so Stat and {{x|fmt}} always agree.
-  return resolveTemplate(`{{$item.v|${format}}}`, { ...ctx, item: { v: value } });
+  const code = currency && /^[A-Z]{3}$/.test(currency) ? currency : ctx.currency;
+  return resolveTemplate(`{{$item.v|${format}}}`, { ...ctx, currency: code, item: { v: value } });
 }
 
 type Scope = { item: Row; index: number };
@@ -82,7 +83,7 @@ function Built({ id, ctx, scope }: { id: string; ctx: Ctx; scope?: Scope }): Rea
       break;
     }
     case 'Stat':
-      node = <Stat label={t(p.label)!} value={formatStat(resolveValue(p.value, vctx), p.format, vctx)} />;
+      node = <Stat label={t(p.label)!} value={formatStat(resolveValue(p.value, vctx), p.format, vctx, t(p.currency))} />;
       break;
     case 'TextInput':
       node = <TextInput label={p.label} placeholder={p.placeholder} multiline={p.multiline}
@@ -164,7 +165,7 @@ export function Renderer({ spec, store, engine, onReady }: RendererProps) {
   const screen = spec.screens.find((s) => s.id === screenId) ?? spec.screens[0];
 
   const navigate = useCallback((to: string) => {
-    if (spec.screens.some((s) => s.id === to)) setHistory((h) => [...h, to]);
+    if (spec.screens.some((s) => s.id === to)) setHistory((h) => (h.includes(to) ? h.slice(0, h.lastIndexOf(to) + 1) : [...h, to]));
   }, [spec]);
   useEffect(() => onReady?.({ navigate }), [onReady, navigate]);
 
