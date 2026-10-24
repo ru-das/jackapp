@@ -1,4 +1,5 @@
 import h1 from '@/spec/fixtures/h1.json';
+import h2 from '@/spec/fixtures/h2.json';
 import { buildCatalogPrompt } from './catalogPrompt';
 import { toCompact, toCompactPlan, toCompactRefusal } from './compact';
 import type { Plan, TargetStage } from './outputSchemas';
@@ -38,27 +39,35 @@ ai.run prompts must ask only for the data the output schema holds, never for pro
 const specRules = `Lines, in this order:
 app name="..." description="..." icon=🧊
 state <key> <type> [field:type ...] [default=<value>] [persist=false]   types string/number/boolean/date/image/list; list item fields are written name:string qty:string done:boolean; default is "" / 0 / false / null / [] when omitted
-screen <id> title="..." root=<elementId>
-el <id> <Type> prop=value ... [> childId childId]   only Stack/Card have children after ">"
-action <id>   then one line per step: - <op> field=value ...
+screen <id> title="..."   then the screen's UI as an indented tree (2 spaces per level): one component per line, written <Type> prop=value ...; a Stack or Card holds its children indented under it. One root component per screen.
+action <id>   then one step per line: - <op> field=value ...
 trigger <id> schedule={"kind":"daily","time":"HH:MM"} notify={"title":"...","body":"..."}   schedule kinds: daily, weekly (weekday 0..6), once (at ISO)
-Use camelCase ids. State types string/number/boolean/date/image need matching defaults. Persist defaults to true.
-Reference child ids, state keys and action ids exactly. Every element occurs once under one screen root.
-Limits: 32768 UTF-8 bytes, 20 state keys, 8 list fields, 1–3 screens, 60 elements, tree depth 8, 12 actions, 8 steps/action, 3 triggers, expanded AI prompts <=2000 chars.
+Shorthand: @name means {"$ref":"name"}; @now means the current time; output=list:name:string,qty:string (or output=string, number, boolean, date); defaults=done:false; where=done:true.
+Use camelCase ids for state keys, screens and actions. State types string/number/boolean/date/image need matching defaults. Persist defaults to true.
+Reference state keys and action ids exactly.
+Limits: 32768 UTF-8 bytes, 20 state keys, 8 list fields, 1–3 screens, 60 components, tree depth 8, 12 actions, 8 steps/action, 3 triggers, expanded AI prompts <=2000 chars.
 Only use item paths in List templates and actions called from List items. NumberInput slider needs min/max. Metadata sourcePrompt/generatedBy are assigned by the caller.`;
 const planRules = `PLAN lines: app name="..." icon=🧊 summary="..."; state <key> <type> [field:type ...] purpose="..."; screen <id> purpose="..."; use <Type> [bind=<stateKey>] purpose="..." (one per component); action <id> ops=op1,op2 purpose="..."; trigger lines only if the request needs a schedule. Component types, ops and bind keys must be exact catalog and plan names; leave props and values to FILL. ops are op names such as ops=state.append,toast; list item fields are only string, number, boolean or date.`;
 const patchRule = (target: TargetStage) => target === 'plan'
   ? 'Return the complete corrected plan.'
-  : `Return only the lines that change. A line with the same kind and id replaces that item; an action line replaces the whole action, so repeat all its "- " steps. "drop el|state|screen|action|trigger <id>" deletes an item. Error paths use the app's JSON form: elements.<id>.props.<prop> is a prop on the "el <id>" line; actions.<id>.steps[<n>] is the n-th "- " line (from 0) under "action <id>"; state.<key>, screens[<n>]. A path "line <n>" names a broken line in your last reply; the message quotes it. Start with an app line only to rewrite everything.`;
+  : `Return only the lines that change; never rewrite the whole app. The draft shows every component with its #id. "<Type> #id prop=value ..." replaces that component (repeat all its props); a new component is written indented under its parent's line and is added to the parent. "drop #id" deletes a component with everything inside it; "drop state|screen|action|trigger <id>" deletes one of those. state, action, trigger and screen lines replace the item with the same key or id; a screen line followed by a whole indented tree replaces that screen's UI. Error paths use the app's JSON form: elements.<id>.props.<prop> is a prop of the line with #<id>; actions.<id>.steps[<n>] is the n-th "- " line (from 0) under "action <id>"; state.<key>, screens[<n>]. A path "line <n>" names a broken line in your last reply; the message quotes it.`;
+const patchExample = `Button #button1 label="Make my list" onPress=makeList variant=primary
+Card #card2 title="Grocery list"
+  Button label="Clear" onPress=clearDone
+drop #text3`;
 
 /** `allowRefusal` is false only for a repair of a response that was not itself a refusal attempt; `patch` is for spec repairs that return only the changed lines. */
 export function systemPrompt(stage: 'plan' | 'fill' | 'repair', target: TargetStage = 'spec', allowRefusal = true, patch = false) {
   const isPlan = stage === 'plan' || (stage === 'repair' && target === 'plan');
   const instruction = isPlan ? planRules : `FILL: build the complete spec from the request and plan.\n${specRules}`;
+  const showPatch = patch && !isPlan;
   return [rules(allowRefusal),
     stage === 'repair' ? `REPAIR target: ${target}. Correct every supplied error. ${patch ? patchRule(target) : `Return the complete corrected ${target}.`}` : '',
     instruction, buildCatalogPrompt().text,
-    `Example 1 — Fridge photo to groceries:\n${isPlan ? toCompactPlan(h1Plan) : toCompact(h1)}`,
-    allowRefusal ? `Example 2 — Physics simulation:\n${toCompactRefusal(unsupportedExample)}` : '',
+    // A tiny patch example instead of a whole app: a small model copies what it is shown.
+    `Example 1 — ${showPatch ? 'Patch' : 'Fridge photo to groceries'}:\n${showPatch ? patchExample : isPlan ? toCompactPlan(h1Plan) : toCompact(h1)}`,
+    // A second app shows ids that differ from types and a different state shape; only FILL pays for it.
+    stage === 'fill' && !isPlan ? `Example 2 — Plant watering with a reminder:\n${toCompact(h2)}` : '',
+    allowRefusal ? `Example ${stage === 'fill' && !isPlan ? 3 : 2} — Physics simulation:\n${toCompactRefusal(unsupportedExample)}` : '',
   ].filter(Boolean).join('\n\n');
 }

@@ -1,41 +1,40 @@
 import type { SpecError } from '@/spec/types';
 import type { TargetStage, Unsupported } from './outputSchemas';
+import { formatValue, LITERAL, parseValue } from './shorthand';
 
-// The one wire format between the model and the generator (ADR-023): one item per line, compiled to the same objects the validator already checks.
+// The one wire format between the model and the generator (ADR-023, ADR-024): plain lines, with the UI as an indented tree.
+// It compiles to the same objects the validator already checks.
 type Obj = Record<string, unknown>;
 export type Parsed = {
   raw: string; errors: SpecError[];
   /** Best-effort object even when lines were bad; kept so a repair can patch it. */
   draft?: Obj;
-  /** True when the lines were merged into a base draft instead of starting over. */
-  patched?: boolean;
   /** Set only when every line parsed. */
   value?: Obj;
 };
 
-const LITERAL = /^(?:-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|true|false|null)$/;
-const SPEC_KINDS = ['app', 'state', 'screen', 'el', 'action', '-', 'trigger', 'unsupported', 'drop'];
+const SPEC_KINDS = ['app', 'state', 'screen', 'action', '-', 'trigger', 'unsupported', 'drop'];
 const PLAN_KINDS = ['app', 'state', 'screen', 'use', 'action', 'trigger', 'unsupported'];
-const DROPPABLE: Record<string, string> = { state: 'state', el: 'elements', action: 'actions', screen: 'screens', trigger: 'triggers' };
+const DROPPABLE: Record<string, string> = { state: 'state', action: 'actions', screen: 'screens', trigger: 'triggers' };
 
 const hint = (plan: boolean) => plan
   ? 'One item per line: app, state, screen, use, action, trigger. Write key=value, with text in double quotes.'
-  : 'One item per line: app, state, screen, el, action with "- op" steps, trigger. Write key=value, with text in double quotes.';
+  : 'One item per line: app, state, screen with an indented tree of components, action with "- op" steps, trigger. Write key=value, with text in double quotes.';
 
 function zero(type: unknown) {
   return type === 'list' ? [] : type === 'string' ? '' : type === 'number' ? 0 : type === 'boolean' ? false : null;
 }
 
-type Line = { no: number; tokens: string[] };
+type Line = { no: number; indent: number; tokens: string[] };
 
 // Splits on whitespace outside quotes and {} []; a raw newline inside quotes becomes \n so JSON.parse accepts it.
 function lines(text: string): Line[] {
   const out: Line[] = [];
   let tokens: string[] = [];
   let cur = '';
-  let depth = 0, quote = false, escaped = false, no = 1, start = 1;
+  let depth = 0, quote = false, escaped = false, no = 1, start = 1, lead = 0, indent = 0, started = false;
   const push = () => { if (cur) tokens.push(cur); cur = ''; };
-  const end = () => { push(); if (tokens.length) out.push({ no: start, tokens }); tokens = []; };
+  const end = () => { push(); if (tokens.length) out.push({ no: start, indent, tokens }); tokens = []; lead = 0; started = false; };
   for (const ch of text) {
     if (quote) {
       cur += ch === '\n' ? '\\n' : ch;
@@ -44,6 +43,8 @@ function lines(text: string): Line[] {
       continue;
     }
     if (ch === '\n') { no++; if (depth > 0) { cur += ' '; continue; } end(); start = no; continue; }
+    if (!started && (ch === ' ' || ch === '\t')) { lead += ch === '\t' ? 2 : 1; continue; }
+    if (!started) { started = true; indent = lead; }
     if (ch === '"') quote = true;
     else if (ch === '{' || ch === '[') depth++;
     else if ((ch === '}' || ch === ']') && depth > 0) depth--;
@@ -54,18 +55,17 @@ function lines(text: string): Line[] {
   return out;
 }
 
-const parseValue = (text: string): unknown => /^["{[]/.test(text) || LITERAL.test(text) ? JSON.parse(text) : text;
+const isPair = (token: string) => /^[A-Za-z_$][\w$]*=/.test(token);
 
-/** Splits tokens into key=value pairs and everything else. */
-function pairs(tokens: string[], bad: (message: string) => void) {
+/** Splits tokens into key=value pairs and everything else. `op` is set for action steps (see shorthand.ts). */
+function pairs(tokens: string[], bad: (message: string) => void, op?: string) {
   const kv: Obj = {};
   const rest: string[] = [];
   for (const token of tokens) {
+    if (!isPair(token)) { rest.push(token); continue; }
     const eq = token.indexOf('=');
-    if (eq > 0 && /^[A-Za-z_$][\w$]*$/.test(token.slice(0, eq))) {
-      try { kv[token.slice(0, eq)] = parseValue(token.slice(eq + 1)); }
-      catch { bad(`Cannot read the value in ${token.slice(0, 60)}`); }
-    } else rest.push(token);
+    try { kv[token.slice(0, eq)] = parseValue(token.slice(0, eq), token.slice(eq + 1), op); }
+    catch { bad(`Cannot read the value in ${token.slice(0, 60)}`); }
   }
   return { kv, rest };
 }
@@ -75,59 +75,120 @@ const upsert = (list: Obj[], item: Obj) => {
   if (at < 0) list.push(item); else list[at] = item;
 };
 
+type Frame = { indent: number; id: string | null };
+type ScreenBlock = { screen: Obj; roots: string[]; oldRoot?: string; cleared: boolean };
+
 /**
- * `base` is the previous draft of a spec. Lines then patch it by kind and id, unless the response starts over with an `app` line.
- * Plan responses are always whole.
+ * `base` is the previous draft of a spec: the lines are then merged into it (a patch). Plan responses are always whole.
+ * Components are a tree by indentation; ids are generated unless a line carries `#id`.
  */
 export function parseCompact(raw: string, target: TargetStage, base?: Obj): Parsed {
   const plan = target === 'plan';
   const errors: SpecError[] = [];
   const bad = (path: string, message: string) => errors.push({ code: 'BAD_JSON', path, message, hint: hint(plan) });
   const ls = lines(raw).filter((line) => !line.tokens[0].startsWith('```'));
-  const patching = !plan && base !== undefined && !ls.some((line) => line.tokens[0] === 'app');
+  const patching = !plan && base !== undefined;
   const d: Obj = patching ? JSON.parse(JSON.stringify(base)) as Obj
     : plan ? { name: '', icon: '', summary: '', state: [], screens: [], components: [], actions: [], triggers: [], unsupported: null }
       : { specVersion: '0.1', meta: {}, state: {}, screens: [], elements: {}, actions: {} };
   const list = (key: string) => d[key] as Obj[];
   const map = (key: string) => d[key] as Record<string, Obj>;
+  const elements = plan ? {} : map('elements');
+  const taken = new Set(Object.keys(elements));
+  const nextId = (type: string) => {
+    const stem = type[0].toLowerCase() + type.slice(1);
+    let n = 1;
+    while (taken.has(stem + n)) n++;
+    taken.add(stem + n);
+    return stem + n;
+  };
+  const removeTree = (id: string | undefined) => {
+    const el = id === undefined ? undefined : elements[id];
+    if (!el || id === undefined) return;
+    delete elements[id];
+    for (const child of (el.children ?? []) as string[]) removeTree(child);
+  };
+  const detach = (id: string) => {
+    for (const el of Object.values(elements)) if (Array.isArray(el.children)) el.children = el.children.filter((c) => c !== id);
+    for (const screen of list('screens')) if (screen.root === id) delete screen.root;
+  };
+
   const kinds = plan ? PLAN_KINDS : SPEC_KINDS;
+  let stack: Frame[] = [];
+  let block: ScreenBlock | undefined;
+  const blocks: ScreenBlock[] = [];
   let steps: unknown[] | undefined;
   let refusal: Obj | undefined;
   let others = 0, recognised = 0;
 
-  for (const { no, tokens } of ls) {
+  for (const { no, indent, tokens } of ls) {
     const [head, ...args] = tokens;
     const at = `line ${no}`;
-    if (!kinds.includes(head)) { bad(at, `Unknown line "${tokens.join(' ').slice(0, 60)}"`); continue; }
+    const component = !plan && /^[A-Z][A-Za-z0-9]*$/.test(head);
+    if (!component && !kinds.includes(head)) { bad(at, `Unknown line "${tokens.join(' ').slice(0, 60)}"`); continue; }
     recognised++;
+    if (component) while (stack.length && stack[stack.length - 1].indent >= indent) stack.pop();
     const before = errors.length;
-    const { kv, rest } = pairs(args, (message) => bad(at, message));
-    // A line with an unreadable value is not applied, so a half-read line cannot damage the draft.
-    if (errors.length > before) continue;
-    const id = args[0];
+    const step = head === '-' ? args.find((token) => !isPair(token)) : undefined;
+    const { kv, rest } = pairs(args, (message) => bad(at, message), step);
+    // A line with an unreadable value is not applied, and neither is anything nested under it.
+    if (errors.length > before) { if (component) stack.push({ indent, id: null }); continue; }
+    const id = rest[0];
     if (head === 'unsupported') { refusal = kv; continue; }
     others++;
-    if (head === 'app') {
+    if (component) {
+      const parent = stack[stack.length - 1];
+      if (parent && parent.id === null) { stack.push({ indent, id: null }); continue; }
+      const marker = rest.find((token) => token.startsWith('#'));
+      const stray = rest.find((token) => token !== marker);
+      if (stray) { bad(at, `Unexpected "${stray.slice(0, 40)}" on the ${head} line; write props as key=value`); stack.push({ indent, id: null }); continue; }
+      const own = marker ? marker.slice(1) : undefined;
+      if (!block && !parent) {
+        if (patching) {
+          if (!own || !elements[own]) {
+            bad(at, own ? `No component #${own} in the draft` : 'In a patch, start a component line with its #id (see the draft)');
+            stack.push({ indent, id: null }); continue;
+          }
+        } else {
+          const screen = { id: 'main', title: String((d.meta as Obj).name ?? 'App') };
+          list('screens').push(screen);
+          blocks.push(block = { screen, roots: [], cleared: true });
+        }
+      }
+      if (block && !block.cleared) { removeTree(block.oldRoot); block.cleared = true; }
+      const key = own ?? nextId(head);
+      if (elements[key] && !patching) { bad(at, `#${key} is used twice`); stack.push({ indent, id: null }); continue; }
+      const old = elements[key];
+      taken.add(key);
+      elements[key] = { type: head, props: kv, ...(old?.children ? { children: old.children } : {}) };
+      if (!old) {
+        if (parent && parent.id !== null) {
+          const holder = elements[parent.id];
+          holder.children = [...((holder.children ?? []) as string[]), key];
+        } else block?.roots.push(key);
+      }
+      stack.push({ indent, id: key });
+    } else if (head === 'app') {
       if (plan) { for (const key of ['name', 'icon', 'summary']) if (key in kv) d[key] = kv[key]; } else d.meta = kv;
     } else if (head === 'state') {
-      const type = args[1];
-      const of = Object.fromEntries(rest.slice(2).filter((t) => /^\w+:\w+$/.test(t)).map((t) => t.split(':')));
+      const type = rest[1];
+      const fields = rest.slice(2).filter((t) => /^\w+:\w+/.test(t)).map((t) => t.split(':').slice(0, 2));
       if (!id || !type) { bad(at, 'state needs a key and a type'); continue; }
-      const field = Object.keys(of).length ? { of } : {};
+      const field = fields.length ? { of: Object.fromEntries(fields) } : {};
       if (plan) list('state').push({ key: id, type, ...field, purpose: '', ...kv });
       else map('state')[id] = { type, ...field, default: zero(type), ...kv };
     } else if (head === 'screen') {
       if (!id) { bad(at, 'screen needs an id'); continue; }
-      if (plan) list('screens').push({ id, purpose: '', ...kv }); else upsert(list('screens'), { id, ...kv });
-    } else if (head === 'el') {
-      const split = args.indexOf('>');
-      const own = pairs(args.slice(2, split < 0 ? undefined : split), () => {});
-      if (!id || !args[1]) { bad(at, 'el needs an id and a component type'); continue; }
-      const children = split < 0 ? [] : args.slice(split + 1);
-      map('elements')[id] = { type: args[1], props: own.kv, ...(children.length ? { children } : {}) };
+      stack = [];
+      if (plan) { list('screens').push({ id, purpose: '', ...kv }); continue; }
+      delete kv.root;
+      const oldRoot = list('screens').find((s) => s.id === id)?.root as string | undefined;
+      const screen = { id, ...kv, ...(oldRoot ? { root: oldRoot } : {}) };
+      upsert(list('screens'), screen);
+      blocks.push(block = { screen, roots: [], oldRoot, cleared: !oldRoot });
     } else if (head === 'use') {
       if (!id) { bad(at, 'use needs a component type'); continue; }
-      list('components').push({ type: id, purpose: '', ...pairs(args.slice(1), () => {}).kv });
+      list('components').push({ type: id, purpose: '', ...kv });
     } else if (head === 'action') {
       if (!id) { bad(at, 'action needs an id'); continue; }
       if (plan) {
@@ -136,48 +197,70 @@ export function parseCompact(raw: string, target: TargetStage, base?: Obj): Pars
       } else map('actions')[id] = { steps: steps = [] };
     } else if (head === '-') {
       if (!steps) { bad(at, 'A "- op" step must come under an action line'); continue; }
-      steps.push({ op: id, ...kv });
+      if (!step) { bad(at, 'A step needs an op name after "-", then field=value pairs'); continue; }
+      steps.push({ op: step, ...kv });
     } else if (head === 'trigger') {
       if (!id) { bad(at, 'trigger needs an id'); continue; }
       const trigger = { id, type: 'schedule', ...kv };
       if (plan) list('triggers').push(trigger);
       else { d.triggers ??= []; upsert(list('triggers'), trigger); }
     } else if (head === 'drop') {
-      const key = DROPPABLE[id];
-      if (!key || !args[1]) { bad(at, 'drop needs state, el, action, screen or trigger, then an id'); continue; }
-      if (Array.isArray(d[key])) d[key] = (d[key] as Obj[]).filter((entry) => entry.id !== args[1]);
-      else delete (d[key] as Obj)[args[1]];
+      if (id?.startsWith('#')) {
+        if (!elements[id.slice(1)]) { bad(at, `No component ${id} in the draft`); continue; }
+        detach(id.slice(1)); removeTree(id.slice(1));
+        continue;
+      }
+      const key = DROPPABLE[id ?? ''];
+      if (!key || !rest[1]) { bad(at, 'drop needs #id, or state, screen, action or trigger and an id'); continue; }
+      if (key === 'screens') removeTree(list('screens').find((s) => s.id === rest[1])?.root as string | undefined);
+      if (Array.isArray(d[key])) d[key] = (d[key] as Obj[]).filter((entry) => entry.id !== rest[1]);
+      else delete (d[key] as Obj)[rest[1]];
     }
   }
 
+  for (const { screen, roots } of blocks) {
+    if (roots.length > 1) {
+      // Several top-level components: a small model forgot the container, and one is easy to add.
+      const wrapper = nextId('Stack');
+      elements[wrapper] = { type: 'Stack', props: {}, children: roots };
+      screen.root = wrapper;
+    } else if (roots.length === 1) screen.root = roots[0];
+  }
   if (!ls.length) bad('', 'The response had no lines.');
   if (refusal) {
     if (others) bad('unsupported', 'A refusal must be the unsupported line alone, with no other lines.');
     else return { raw, errors, ...(errors.length ? {} : { value: { unsupported: refusal } }) };
   }
-  return { raw, errors, patched: patching, ...(recognised ? { draft: d } : {}), ...(errors.length || !recognised ? {} : { value: d }) };
+  return { raw, errors, ...(recognised ? { draft: d } : {}), ...(errors.length || !recognised ? {} : { value: d }) };
 }
 
 const bare = (text: string) => /^[^\s"{}[\]]+$/.test(text) && text !== '>' && !LITERAL.test(text);
 const fmt = (value: unknown) => typeof value === 'string' && bare(value) ? value : JSON.stringify(value);
-const kv = (obj: Obj, skip: string[] = []) => Object.entries(obj)
-  .filter(([key, value]) => !skip.includes(key) && value !== undefined).map(([key, value]) => `${key}=${fmt(value)}`);
+const kv = (obj: Obj, skip: string[] = [], op?: string) => Object.entries(obj)
+  .filter(([key, value]) => !skip.includes(key) && value !== undefined).map(([key, value]) => `${key}=${formatValue(key, value, op)}`);
 const row = (...parts: (string | string[])[]) => parts.flat().filter(Boolean).join(' ');
 const fields = (of: unknown) => of ? Object.entries(of as Obj).map(([name, type]) => `${name}:${String(type)}`) : [];
 
-export function toCompact(spec: Obj): string {
+/** `ids` adds `#id` to every component; the repair view needs them, the prompt example does not. */
+export function toCompact(spec: Obj, ids = false): string {
   const state = (spec.state ?? {}) as Record<string, Obj>;
   const elements = (spec.elements ?? {}) as Record<string, Obj>;
   const actions = (spec.actions ?? {}) as Record<string, { steps: Obj[] }>;
+  const seen = new Set<string>();
+  const tree = (id: unknown, depth: number): string[] => {
+    const el = typeof id === 'string' ? elements[id] : undefined;
+    if (!el || seen.has(id as string)) return [];
+    seen.add(id as string);
+    return [row(`${'  '.repeat(depth)}${String(el.type)}`, ids ? [`#${id as string}`] : [], kv((el.props ?? {}) as Obj)),
+      ...((Array.isArray(el.children) ? el.children : []) as string[]).flatMap((child) => tree(child, depth + 1))];
+  };
   return [
     row('app', kv((spec.meta ?? {}) as Obj, ['sourcePrompt', 'generatedBy'])),
     ...Object.entries(state).map(([key, d]) => row('state', key, String(d.type), fields(d.of),
       kv(d, ['type', 'of', ...(JSON.stringify(d.default) === JSON.stringify(zero(d.type)) ? ['default'] : [])]))),
-    ...((spec.screens ?? []) as Obj[]).map(({ id, ...rest }) => row('screen', String(id), kv(rest))),
-    ...Object.entries(elements).map(([id, el]) => row('el', id, String(el.type), kv((el.props ?? {}) as Obj),
-      Array.isArray(el.children) && el.children.length ? ['>', ...(el.children as string[])] : [])),
+    ...((spec.screens ?? []) as Obj[]).flatMap(({ id, root, ...rest }) => [row('screen', String(id), kv(rest)), ...tree(root, 1)]),
     ...Object.entries(actions).flatMap(([id, a]) => [`action ${id}`,
-      ...a.steps.map(({ op, ...rest }) => row('-', String(op), kv(rest)))]),
+      ...a.steps.map(({ op, ...rest }) => row('-', String(op), kv(rest, [], String(op))))]),
     ...((spec.triggers ?? []) as Obj[]).map(({ id, ...rest }) => row('trigger', String(id), kv(rest, ['type']))),
   ].join('\n');
 }

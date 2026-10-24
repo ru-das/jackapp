@@ -48,7 +48,6 @@ export async function generate(options: GenerateOptions): Promise<GenerationResu
       checkCancellation(options.signal);
       const parsed = parseCompact(raw, target, draft);
       errors = parsed.errors;
-      const syntax = errors.length > 0;
       if (target === 'spec' && parsed.draft) draft = parsed.draft;
       if (parsed.value) {
         if (Object.hasOwn(parsed.value, 'unsupported') && !(target === 'plan' && parsed.value.unsupported === null)) {
@@ -79,9 +78,9 @@ export async function generate(options: GenerateOptions): Promise<GenerationResu
       if (repairs >= maxRepairs) return finish({ status: 'failed', repairs, errors,
         message: 'I couldn’t build this mini-app. Try a simpler request.' });
       emit('repairing', repairs + 1, errors);
-      // A whole response with broken lines is shown as written (the error line numbers match it); a patch is shown merged into the draft.
+      // The model sees the draft with a #id on every component, so its patch can name what to change; broken lines are quoted in the errors. A refusal attempt is shown as written.
       raw = await repair({ ...options, target, errors, patch: target === 'spec' && draft !== undefined,
-        raw: target !== 'spec' || !draft || (syntax && !parsed.patched) ? raw : toCompact(draft) });
+        raw: target !== 'spec' || !draft || /^\s*unsupported\b/m.test(raw) ? raw : toCompact(draft, true) });
       repairs++;
     }
   } catch (error) {

@@ -151,7 +151,7 @@ sequenceDiagram
 
 Rules:
 - Progress events: `planning`, `building`, `checking`, `repairing(n)`, `done`, `failed`, `unsupported`.
-- The model writes a line format, not JSON (ADR-023): `compact.ts` compiles it to the Spec / Plan / `{unsupported}` objects. Code fences and blank lines are ignored; an unknown line or unreadable value → `BAD_JSON` at `line N` (that line is not applied) → repair. Spec repairs are patches merged into the draft by kind + id (`drop` deletes, an `app` line starts over); PLAN repairs are whole. `maxRepairs` defaults to 2 (1 for `local`).
+- The model writes a line format, not JSON (ADR-023): `compact.ts` compiles it to the Spec / Plan / `{unsupported}` objects. Code fences and blank lines are ignored; an unknown line or unreadable value → `BAD_JSON` at `line N` (that line is not applied) → repair. Components are an indented tree with generated ids and short values (`@photo`, `output=list:name:string`); spec repairs are patches merged into the draft (`Type #id …` replaces a component, `drop #id` deletes; the model sees the draft with ids); PLAN repairs are whole (ADR-024). `maxRepairs` defaults to 2 (1 for `local`).
 - Temperatures: plan 0.4, fill 0.2, repair 0.1. No stage sends a JSON Schema; every stage sets `plainText`.
 - The catalog text in prompts is **generated from `catalog/*/meta.ts`**, never hand-copied. `COMPONENTS.md` documents the same data for humans; a test checks they stay in sync.
 - **Edit-by-chat** reuses FILL and REPAIR with the current spec as input. It must keep existing `state` keys whose type didn't change, so user data survives.

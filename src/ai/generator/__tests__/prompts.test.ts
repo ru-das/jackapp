@@ -11,12 +11,16 @@ test.each([['plan', 'plan'], ['fill', 'spec'], ['repair', 'plan'], ['repair', 's
     for (const text of ['plain text lines only', 'only catalog components', 'unsupported', 'Aim for 5–15 elements', 'with no other fields', 'ai.run prompts must ask only']) {
       expect(prompt).toContain(text);
     }
-    expect(prompt.match(/Example \d/g)).toHaveLength(2);
+    // FILL also shows a second app (Plant Pal); the refusal is always last.
+    const count = stage === 'fill' ? 3 : 2;
+    expect(prompt.match(/Example \d/g)).toHaveLength(count);
     const examples = prompt.split(/Example \d — [^\n]+:\n/).slice(1).map((raw) => parseCompact(raw, target));
     for (const example of examples) expect(example.errors).toEqual([]);
-    expect(UnsupportedSchema.safeParse(examples[1].value).success).toBe(true);
-    if (target === 'plan') expect(validatePlan(examples[0].value)).toEqual([]);
-    else expect(validate(examples[0].value)).toEqual([]);
+    expect(UnsupportedSchema.safeParse(examples[count - 1].value).success).toBe(true);
+    for (const example of examples.slice(0, count - 1)) {
+      if (target === 'plan') expect(validatePlan(example.value)).toEqual([]);
+      else expect(validate(example.value)).toEqual([]);
+    }
     if (stage === 'repair') expect(prompt).toContain(`REPAIR target: ${target}`);
   },
 );
@@ -54,6 +58,15 @@ test('a spec repair that patches says so; plan repairs and rewrites ask for the 
   expect(systemPrompt('repair', 'spec', false, true)).toContain('Return only the lines that change');
   expect(systemPrompt('repair', 'spec', false)).toContain('Return the complete corrected spec');
   expect(systemPrompt('repair', 'plan', false, true)).toContain('Return the complete corrected plan');
+});
+
+test('the patch prompt shows ids and a tiny patch example, not a whole app', () => {
+  const prompt = systemPrompt('repair', 'spec', false, true);
+  expect(prompt).toContain('Example 1 — Patch:');
+  expect(prompt).toContain('drop #');
+  expect(prompt).toContain('#id');
+  expect(prompt).not.toContain('Fridge photo to groceries');
+  expect(prompt.length).toBeLessThan(systemPrompt('repair', 'spec', false).length);
 });
 
 test('a repair of a real build attempt carries no refusal rule or refusal example; a repair of a refusal keeps both', () => {

@@ -2,14 +2,15 @@ import type { LLMProvider } from '../../provider';
 import { createScriptedMock, mockProvider } from '../../providers/mock';
 import { h1 } from '@/spec/fixtures';
 import { validate } from '@/spec/validate';
-import { toCompact, toCompactPlan, toCompactRefusal } from '../compact';
+import { parseCompact, toCompact, toCompactPlan, toCompactRefusal } from '../compact';
 import { generate, type GenerationProgress } from '../generate';
 import { h1Plan } from '../prompts';
 
 jest.mock('../../provider', () => { throw new Error('Generator must not load platform providers'); });
 const plan = toCompactPlan(h1Plan);
 const spec = toCompact(h1);
-const badSpec = { ...h1, screens: [{ id: 'main', title: 'test', root: 'missing' }] };
+const button = (id: 'makeBtn' | 'clearBtn', onPress: string) => ({ ...h1.elements[id], props: { ...h1.elements[id].props, onPress } });
+const badSpec = { ...h1, elements: { ...h1.elements, makeBtn: button('makeBtn', 'nope'), clearBtn: button('clearBtn', 'nada') } };
 const bad = toCompact(badSpec);
 const feedback = (e: { code: string; path: string; message: string; hint?: string }) =>
   `- ${e.code} at ${e.path || '(whole response)'}: ${e.message}${e.hint ? ` (${e.hint})` : ''}`;
@@ -56,12 +57,13 @@ test('plan and spec repairs share a budget and preserve complete latest feedback
   const firstRepair = calls.mock.calls[1][0].messages[0].content;
   expect(firstRepair).toContain(`Request: ${options.prompt}\nPrevious response:\n{broken}\nErrors:\n- BAD_JSON at line 1:`);
   expect(calls.mock.calls[1][0]).toMatchObject({ temperature: 0.1, maxTokens: 1024 });
-  const stamped = { ...badSpec, meta: { ...badSpec.meta, sourcePrompt: options.prompt,
+  const compiled = parseCompact(bad, 'spec').value as { meta: object };
+  const stamped = { ...compiled, meta: { ...compiled.meta, sourcePrompt: options.prompt,
     generatedBy: { provider: 'mock', model: options.model } } };
   const errors = validate(stamped);
   expect(errors.length).toBeGreaterThan(1);
   expect(calls.mock.calls[3][0].messages[0].content).toBe(
-    `Request: ${options.prompt}\nPrevious response:\n${bad}\nErrors:\n${errors.map(feedback).join('\n')}`);
+    `Request: ${options.prompt}\nPrevious response:\n${toCompact(compiled, true)}\nErrors:\n${errors.map(feedback).join('\n')}`);
   expect(events.filter((e) => e.stage === 'repairing').map((e) => [e.target, e.attempt])).toEqual([['plan', 1], ['spec', 2]]);
 });
 
@@ -201,20 +203,24 @@ test('no-plan preserves cancellation and refusals', async () => {
 
 test('a spec repair returns only the changed lines and they are merged into the draft', async () => {
   const broken = spec.replace('onPress=makeList', 'onPress=nope');
-  const fix = 'el makeBtn Button label="Make my list" onPress=makeList variant=primary';
+  const fix = 'Button #button1 label="Make my list" onPress=makeList variant=primary';
   const { options, calls } = setup([broken, fix]);
-  expect(await generate({ ...options, noPlan: true })).toMatchObject({ status: 'done', repairs: 1, spec: { elements: h1.elements } });
+  const result = await generate({ ...options, noPlan: true });
+  expect(result).toMatchObject({ status: 'done', repairs: 1 });
+  if (result.status !== 'done') throw new Error('Expected success');
+  expect(result.spec.elements).toEqual((parseCompact(spec, 'spec').value as { elements: object }).elements);
   const request = calls.mock.calls[1][0];
   expect(request.system).toContain('Return only the lines that change');
-  expect(request.messages[0].content).toContain(`Previous response:\n${broken}`);
+  expect(request.messages[0].content).toContain(`Previous response:\n${toCompact(parseCompact(broken, 'spec').value!, true)}`);
+  expect(request.messages[0].content).toContain('#button1');
 });
 
 test('a patch with an unreadable line is not applied, and the model sees the draft plus the quoted problem', async () => {
   const broken = spec.replace('onPress=makeList', 'onPress=nope');
-  const fix = 'el makeBtn Button label="Go" onPress=makeList variant=primary';
-  const { options, calls } = setup([broken, 'el notesIn TextInput label={"x":}', fix]);
+  const fix = 'Button #button1 label="Go" onPress=makeList variant=primary';
+  const { options, calls } = setup([broken, 'Button #button1 label={"x":}', fix]);
   expect(await generate({ ...options, noPlan: true })).toMatchObject({ status: 'done', repairs: 2 });
-  expect(calls.mock.calls[2][0].messages[0].content).toContain(`Previous response:\n${broken}\nErrors:\n- BAD_JSON at line 1: Cannot read the value in label=`);
+  expect(calls.mock.calls[2][0].messages[0].content).toContain(`Previous response:\n${toCompact(parseCompact(broken, 'spec').value!, true)}\nErrors:\n- BAD_JSON at line 1: Cannot read the value in label=`);
   expect(calls.mock.calls[2][0].system).toContain('Return only the lines that change');
 });
 
