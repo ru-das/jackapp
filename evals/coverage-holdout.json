@@ -1,0 +1,518 @@
+[
+ {
+  "id": "h001",
+  "prompt": "Meeting notes database",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h002",
+  "prompt": "Prayer journal",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h003",
+  "prompt": "Car wash log",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h004",
+  "prompt": "Lego collection inventory",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h005",
+  "prompt": "Plant care log",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h006",
+  "prompt": "Cleaning schedule by room",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h007",
+  "prompt": "Tenant rent payment tracker",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h008",
+  "prompt": "Garden harvest log",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h009",
+  "prompt": "Podcast episode list",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h010",
+  "prompt": "Camping gear checklist",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h011",
+  "prompt": "Allowance tracker for my kids",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h012",
+  "prompt": "Chore reward points",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h013",
+  "prompt": "Daily calorie log",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h014",
+  "prompt": "Collectible card inventory",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h015",
+  "prompt": "Medicine cabinet inventory",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h016",
+  "prompt": "Student grades record",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h017",
+  "prompt": "Volunteer hours log",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h018",
+  "prompt": "Mileage reimbursement log",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h019",
+  "prompt": "Garage sale item list with prices",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h020",
+  "prompt": "Baby milestone journal",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h021",
+  "prompt": "Seed inventory",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h022",
+  "prompt": "Wine cellar inventory",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h023",
+  "prompt": "Guitar practice log with minutes",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h024",
+  "prompt": "Reading streak tracker",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h025",
+  "prompt": "Referral tracker for my side business",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h026",
+  "prompt": "Layaway payments tracker",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h027",
+  "prompt": "Song practice log",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h028",
+  "prompt": "Apartment hunting list with rent and size",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h029",
+  "prompt": "Party planning checklist",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h030",
+  "prompt": "Birthday list with gift ideas and dates",
+  "source": "holdout",
+  "expect": "log"
+ },
+ {
+  "id": "h031",
+  "prompt": "Percent change calculator",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h032",
+  "prompt": "Markup and margin calculator",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h033",
+  "prompt": "Fuel economy mpg calculator",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h034",
+  "prompt": "Square footage calculator",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h035",
+  "prompt": "Cost per serving calculator",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h036",
+  "prompt": "Dosage calculator by body weight",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h037",
+  "prompt": "Hourly rate to salary converter",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h038",
+  "prompt": "Cooking measurement converter cups to ml",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h039",
+  "prompt": "Shoe size converter",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h040",
+  "prompt": "Speed distance time calculator",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h041",
+  "prompt": "Tax refund estimator",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h042",
+  "prompt": "Rent vs buy calculator",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h043",
+  "prompt": "Credit card payoff calculator",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h044",
+  "prompt": "Student loan calculator",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h045",
+  "prompt": "Wallpaper roll calculator",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h046",
+  "prompt": "Weight converter",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h047",
+  "prompt": "Paycheck calculator",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h048",
+  "prompt": "Price per unit comparison",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h049",
+  "prompt": "Ovulation date calculator",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h050",
+  "prompt": "Data usage calculator",
+  "source": "holdout",
+  "expect": "calculator"
+ },
+ {
+  "id": "h051",
+  "prompt": "People counter at the door",
+  "source": "holdout",
+  "expect": "counter"
+ },
+ {
+  "id": "h052",
+  "prompt": "Knitting row counter",
+  "source": "holdout",
+  "expect": "counter"
+ },
+ {
+  "id": "h053",
+  "prompt": "Swim lap counter",
+  "source": "holdout",
+  "expect": "counter"
+ },
+ {
+  "id": "h054",
+  "prompt": "Rosary bead counter",
+  "source": "holdout",
+  "expect": "counter"
+ },
+ {
+  "id": "h055",
+  "prompt": "Bedtime story generator",
+  "source": "holdout",
+  "expect": "ai"
+ },
+ {
+  "id": "h056",
+  "prompt": "Joke of the day generator",
+  "source": "holdout",
+  "expect": "ai"
+ },
+ {
+  "id": "h057",
+  "prompt": "Birthday message writer",
+  "source": "holdout",
+  "expect": "ai"
+ },
+ {
+  "id": "h058",
+  "prompt": "Slogan ideas for my bakery",
+  "source": "holdout",
+  "expect": "ai"
+ },
+ {
+  "id": "h059",
+  "prompt": "Diet plan suggestions",
+  "source": "holdout",
+  "expect": "ai"
+ },
+ {
+  "id": "h060",
+  "prompt": "Rewrite my text in a friendly tone",
+  "source": "holdout",
+  "expect": "ai"
+ },
+ {
+  "id": "h061",
+  "prompt": "Product description writer",
+  "source": "holdout",
+  "expect": "ai"
+ },
+ {
+  "id": "h062",
+  "prompt": "Name my startup",
+  "source": "holdout",
+  "expect": "ai"
+ },
+ {
+  "id": "h063",
+  "prompt": "What should I wear today",
+  "source": "holdout",
+  "expect": "ai"
+ },
+ {
+  "id": "h064",
+  "prompt": "Describe what is in this photo",
+  "source": "holdout",
+  "expect": "ai"
+ },
+ {
+  "id": "h065",
+  "prompt": "Plant disease diagnosis from a leaf photo",
+  "source": "holdout",
+  "expect": "ai"
+ },
+ {
+  "id": "h066",
+  "prompt": "Quiz me on a topic",
+  "source": "holdout",
+  "expect": "ai"
+ },
+ {
+  "id": "h067",
+  "prompt": "Take vitamins reminder",
+  "source": "holdout",
+  "expect": "reminder"
+ },
+ {
+  "id": "h068",
+  "prompt": "Reminder to call mom every Sunday",
+  "source": "holdout",
+  "expect": "reminder"
+ },
+ {
+  "id": "h069",
+  "prompt": "Daily affirmation reminder",
+  "source": "holdout",
+  "expect": "reminder"
+ },
+ {
+  "id": "h070",
+  "prompt": "Egg boiling timer",
+  "source": "holdout",
+  "expect": "timer"
+ },
+ {
+  "id": "h071",
+  "prompt": "Plank timer",
+  "source": "holdout",
+  "expect": "timer"
+ },
+ {
+  "id": "h072",
+  "prompt": "Study session timer",
+  "source": "holdout",
+  "expect": "timer"
+ },
+ {
+  "id": "h073",
+  "prompt": "Yoga hold timer",
+  "source": "holdout",
+  "expect": "timer"
+ },
+ {
+  "id": "h074",
+  "prompt": "Live sports scores",
+  "source": "holdout",
+  "expect": "unsupported"
+ },
+ {
+  "id": "h075",
+  "prompt": "Order food from restaurants",
+  "source": "holdout",
+  "expect": "unsupported"
+ },
+ {
+  "id": "h076",
+  "prompt": "Video chat with family",
+  "source": "holdout",
+  "expect": "unsupported"
+ },
+ {
+  "id": "h077",
+  "prompt": "Track my phone's location",
+  "source": "holdout",
+  "expect": "unsupported"
+ },
+ {
+  "id": "h078",
+  "prompt": "Play music from Spotify",
+  "source": "holdout",
+  "expect": "unsupported"
+ },
+ {
+  "id": "h079",
+  "prompt": "Control my smart lights",
+  "source": "holdout",
+  "expect": "unsupported"
+ },
+ {
+  "id": "h080",
+  "prompt": "Drawing app",
+  "source": "holdout",
+  "expect": "none"
+ },
+ {
+  "id": "h081",
+  "prompt": "Photo editor",
+  "source": "holdout",
+  "expect": "none"
+ },
+ {
+  "id": "h082",
+  "prompt": "Sticky notes on a whiteboard",
+  "source": "holdout",
+  "expect": "none"
+ },
+ {
+  "id": "h083",
+  "prompt": "Magic 8 ball",
+  "source": "holdout",
+  "expect": "none"
+ },
+ {
+  "id": "h084",
+  "prompt": "Spin the bottle",
+  "source": "holdout",
+  "expect": "none"
+ },
+ {
+  "id": "h085",
+  "prompt": "Speed reading trainer",
+  "source": "holdout",
+  "expect": "none"
+ },
+ {
+  "id": "h086",
+  "prompt": "Metronome",
+  "source": "holdout",
+  "expect": "none"
+ }
+]
