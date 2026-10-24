@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, 
 import { generate, type GenerationProgress } from '@/ai/generator/generate';
 import type { Unsupported } from '@/ai/generator/outputSchemas';
 import { getActiveProvider } from '@/ai/provider';
+import { localModel } from '@/ai/providers/litert';
 import { toast } from '@/capabilities';
 import { Renderer } from '@/runtime/Renderer';
 import { createSession } from '@/runtime/session';
@@ -50,6 +51,10 @@ export default function Create() {
     await removeKey(dataKey(d.id));
   };
   useEffect(() => () => { abort.current?.abort(); void discard(); }, []);
+  // Loading the on-device model takes ~20 s on a budget phone; do it while the user types the request.
+  useEffect(() => {
+    void getActiveProvider().then(async ({ provider }) => { if (provider.id === 'local') await localModel.warmUp(); });
+  }, []);
 
   const build = async (text: string) => {
     const request = text.trim();

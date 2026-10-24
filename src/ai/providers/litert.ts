@@ -13,6 +13,8 @@ export const localProvider: LLMProvider = {
 
 export const localModel: LocalModel = {
   available: false,
+  tuning: { backend: 'gpu', speculative: false, constrained: true },
+  warmUp: async () => {},
   isDownloaded: async () => false,
   download: async () => { throw new Error(UNAVAILABLE); },
   remove: async () => {},

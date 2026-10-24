@@ -4,6 +4,7 @@ import { localModel, localProvider } from '@/ai/providers/litert.native';
 
 const mockNative = {
   generate: jest.fn(),
+  warmUp: jest.fn(),
   cancel: jest.fn(),
   release: jest.fn(),
   addListener: jest.fn(),
@@ -19,12 +20,14 @@ jest.mock('expo-file-system/legacy', () => ({
 }));
 
 const fs = FileSystem as jest.Mocked<typeof FileSystem>;
-const result = { text: ' {"ok":true} ', backend: 'GPU', initMs: 0, firstTokenMs: 900, genMs: 4000, kvTokens: 4100 };
+const result = { text: ' {"ok":true} ', backend: 'GPU', speculative: false, initMs: 0, firstTokenMs: 900, genMs: 4000, kvTokens: 4100 };
 const present = (size: number) => fs.getInfoAsync.mockResolvedValue({ exists: true, size, uri: '', isDirectory: false } as never);
 
 beforeEach(() => {
   jest.clearAllMocks();
+  Object.assign(localModel.tuning, { backend: 'gpu', speculative: false, constrained: true });
   mockNative.generate.mockResolvedValue(result);
+  mockNative.warmUp.mockResolvedValue({ backend: 'GPU', speculative: false, initMs: 20000 });
   mockNative.addListener.mockReturnValue({ remove: jest.fn() });
   present(LITERT_MODEL.size);
 });
@@ -47,10 +50,12 @@ test('sends a plain path, system text, flattened retry, bare base64 images and d
     ],
   });
   expect(out).toBe('{"ok":true}');
-  expect(mockNative.generate).toHaveBeenCalledWith(
-    `/data/models/${LITERT_MODEL.file}`, 'SYS', 'read it\n\nYour previous reply:\nbad\n\nfix it', ['QUJD'], 0.1, 512);
+  expect(mockNative.generate).toHaveBeenCalledWith({
+    modelPath: `/data/models/${LITERT_MODEL.file}`, system: 'SYS', prompt: 'read it\n\nYour previous reply:\nbad\n\nfix it',
+    images: ['QUJD'], temperature: 0.1, maxTokens: 512, backend: 'gpu', speculative: false, constrained: true,
+  });
   await localProvider.generate({ system: '', messages: [{ role: 'user', content: 'x' }] });
-  expect(mockNative.generate).toHaveBeenLastCalledWith(expect.any(String), '', 'x', [], 0.2, 0);
+  expect(mockNative.generate).toHaveBeenLastCalledWith(expect.objectContaining({ system: '', prompt: 'x', images: [], temperature: 0.2, maxTokens: 0 }));
 });
 
 test('reports timings and streams partial output to the caller', async () => {
@@ -62,7 +67,7 @@ test('reports timings and streams partial output to the caller', async () => {
   const chars: number[] = [];
   await localProvider.generate({ system: '', messages: [], onLog: (m) => logs.push(m), onPartial: (n) => chars.push(n) });
   expect(chars).toEqual([120]);
-  expect(logs[0]).toBe('GPU: model load 0 ms, first token 900 ms, total 4000 ms, 4100 tokens in cache');
+  expect(logs[0]).toBe('GPU, constrained JSON on: model load 0 ms, first token 900 ms, total 4000 ms, 4100 tokens in cache');
   expect(remove).toHaveBeenCalled();
 });
 
@@ -127,4 +132,45 @@ test('remove releases the engine and deletes the file and any partial', async ()
   await localModel.remove();
   expect(mockNative.release).toHaveBeenCalled();
   expect(fs.deleteAsync).toHaveBeenCalledTimes(2);
+});
+
+test('the switches reach the engine; the log names what actually ran', async () => {
+  Object.assign(localModel.tuning, { backend: 'cpu', speculative: true, constrained: false });
+  mockNative.generate.mockResolvedValue({ ...result, backend: 'CPU', speculative: true });
+  const logs: string[] = [];
+  await localProvider.generate({ system: '', messages: [], onLog: (m) => logs.push(m) });
+  expect(mockNative.generate).toHaveBeenCalledWith(expect.objectContaining({ backend: 'cpu', speculative: true, constrained: false }));
+  expect(logs[0]).toMatch(/^CPU \+ speculative decoding, constrained JSON off:/);
+});
+
+test('if constrained JSON fails the call is retried without it and it stays off', async () => {
+  mockNative.generate.mockRejectedValueOnce(new Error('grammar: unsupported keyword')).mockResolvedValueOnce(result);
+  const logs: string[] = [];
+  expect(await localProvider.generate({ system: '', messages: [], onLog: (m) => logs.push(m) })).toBe('{"ok":true}');
+  expect(mockNative.generate.mock.calls.map((c) => c[0].constrained)).toEqual([true, false]);
+  expect(logs[0]).toContain('constrained JSON failed (grammar: unsupported keyword)');
+  expect(localModel.tuning.constrained).toBe(false);
+  await localProvider.generate({ system: '', messages: [] });
+  expect(mockNative.generate.mock.calls.at(-1)?.[0].constrained).toBe(false);
+});
+
+test('a failure with constrained JSON already off is not retried', async () => {
+  localModel.tuning.constrained = false;
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+  mockNative.generate.mockRejectedValue(new Error('out of memory'));
+  await expect(localProvider.generate({ system: '', messages: [] })).rejects.toThrow('out of memory');
+  expect(mockNative.generate).toHaveBeenCalledTimes(1);
+});
+
+test('warm-up loads the model with the current switches and never throws', async () => {
+  Object.assign(localModel.tuning, { backend: 'cpu', speculative: true });
+  await localModel.warmUp();
+  expect(mockNative.warmUp).toHaveBeenCalledWith(`/data/models/${LITERT_MODEL.file}`, 'cpu', true);
+  mockNative.warmUp.mockRejectedValue(new Error('no memory'));
+  jest.spyOn(console, 'warn').mockImplementation(() => {});
+  await expect(localModel.warmUp()).resolves.toBeUndefined();
+  fs.getInfoAsync.mockResolvedValue({ exists: false } as never);
+  mockNative.warmUp.mockClear();
+  await localModel.warmUp();
+  expect(mockNative.warmUp).not.toHaveBeenCalled();
 });

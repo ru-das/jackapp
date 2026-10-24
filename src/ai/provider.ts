@@ -29,10 +29,23 @@ export interface LLMProvider {
   }): Promise<string>;
 }
 
+/** On-device speed and reliability switches. Session-only; the eval screen flips them to compare runs. */
+export interface LocalTuning {
+  /** CPU is the comparison run; the engine also falls back to it by itself if the GPU fails. */
+  backend: 'gpu' | 'cpu';
+  /** Experimental draft-model decoding. Falls back to plain decoding if the engine rejects it. */
+  speculative: boolean;
+  /** Decode only syntactically valid JSON. Switches itself off for the session if the engine rejects it. */
+  constrained: boolean;
+}
+
 /** The downloadable on-device model (Android only). */
 export interface LocalModel {
   /** False on web and in builds without the native module. */
   available: boolean;
+  tuning: LocalTuning;
+  /** Loads the model into memory ahead of the first request. Never throws. */
+  warmUp(): Promise<void>;
   isDownloaded(): Promise<boolean>;
   /** Throws a friendly error; leaves no partial file behind. */
   download(onProgress: (p: { loaded: number; total: number }) => void): Promise<void>;

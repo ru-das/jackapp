@@ -31,6 +31,9 @@ test('runs one prompt, shows row + metrics, shares and saves the results JSON', 
   expect(json.log.some((l: string) => /e01 → PLAN: \d+ system chars/.test(l))).toBe(true);
   expect(json.log.some((l: string) => /e01 → FILL:/.test(l))).toBe(true);
   expect(json.log.some((l: string) => /e01 ✓ done after/.test(l))).toBe(true);
+  // Full model output is saved for debugging but kept off the screen.
+  expect(json.log.some((l: string) => /e01 ⎘ output: \{"specVersion"/.test(l))).toBe(true);
+  expect(screen.queryByText(/⎘ output/)).toBeNull();
   expect(screen.getByLabelText('Run log')).toBeTruthy();
   expect(screen.getAllByText(/→ PLAN/).length).toBeGreaterThan(0);
 

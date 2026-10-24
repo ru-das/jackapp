@@ -19,7 +19,7 @@ test('reports start, first token, provider notes and done, in order, and forward
   const partials = events.filter((e) => e.kind === 'partial');
   expect(partials[0]).toMatchObject({ chars: 10 });
   expect(partials[1]).toMatchObject({ chars: 40, firstTokenMs: (partials[0] as { firstTokenMs: number }).firstTokenMs });
-  expect(events[4]).toMatchObject({ kind: 'done', chars: 13, preview: ' {"a": 1} ' });
+  expect(events[4]).toMatchObject({ kind: 'done', chars: 13, preview: ' {"a": 1} ', output: ' {"a":   1}\n ' });
 });
 
 test('an error is reported and rethrown', async () => {

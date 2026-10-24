@@ -4,7 +4,7 @@ export type CallEvent =
   | { kind: 'start'; stage: string; systemChars: number; promptChars: number; images: number }
   | { kind: 'partial'; chars: number; ms: number; firstTokenMs: number }
   | { kind: 'log'; message: string }
-  | { kind: 'done'; ms: number; chars: number; preview: string }
+  | { kind: 'done'; ms: number; chars: number; preview: string; output: string }
   | { kind: 'error'; ms: number; message: string };
 
 const secs = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
@@ -43,7 +43,7 @@ export function withLog(provider: LLMProvider, emit: (e: CallEvent) => void): LL
           },
           onLog: (message) => { emit({ kind: 'log', message }); req.onLog?.(message); },
         });
-        emit({ kind: 'done', ms: Date.now() - started, chars: text.length, preview: text.slice(0, 100).replace(/\s+/g, ' ') });
+        emit({ kind: 'done', ms: Date.now() - started, chars: text.length, preview: text.slice(0, 100).replace(/\s+/g, ' '), output: text });
         return text;
       } catch (error) {
         emit({ kind: 'error', ms: Date.now() - started, message: error instanceof Error ? error.message : String(error) });

@@ -3,9 +3,11 @@ import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-nat
 import corpus from '../../../evals/prompts.json';
 import { QUICK_IDS, runEval, type EvalRow } from '@/ai/generator/eval';
 import { getActiveProvider } from '@/ai/provider';
+import { localModel } from '@/ai/providers/litert';
 import { describeEvent, withLog, type CallEvent } from '@/ai/providers/logged';
 import { saveFile, share, toast } from '@/capabilities';
 import { EvalLog, SHOWN_LINES } from '@/ui/EvalLog';
+import { LocalOptions } from '@/ui/LocalOptions';
 import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
 
 type Result = Awaited<ReturnType<typeof runEval>>;
@@ -15,6 +17,7 @@ type Phase = 'idle' | 'loading' | 'running' | 'done' | 'needsModel';
 const PROMPTS = corpus as { id: string; prompt: string }[];
 const pct = (r: Ratio) => (r.rate === null ? '—' : `${Math.round(r.rate * 100)}%`);
 const mark = (met: boolean | null) => (met === null ? '—' : met ? '✓' : '✗');
+const OUTPUT_MARK = '⎘ output:';
 const stamp = () => new Date().toTimeString().slice(0, 8);
 const rowMark = (row: EvalRow) => {
   const got = row.result.status;
@@ -69,11 +72,12 @@ export default function EvalScreen() {
   const busy = phase === 'loading' || phase === 'running';
   const total = only === null ? PROMPTS.length : [only].flat().length;
 
-  const push = (line: string) => {
+  // `quiet` lines (full model output) go to the saved log and logcat but not onto the screen.
+  const push = (line: string, quiet = false) => {
     const text = [stamp(), order.current[doneCount.current], line].filter(Boolean).join(' ');
     fullLog.current.push(text);
     console.log(`[eval] ${text}`);
-    setShown(fullLog.current.slice(-SHOWN_LINES));
+    if (!quiet) setShown(fullLog.current.filter((l) => !l.includes(OUTPUT_MARK)).slice(-SHOWN_LINES));
   };
   const onEvent = (e: CallEvent) => {
     const c = call.current;
@@ -87,6 +91,7 @@ export default function EvalScreen() {
     if (e.kind === 'log') c.note = e.message;
     if (e.kind === 'done' || e.kind === 'error') c.stage = '';
     push(describeEvent(e));
+    if (e.kind === 'done') push(`${OUTPUT_MARK} ${e.output}`, true);
   };
 
   useEffect(() => {
@@ -118,7 +123,8 @@ export default function EvalScreen() {
       started.current = Date.now();
       setElapsed(0);
       setPhase('running');
-      push(`Starting ${order.current.length} prompt(s) on ${base.label} (${model}), plan stage ${noPlan ? 'off' : 'on'}`);
+      const t = localModel.tuning;
+      push(`Starting ${order.current.length} prompt(s) on ${base.label} (${model}), plan stage ${noPlan ? 'off' : 'on'}${base.id === 'local' ? `, ${t.backend.toUpperCase()}, speculative ${t.speculative ? 'on' : 'off'}, constrained JSON ${t.constrained ? 'on' : 'off'}` : ''}`);
       // shortcut: no cancel, runEval takes no signal; leave the screen or restart the app to stop, add a signal when needed
       const out = await runEval(provider, model, {
         noPlan, only: only ?? undefined,
@@ -195,6 +201,7 @@ export default function EvalScreen() {
           })}
         </ScrollView>
         {typeof only === 'string' ? <Text style={{ color: t.muted, fontSize: 14 }}>{PROMPTS.find((p) => p.id === only)?.prompt}</Text> : null}
+        <LocalOptions disabled={busy} />
         <Btn label={busy ? 'Running…' : 'Run'} onPress={() => void start()} disabled={busy} />
       </View>
 
