@@ -24,6 +24,8 @@ test.each([
   ['TextInput', { bind: 'notes', label: 'Notes' }, { multiline: false }],
   ['NumberInput', { bind: 'people', label: 'People' }, { step: 1, mode: 'stepper' }],
   ['ImageInput', { bind: 'photo', label: 'Photo' }, { source: 'any' }],
+  ['DateInput', { bind: 'due', label: 'Due' }, { mode: 'date' }],
+  ['Timer', { seconds: 60, label: 'Tea' }, { notify: true }],
   ['List', { items: 'items', title: 'Item' }, { deletable: false, emptyText: 'Nothing here yet' }],
   ['Button', { label: 'Go', onPress: 'go' }, { variant: 'primary' }],
 ] as const)('%s documented defaults', (name, input, defaults) => {
@@ -33,6 +35,7 @@ test.each([
   ['Text', {}], ['Image', {}], ['Stat', { label: 'X' }], ['TextInput', { bind: 'x' }],
   ['NumberInput', { label: 'X' }], ['Toggle', { bind: 'x' }], ['Select', { bind: 'x', label: 'X' }],
   ['ImageInput', {}], ['List', { items: 'x' }], ['Button', { label: 'Go' }],
+  ['DateInput', { bind: 'x' }], ['DateInput', { bind: 'x', label: 'X', mode: 'time' }], ['Timer', { label: 'X' }], ['Timer', { seconds: 5 }],
   ['Stack', { gap: 'xl' }], ['Stack', { direction: 'diagonal' }], ['Stack', { align: 'baseline' }],
   ['Text', { value: 'Hi', variant: 'hero' }], ['Image', { src: 'file:///x', aspect: 'circle' }],
   ['Stat', { label: 'X', value: 1, format: 'fixed2' }],

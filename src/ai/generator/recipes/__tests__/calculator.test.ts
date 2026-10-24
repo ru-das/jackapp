@@ -72,6 +72,26 @@ describe('calculators compute the right numbers', () => {
   });
 });
 
+describe('dates', () => {
+  test('age in years from a birthday and today', () => {
+    const r = run(`${head}input birthday date Birthday 2000-01-01\noutput Age = round(days(birthday, today) / 365.25, 1)`);
+    expect(r.results.Age).toBeCloseTo(26.8, 5);
+    expect(Object.values(r.spec.elements).some((e) => e.type === 'DateInput')).toBe(true);
+  });
+  test('days left until a date', () => {
+    expect(run(`${head}input target date Event 2026-12-25\noutput Days left = days(today, target)`).results['Days left']).toBe(61);
+  });
+  test('a date input starts empty without a value, and an empty date gives 0 with a warning', () => {
+    const r = run(`${head}input target date Event\noutput Days left = days(today, target)`);
+    expect(r.results['Days left']).toBe(0);
+    expect(r.warnings.length).toBeGreaterThan(0);
+  });
+  test('dates only go into days(), and days() only takes dates', () => {
+    const r = run(`${head}input d date Day 2026-01-01\ninput n number N 3\noutput A = d * 2\noutput B = days(n, 5)\noutput C = days(d, today) + n`);
+    expect(Object.keys(r.results)).toEqual(['C']);
+  });
+});
+
 describe('bad formulas', () => {
   test('a broken or unknown-name output is dropped; the rest still works', () => {
     const r = run(`${head}input a number A 3\noutput Good = a * 2\noutput Bad = a +\noutput Unknown = a * zzz\noutput Weird = a $ 2`);
@@ -104,14 +124,14 @@ describe('bad formulas', () => {
 
 test('formula parser rejects what it cannot read', () => {
   for (const bad of ['', '1 +', '(1', '1 2', 'foo(1)', 'round(1, x)', 'min(1)', '1 $ 2']) {
-    expect(() => compileFormula(parseFormula(bad), (n) => n, () => 't')).toThrow();
+    expect(() => compileFormula(parseFormula(bad), (n) => ({ key: n, type: 'number' }), () => 't')).toThrow();
   }
 });
 
 test('hoisting keeps every compiled value within three nested math nodes', () => {
   const depth = (v: unknown): number => (typeof v === 'object' && v !== null && '$math' in v
     ? 1 + Math.max(...(v as { $math: unknown[] }).$math.slice(1).map(depth)) : 0);
-  const { value, steps } = compileFormula(parseFormula('((a+1)*(a+2)+(a+3)*(a+4))*((a+5)*(a+6)+(a+7)*(a+8))'), () => 'a', (() => { let n = 0; return () => `t${++n}`; })());
+  const { value, steps } = compileFormula(parseFormula('((a+1)*(a+2)+(a+3)*(a+4))*((a+5)*(a+6)+(a+7)*(a+8))'), () => ({ key: 'a', type: 'number' }), (() => { let n = 0; return () => `t${++n}`; })());
   expect(depth(value)).toBeLessThanOrEqual(3);
   for (const s of steps) expect(depth(s.value)).toBeLessThanOrEqual(3);
 });

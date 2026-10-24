@@ -14,8 +14,8 @@ export function elements(ctx: ValidationContext, invalidProps: Set<string>): Cal
     if (invalidProps.has(id)) continue;
     const base = `elements.${id}.props`;
     const p = element.props;
-    const bindTypes: Record<string, 'string' | 'number' | 'boolean' | 'image'> = {
-      TextInput: 'string', NumberInput: 'number', Toggle: 'boolean', Select: 'string', ImageInput: 'image',
+    const bindTypes: Record<string, 'string' | 'number' | 'boolean' | 'image' | 'date'> = {
+      TextInput: 'string', NumberInput: 'number', Toggle: 'boolean', Select: 'string', ImageInput: 'image', DateInput: 'date',
     };
     if (Object.hasOwn(bindTypes, element.type) && typeof p.bind === 'string') {
       expectType(ctx, ctx.state(p.bind, `${base}.bind`), { type: bindTypes[element.type] }, `${base}.bind`);
@@ -23,10 +23,15 @@ export function elements(ctx: ValidationContext, invalidProps: Set<string>): Cal
     if (element.type === 'Button' && typeof p.onPress === 'string') call(p.onPress, `${base}.onPress`);
     if (element.type === 'TextInput' && typeof p.onSubmit === 'string') call(p.onSubmit, `${base}.onSubmit`);
     const templates: Partial<Record<typeof element.type, string[]>> = {
-      Card: ['title', 'subtitle'], Text: ['value'], Stat: ['label'], Button: ['label'],
+      Card: ['title', 'subtitle'], Text: ['value'], Stat: ['label'], Button: ['label'], Timer: ['label'],
     };
     for (const key of templates[element.type] ?? []) {
       if (typeof p[key] === 'string') template(ctx, p[key], `${base}.${key}`);
+    }
+    if (element.type === 'Timer') {
+      const timer = catalog.Timer.props.parse(p);
+      assignment(ctx, timer.seconds, { type: 'number' }, `${base}.seconds`);
+      if (timer.onDone) call(timer.onDone, `${base}.onDone`);
     }
     if (element.type === 'Image') assignment(ctx, ValueSchema.parse(p.src), { type: 'image' }, `${base}.src`);
     if (element.type === 'Stat') {

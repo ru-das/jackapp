@@ -3,14 +3,14 @@ import { assemble, RecipeError, tree, type Obj } from './kit';
 import { cleanText, first, icon, identifier, nameFromRequest, type Settings } from './settings';
 import type { Recipe } from './types';
 
-export type CalcInput = { key: string; label: string; kind: 'number' | 'money' | 'percent'; value: number };
+export type CalcInput = { key: string; label: string; kind: 'number' | 'money' | 'percent' | 'date'; value: number | string | null };
 export type CalcOutput = { label: string; formula: string; format: 'number' | 'currency' | 'percent' };
 export type CalcConfig = { name: string; icon: string; description: string; inputs: CalcInput[]; outputs: CalcOutput[] };
 
 const MAX_STEPS = 8;
 
 export function buildCalculator(c: CalcConfig): Obj {
-  const names = new Map(c.inputs.map((i) => [i.key.toLowerCase(), i.key]));
+  const names = new Map(c.inputs.map((i) => [i.key.toLowerCase(), { key: i.key, type: i.kind === 'date' ? 'date' as const : 'number' as const }]));
   const taken = new Set(c.inputs.map((i) => i.key));
   const fresh = (stem: string) => { let n = 1; while (taken.has(`${stem}${n}`)) n++; taken.add(`${stem}${n}`); return `${stem}${n}`; };
 
@@ -26,10 +26,11 @@ export function buildCalculator(c: CalcConfig): Obj {
   if (!compiled.length) throw new RecipeError('No formula fits in one calculation.');
   const button = compiled.some((x) => x.steps.length > 0);
 
-  const state: Obj = Object.fromEntries(c.inputs.map((i) => [i.key, { type: 'number', default: i.value }]));
+  const state: Obj = Object.fromEntries(c.inputs.map((i) => [i.key, i.kind === 'date' ? { type: 'date', default: i.value } : { type: 'number', default: i.value }]));
   const stepsOut: Obj[] = [];
   const t = tree();
-  const fields = c.inputs.map((i) => t.add('NumberInput', { bind: i.key, label: i.kind === 'percent' && !i.label.includes('%') ? `${i.label} (%)` : i.label, mode: 'field' }));
+  const fields = c.inputs.map((i) => i.kind === 'date' ? t.add('DateInput', { bind: i.key, label: i.label })
+    : t.add('NumberInput', { bind: i.key, label: i.kind === 'percent' && !i.label.includes('%') ? `${i.label} (%)` : i.label, mode: 'field' }));
   const stats = compiled.map(({ out, value, steps }) => {
     let shown = value;
     if (button) {
@@ -48,7 +49,7 @@ export function buildCalculator(c: CalcConfig): Obj {
     button ? { calculate: { steps: stepsOut } } : {});
 }
 
-const KINDS = new Set(['number', 'money', 'percent']);
+const KINDS = new Set(['number', 'money', 'percent', 'date']);
 
 function parseInputs(lines: string[]): CalcInput[] {
   const out: CalcInput[] = [];
@@ -58,16 +59,18 @@ function parseInputs(lines: string[]): CalcInput[] {
     const kind = words[1] && KINDS.has(words[1].toLowerCase()) ? (words[1].toLowerCase() as CalcInput['kind']) : 'number';
     let rest = words.slice(KINDS.has((words[1] ?? '').toLowerCase()) ? 2 : 1);
     const last = rest[rest.length - 1];
-    const value = last !== undefined && /^-?\d+(\.\d+)?$/.test(last) ? Number(last) : 0;
-    if (last !== undefined && /^-?\d+(\.\d+)?$/.test(last)) rest = rest.slice(0, -1);
+    const isDay = kind === 'date' && last !== undefined && /^\d{4}-\d{2}-\d{2}$/.test(last);
+    const isNum = kind !== 'date' && last !== undefined && /^-?\d+(\.\d+)?$/.test(last);
+    const value = isDay ? last : isNum ? Number(last) : kind === 'date' ? null : 0;
+    if (isDay || isNum) rest = rest.slice(0, -1);
     const key = identifier(words[0], 'value', out.map((x) => x.key));
-    out.push({ key, kind, value: Number.isFinite(value) ? value : 0, label: cleanText(rest.join(' '), 30) || cleanText(words[0].replace(/([a-z])([A-Z])/g, '$1 $2'), 30) || key });
+    out.push({ key, kind, value: typeof value === 'number' && !Number.isFinite(value) ? 0 : value, label: cleanText(rest.join(' '), 30) || cleanText(words[0].replace(/([a-z])([A-Z])/g, '$1 $2'), 30) || key });
   }
   return out;
 }
 
 function parseOutputs(lines: string[], inputs: CalcInput[]): CalcOutput[] {
-  const names = new Map(inputs.map((i) => [i.key.toLowerCase(), i.key]));
+  const names = new Map(inputs.map((i) => [i.key.toLowerCase(), { key: i.key, type: i.kind === 'date' ? 'date' as const : 'number' as const }]));
   const out: CalcOutput[] = [];
   for (const line of lines) {
     const at = line.indexOf('=');
@@ -104,9 +107,9 @@ export const calculatorRecipe: Recipe = {
   lines: `name <app name, 2-4 words>
 icon <one emoji>
 description <one short sentence>
-input <key> <number|money|percent> <label> <starting value>   (1 to 5 lines; key = one word)
+input <key> <number|money|percent|date> <label> <starting value>   (1 to 5 lines; key = one word; a date input holds a day and starts empty)
 output <label> = <formula using the input keys> as <number|money|percent>   (1 to 4 lines)
-Formulas: numbers, input keys, + - * / ^ ( ) and round(x, 2), min(a, b), max(a, b), sqrt(x). A percent input is a plain number, so 15% is 15 and you write tip / 100.`,
+Formulas: numbers, input keys, + - * / ^ ( ) and round(x, 2), min(a, b), max(a, b), sqrt(x), days(from, to) for whole days between two dates (today = the current day). A percent input is a plain number, so 15% is 15 and you write tip / 100.`,
   example: {
     request: 'Tip calculator',
     reply: `name Tip Calculator

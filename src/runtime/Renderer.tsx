@@ -7,7 +7,9 @@ import { Divider } from '@/catalog/Divider/Divider';
 import { Image } from '@/catalog/Image/Image';
 import { ImageInput } from '@/catalog/ImageInput/ImageInput';
 import { List } from '@/catalog/List/List';
+import { DateInput } from '@/catalog/DateInput/DateInput';
 import { NumberInput } from '@/catalog/NumberInput/NumberInput';
+import { Timer } from '@/catalog/Timer/Timer';
 import { Select } from '@/catalog/Select/Select';
 import { Stack } from '@/catalog/Stack/Stack';
 import { Stat } from '@/catalog/Stat/Stat';
@@ -100,6 +102,15 @@ function Built({ id, ctx, scope }: { id: string; ctx: Ctx; scope?: Scope }): Rea
         value={typeof state[p.bind] === 'string' ? (state[p.bind] as string) : null}
         onPick={(source) => { void pickImage({ source }).then((uri) => { if (uri) set(p.bind)(uri); }).catch((e) => console.warn('pickImage failed', e)); }} />;
       break;
+    case 'DateInput':
+      node = <DateInput label={p.label} value={typeof state[p.bind] === 'string' ? (state[p.bind] as string) : null} onChange={set(p.bind)} />;
+      break;
+    case 'Timer': {
+      const seconds = resolveValue(p.seconds, vctx);
+      node = <Timer label={t(p.label)!} seconds={typeof seconds === 'number' ? seconds : 0}
+        onDone={p.onDone ? () => void ctx.engine.run(p.onDone) : undefined} />;
+      break;
+    }
     case 'List': node = renderList(p, ctx, state); break;
     case 'Button':
       node = <Button label={t(p.label)!} variant={p.variant} busy={ctx.busy.has(p.onPress)}

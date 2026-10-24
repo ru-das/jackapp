@@ -61,8 +61,8 @@ test('button runs its action; clearDone confirm removes ticked items', async () 
 test('a broken element shows the "this part broke" card and siblings survive', async () => {
   jest.spyOn(console, 'error').mockImplementation(() => {});
   const bad = structuredClone(h1) as Record<string, any>;
-  bad.elements.notesIn.type = 'Timer'; // valid for the validator, no renderer until T-55
-  bad.elements.notesIn.props = { seconds: 5, label: 'x' };
+  bad.elements.notesIn.type = 'Chart'; // named in the spec contract, no renderer yet (T-55)
+  bad.elements.notesIn.props = { kind: 'bar', data: 'items', x: 'name', y: 'qty' };
   const spec: Spec = SpecSchema.parse(bad);
   const store = createStore('t', spec.state);
   const engine = createActionEngine({ spec, store,
@@ -98,3 +98,17 @@ test.each([['number', 7, '7'], ['number', 1234.56789, '1,234.5679'], ['percent',
     await render(f.ui);
     expect(screen.getByLabelText(`Value: ${shown}`)).toBeTruthy();
   });
+
+test('DateInput and Timer render through the runtime (recipes use both)', async () => {
+  const { buildTimer } = jest.requireActual('@/ai/generator/recipes/timer') as typeof import('@/ai/generator/recipes/timer');
+  const { buildCalculator } = jest.requireActual('@/ai/generator/recipes/calculator') as typeof import('@/ai/generator/recipes/calculator');
+  const timer = mount(buildTimer({ name: 'Focus', icon: '🍅', description: 'd', label: 'Focus', seconds: 90, count: true }));
+  await render(timer.ui);
+  expect(screen.getByLabelText('Focus: 01:30 left')).toBeTruthy();
+  expect(screen.getByLabelText('Finished: 0')).toBeTruthy();
+  const calc = mount(buildCalculator({ name: 'Age', icon: '🎂', description: 'd',
+    inputs: [{ key: 'birthday', label: 'Birthday', kind: 'date', value: '2000-01-01' }],
+    outputs: [{ label: 'Days old', formula: 'days(birthday, today)', format: 'number' }] }));
+  await render(calc.ui);
+  expect(screen.getByDisplayValue('2000-01-01')).toBeTruthy();
+});

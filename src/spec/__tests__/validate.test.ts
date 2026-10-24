@@ -38,7 +38,7 @@ test('unknown keys have precise paths', () => {
     sort: { field: 'name', dir: 'asc', extra: 1 } } } } }, 'BAD_PROP', 'elements.list.props.sort.extra');
   expectError(withSteps([{ op: 'toast', message: 'Hi', extra: 1 }]), 'BAD_ACTION', 'actions.test.steps[0].extra');
 });
-test.each(['DateInput', 'Timer', 'Chart'])('P1 %s is deferred', (type) => expectError({ ...minimal(),
+test.each(['Chart'])('P1 %s is deferred', (type) => expectError({ ...minimal(),
   elements: { root: { type, props: {} } } }, 'UNKNOWN_COMPONENT', 'elements.root.type'));
 test('all missing reference kinds', () => {
   const s = minimal(); s.elements.root.children = ['absent'];
@@ -274,4 +274,22 @@ test('a malformed action step does not hide independent errors or shift indices'
   expectError(s, 'BAD_ACTION', 'actions.test.steps[0].op');
   expectError(s, 'UNDECLARED_STATE', 'actions.test.steps[1].path');
   expectError(s, 'MISSING_REF', 'actions.test.steps[2].screen');
+});
+
+describe('DateInput and Timer', () => {
+  const app = (elements: Record<string, unknown>, state: Record<string, unknown> = {}, actions: Record<string, unknown> = {}) => ({
+    specVersion: '0.1', meta: { name: 'A', description: '', icon: '⏱️' }, state, actions,
+    screens: [{ id: 'main', title: 'A', root: 'root' }], elements: { root: { type: 'Stack', props: {}, children: Object.keys(elements) }, ...elements },
+  });
+  test('a valid date input and timer', () => {
+    expect(validate(app({ d: { type: 'DateInput', props: { bind: 'due', label: 'Due' } }, t: { type: 'Timer', props: { seconds: 60, label: 'Tea', onDone: 'ding' } } },
+      { due: { type: 'date', default: null } }, { ding: { steps: [{ op: 'toast', message: 'Done' }] } }))).toEqual([]);
+  });
+  test('DateInput binds a date, not a string', () => {
+    expectError(app({ d: { type: 'DateInput', props: { bind: 'due', label: 'Due' } } }, { due: { type: 'string', default: '' } }), 'TYPE_MISMATCH', 'elements.d.props.bind');
+  });
+  test('Timer seconds must be a number and onDone must be a real action', () => {
+    expectError(app({ t: { type: 'Timer', props: { seconds: 'soon', label: 'Tea' } } }), 'TYPE_MISMATCH', 'elements.t.props.seconds');
+    expectError(app({ t: { type: 'Timer', props: { seconds: 5, label: 'Tea', onDone: 'nope' } } }), 'MISSING_REF', 'elements.t.props.onDone');
+  });
 });

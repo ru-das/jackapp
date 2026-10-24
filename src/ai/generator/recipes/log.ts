@@ -2,7 +2,7 @@ import { assemble, NOW, ref, reminderTrigger, tree, type Obj, type Reminder } fr
 import { cleanText, first, flag, icon, identifier, nameFromRequest, reminder, type Settings } from './settings';
 import type { Recipe } from './types';
 
-export type FieldType = 'text' | 'longtext' | 'number' | 'money' | 'date' | 'choice' | 'rating';
+export type FieldType = 'text' | 'longtext' | 'number' | 'money' | 'date' | 'day' | 'choice' | 'rating';
 export type LogField = { key: string; label: string; type: FieldType; options?: string[] };
 export type TotalOp = 'sum' | 'avg' | 'min' | 'max' | 'count';
 export type LogTotal = { op: TotalOp; field?: string; label: string };
@@ -13,7 +13,7 @@ export type LogConfig = {
   sort: { field: string; dir: 'asc' | 'desc' } | null; share: boolean; reminder: Reminder | null;
 };
 
-const stateType = { text: 'string', longtext: 'string', choice: 'string', number: 'number', money: 'number', rating: 'number', date: 'date' } as const;
+const stateType = { text: 'string', longtext: 'string', choice: 'string', number: 'number', money: 'number', rating: 'number', date: 'date', day: 'date' } as const;
 const cap = (text: string) => text[0].toUpperCase() + text.slice(1);
 const numeric = (f: LogField) => f.type === 'number' || f.type === 'money' || f.type === 'rating';
 
@@ -22,7 +22,7 @@ export function buildLog(c: LogConfig): Obj {
   const title = c.fields.find((f) => f.type === 'text') ?? c.fields[0];
   const typed = c.fields.filter((f) => f.type !== 'date');
   const draft = (f: LogField) => `new${cap(f.key)}`;
-  const draftDefault = (f: LogField) => f.type === 'choice' ? (f.options ?? [''])[0] : f.type === 'rating' ? 3 : f.type === 'text' || f.type === 'longtext' ? '' : 0;
+  const draftDefault = (f: LogField) => f.type === 'choice' ? (f.options ?? [''])[0] : f.type === 'rating' ? 3 : f.type === 'day' ? null : f.type === 'text' || f.type === 'longtext' ? '' : 0;
   const state: Obj = {
     items: { type: 'list', of: { ...Object.fromEntries(c.fields.map((f) => [f.key, stateType[f.type]])), ...(c.checkbox ? { done: 'boolean' } : {}) }, default: [] },
     ...Object.fromEntries(typed.map((f) => [draft(f), { type: stateType[f.type], default: draftDefault(f), persist: false }])),
@@ -33,6 +33,7 @@ export function buildLog(c: LogConfig): Obj {
     if (f.type === 'longtext') return t.add('TextInput', { bind: draft(f), label: f.label, multiline: true });
     if (f.type === 'choice') return t.add('Select', { bind: draft(f), label: f.label, options: f.options });
     if (f.type === 'rating') return t.add('NumberInput', { bind: draft(f), label: f.label, min: 1, max: 5, mode: 'slider' });
+    if (f.type === 'day') return t.add('DateInput', { bind: draft(f), label: f.label });
     return t.add('NumberInput', { bind: draft(f), label: f.label, min: 0, mode: f.type === 'money' ? 'field' : 'stepper' });
   });
   const addButton = t.add('Button', { label: `Add ${c.noun}`, onPress: 'add', variant: 'primary' });
@@ -42,6 +43,7 @@ export function buildLog(c: LogConfig): Obj {
   const part = (f: LogField) => {
     const v = `{{$item.${f.key}}}`;
     if (f.type === 'money') return `{{$item.${f.key}|currency}}`;
+    if (f.type === 'day') return `${f.label}: {{$item.${f.key}|date}}`;
     if (f.type === 'date') return c.tap?.kind === 'date' && c.tap.field === f.key ? `${f.label}: {{$item.${f.key}|ago}}` : `{{$item.${f.key}|date}}`;
     return f.type === 'number' || f.type === 'rating' ? `${f.label}: ${v}` : v;
   };
@@ -86,14 +88,15 @@ export function buildLog(c: LogConfig): Obj {
 const TYPES: [RegExp, FieldType][] = [
   [/^(money|price|cost|currency|amount|dollars?|usd|eur|cash|budget)$/, 'money'],
   [/^(number|num|count|int|integer|qty|quantity|minutes?|hours?|mins?|weight|distance)$/, 'number'],
-  [/^(date|time|when|datetime|day)$/, 'date'],
+  [/^(day|due|deadline|birthday|dob)$/, 'day'],
+  [/^(date|time|when|datetime)$/, 'date'],
   [/^(rating|stars?|rank)$/, 'rating'],
   [/^(choice|select|dropdown|status|option|options|category|priority|mood)$/, 'choice'],
   [/^(longtext|long|multiline|paragraph|description|notes?|journal|comment|memo|body)$/, 'longtext'],
   [/^(text|string|name|word|words)$/, 'text'],
 ];
 const typeOf = (word: string | undefined) => TYPES.find(([re]) => re.test(word ?? ''))?.[1];
-const TYPE_WORD = /^(text|string|number|money|date|time|price|amount|count|integer|choice|select|rating|longtext)$/i;
+const TYPE_WORD = /^(text|string|number|money|date|day|time|price|amount|count|integer|choice|select|rating|longtext)$/i;
 const DEFAULT_OPTIONS = ['To do', 'In progress', 'Done'];
 
 function options(tokens: string[]): { label: string; options: string[] | undefined } {
@@ -113,7 +116,8 @@ function parseFields(lines: string[]): LogField[] {
     // A 2B model sometimes repeats the type as the label ("water date date"); show the field name instead.
     const given = cleanText(rawLabel, 30);
     const label = !given || TYPE_WORD.test(given) ? cleanText(cap(words[0].replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()), 30) : given;
-    const kind = type ?? 'text';
+    // A deadline or birthday is something the user types in; an entry date is stamped when the item is added.
+    const kind = type === 'date' && /^(due|deadline|birth|dob|start|end|expir|event|appointment)/i.test(words[0]) ? 'day' : (type ?? 'text');
     const key = identifier(words[0], 'name', [...out.map((f) => f.key), 'done', 'items']);
     out.push({ key, label, type: kind, ...(kind === 'choice' ? { options: choices && choices.length >= 2 ? choices : DEFAULT_OPTIONS } : {}) });
   }
@@ -182,7 +186,7 @@ export const logRecipe: Recipe = {
 icon <one emoji>
 description <one short sentence>
 noun <what one item is called, e.g. expense>
-field <key> <text|longtext|number|money|date|choice|rating> <label>   (1 to 4 lines; the first text field is the item's title; date = filled with "now" when added; choice needs options: field status choice Status todo|doing|done; rating = 1 to 5)
+field <key> <text|longtext|number|money|date|day|choice|rating> <label>   (1 to 4 lines; the first text field is the item's title; date = filled with "now" when added; day = a date the user enters, like a deadline; choice needs options: field status choice Status todo|doing|done; rating = 1 to 5)
 checkbox <yes|no>   (tick boxes for to-do style lists)
 total <sum|avg|min|max|count> <field> <label>   (up to 3 lines, or none)
 tap <date|add> <field> | none   (tapping an item sets a date to now, or adds 1 to a number)

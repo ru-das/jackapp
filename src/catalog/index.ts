@@ -22,6 +22,10 @@ import { ImageInputPropsSchema } from './ImageInput/props';
 import { ImageInputMeta } from './ImageInput/meta';
 import { ListPropsSchema } from './List/props';
 import { ListMeta } from './List/meta';
+import { DateInputPropsSchema } from './DateInput/props';
+import { DateInputMeta } from './DateInput/meta';
+import { TimerPropsSchema } from './Timer/props';
+import { TimerMeta } from './Timer/meta';
 import { ButtonPropsSchema } from './Button/props';
 import { ButtonMeta } from './Button/meta';
 
@@ -37,6 +41,8 @@ export const catalog = {
   Toggle: { props: TogglePropsSchema, meta: ToggleMeta },
   Select: { props: SelectPropsSchema, meta: SelectMeta },
   ImageInput: { props: ImageInputPropsSchema, meta: ImageInputMeta },
+  DateInput: { props: DateInputPropsSchema, meta: DateInputMeta },
   List: { props: ListPropsSchema, meta: ListMeta },
   Button: { props: ButtonPropsSchema, meta: ButtonMeta },
+  Timer: { props: TimerPropsSchema, meta: TimerMeta },
 } as const;

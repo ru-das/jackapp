@@ -64,30 +64,32 @@ export function parseFormula(text: string): Ast {
   return ast;
 }
 
-type Compiled = { value: unknown; depth: number };
+type Compiled = { value: unknown; depth: number; type: 'number' | 'date' };
 export type Step = { path: string; value: unknown };
 
 /** `$math` may nest three deep. A deeper formula keeps its deepest parts in hidden values, set by earlier steps. */
-export function compileFormula(ast: Ast, names: (name: string) => string | undefined, temp: () => string): { value: unknown; steps: Step[] } {
+export function compileFormula(ast: Ast, names: (name: string) => { key: string; type: 'number' | 'date' } | undefined, temp: () => string): { value: unknown; steps: Step[] } {
   const steps: Step[] = [];
   const hoist = (c: Compiled): Compiled => {
     const path = temp();
     steps.push({ path, value: c.value });
-    return { value: { $ref: path }, depth: 0 };
+    return { value: { $ref: path }, depth: 0, type: 'number' };
   };
   const math = (op: string, a: Compiled, b: Compiled): Compiled => {
+    const want = op === 'days' ? 'date' : 'number';
+    if (a.type !== want || b.type !== want) throw new FormulaError(op === 'days' ? 'days() needs two dates.' : 'Dates can only be used inside days().');
     while (1 + Math.max(a.depth, b.depth) > 3) { if (a.depth >= b.depth) a = hoist(a); else b = hoist(b); }
-    return { value: { $math: [op, a.value, b.value] }, depth: 1 + Math.max(a.depth, b.depth) };
+    return { value: { $math: [op, a.value, b.value] }, depth: 1 + Math.max(a.depth, b.depth), type: 'number' };
   };
-  const num = (v: number): Compiled => ({ value: v, depth: 0 });
+  const num = (v: number): Compiled => ({ value: v, depth: 0, type: 'number' });
   const node = (n: Ast): Compiled => {
     switch (n.k) {
       case 'num': return num(n.v);
-      case 'now': return { value: { $now: true }, depth: 0 };
+      case 'now': return { value: { $now: true }, depth: 0, type: 'date' };
       case 'var': {
-        const key = names(n.name);
-        if (!key) throw new FormulaError(`Unknown name ${n.name}.`);
-        return { value: { $ref: key }, depth: 0 };
+        const found = names(n.name);
+        if (!found) throw new FormulaError(`Unknown name ${n.name}.`);
+        return { value: { $ref: found.key }, depth: 0, type: found.type };
       }
       case 'neg': { const a = node(n.a); return typeof a.value === 'number' ? num(-a.value) : math('-', num(0), a); }
       case 'pct': return math('/', node(n.a), num(100));

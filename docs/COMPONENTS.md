@@ -131,9 +131,16 @@ Model hint: *"Pick one option from a short fixed list."*
 
 Downscales to ≤ 1024 px JPEG (quality 0.8) before storing. Shows a thumbnail and a "Retake" button. Model hint: *"Let the user take or pick a photo, usually before an ai.run step."*
 
-### DateInput — P1
+### DateInput — P0
 | Prop | Type | Req | Default |
 |---|---|---|---|
+| `bind` | StateKey (`date`) | ✓ | |
+| `label` | string | ✓ | |
+| `mode` | `date` | | `date` |
+
+The user types `YYYY-MM-DD` or taps **Today**; invalid text is flagged and never written to state. Time-of-day and date-time modes are deferred: they need a native picker (a new dependency and a rebuild). Model hint: *"A date the user types or sets to today: birthday, due date, start day."*
+
+---|---|---|---|
 | `bind` | StateKey (`date`) | ✓ | |
 | `label` | string | ✓ | |
 | `mode` | `date` \| `time` \| `datetime` | | `date` |
@@ -172,15 +179,15 @@ Shows the items of a list state key. Item slots are Templates that may use `$ite
 
 Shows a spinner and is disabled while its action runs. Model hint: *"Run an action. One primary button per screen is best."*
 
-### Timer — P1 (capability: notifications.local)
+### Timer — P0
 | Prop | Type | Req | Default |
 |---|---|---|---|
 | `seconds` | Value → number | ✓ | |
-| `label` | string | ✓ | |
+| `label` | Template | ✓ | |
 | `onDone` | action id | | |
 | `notify` | boolean | | `true` |
 
-Model hint: *"Countdown for chores: tea, laundry, workouts."*
+Start / Pause / Reset countdown (up to 24 h). It runs while the app is open; a background notification needs the triggers work (T-52), so `notify` is reserved until then. `onDone` runs once when it reaches zero. Model hint: *"Countdown for chores: tea, laundry, workouts, focus sessions."*
 
 ### Chart — P1
 | Prop | Type | Req | Default |

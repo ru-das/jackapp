@@ -7,6 +7,7 @@ import { buildLog, type FieldType, type LogConfig, type LogField } from '../log'
 import { RecipeError } from '../kit';
 import { readSettings } from '../settings';
 import { buildSplitter } from '../splitter';
+import { buildTimer } from '../timer';
 
 const f = (key: string, type: FieldType, options?: string[]): LogField => ({ key, label: key[0].toUpperCase() + key.slice(1), type, ...(options ? { options } : {}) });
 const fieldSets: LogField[][] = [
@@ -16,6 +17,7 @@ const fieldSets: LogField[][] = [
   [f('name', 'text'), f('person', 'text'), f('price', 'money'), f('when', 'date')],
   [f('name', 'text'), f('minutes', 'number'), f('rating', 'rating'), f('cost', 'money')],
   [f('title', 'text'), f('status', 'choice', ['To do', 'Doing', 'Done']), f('notes', 'longtext'), f('score', 'rating')],
+  [f('task', 'text'), f('due', 'day'), f('done2', 'date'), f('cost', 'money')],
 ];
 const reminders = [null, { kind: 'daily' as const, weekday: 0, time: '08:30', body: 'Log it' }, { kind: 'weekly' as const, weekday: 6, time: '21:00', body: 'Weekly check' }];
 
@@ -50,6 +52,8 @@ test.each([1, 5, 100])('counter step %i', (step) => {
   check(spec);
   expect(JSON.stringify(spec)).toContain('"state.increment"');
 });
+
+test.each([[1, false], [90, true], [86400, true]])('timer %i s count=%s', (seconds, count) => check(buildTimer({ name: 'Timer', icon: '⏱️', description: 'd', label: 'Focus', seconds, count })));
 
 test.each([false, true])('splitter share=%s', (share) => check(buildSplitter({ name: 'Bill', icon: '🧾', description: 'd', share })));
 
