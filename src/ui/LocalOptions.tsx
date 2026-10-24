@@ -7,7 +7,6 @@ import { MIN_TARGET, space, useTheme } from '@/ui/theme';
 const OPTIONS: { label: string; hint: string; read: (t: LocalTuning) => boolean; write: (t: LocalTuning, on: boolean) => void }[] = [
   { label: 'GPU', hint: 'Off = CPU, for comparing speed', read: (t) => t.backend === 'gpu', write: (t, on) => { t.backend = on ? 'gpu' : 'cpu'; } },
   { label: 'Speculative decoding', hint: 'Experimental, may write faster', read: (t) => t.speculative, write: (t, on) => { t.speculative = on; } },
-  { label: 'Constrained JSON', hint: 'Only valid JSON, fewer repairs', read: (t) => t.constrained, write: (t, on) => { t.constrained = on; } },
 ];
 
 /** Switches for the on-device engine; they apply to the next call and the engine reloads when GPU or speculation change. */

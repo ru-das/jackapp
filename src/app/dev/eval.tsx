@@ -124,7 +124,7 @@ export default function EvalScreen() {
       setElapsed(0);
       setPhase('running');
       const t = localModel.tuning;
-      push(`Starting ${order.current.length} prompt(s) on ${base.label} (${model}), plan stage ${noPlan ? 'off' : 'on'}${base.id === 'local' ? `, ${t.backend.toUpperCase()}, speculative ${t.speculative ? 'on' : 'off'}, constrained JSON ${t.constrained ? 'on' : 'off'}` : ''}`);
+      push(`Starting ${order.current.length} prompt(s) on ${base.label} (${model}), plan stage ${noPlan ? 'off' : 'on'}${base.id === 'local' ? `, ${t.backend.toUpperCase()}, speculative ${t.speculative ? 'on' : 'off'}` : ''}`);
       // shortcut: no cancel, runEval takes no signal; leave the screen or restart the app to stop, add a signal when needed
       const out = await runEval(provider, model, {
         noPlan, only: only ?? undefined,
