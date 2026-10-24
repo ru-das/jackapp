@@ -13,12 +13,12 @@ export function checkCancellation(signal?: AbortSignal) {
 }
 
 export async function callStage(options: StageRequest & {
-  stage: 'plan' | 'fill' | 'repair'; target: TargetStage; content: string;
+  stage: 'plan' | 'fill' | 'repair'; target: TargetStage; content: string; allowRefusal?: boolean;
 }) {
-  const { provider, signal, stage, target, content } = options;
+  const { provider, signal, stage, target, content, allowRefusal } = options;
   checkCancellation(signal);
   const raw = await provider.generate({
-    system: systemPrompt(stage, target), messages: [{ role: 'user', content }],
+    system: systemPrompt(stage, target, allowRefusal), messages: [{ role: 'user', content }],
     // Only PLAN is schema-constrained: providers reject or choke on the 22 KB spec schema (ADR-017); the validator and repair loop guard the spec.
     ...(provider.caps.jsonSchema && target === 'plan' ? { jsonSchema: outputSchema(target) } : {}),
     stage,

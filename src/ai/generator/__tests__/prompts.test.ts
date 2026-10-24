@@ -47,3 +47,14 @@ test('schemas are generated with local references and constrain fill to catalog 
   expect(validate(h1)).toEqual([]);
   expect(UnsupportedSchema.parse(unsupportedExample)).toEqual(unsupportedExample);
 });
+
+test('a repair of a real build attempt carries no refusal rule or refusal example; a repair of a refusal keeps both', () => {
+  for (const target of ['plan', 'spec'] as const) {
+    const noRefusal = systemPrompt('repair', target, false);
+    expect(noRefusal).toContain('Never return "unsupported"');
+    expect(noRefusal).not.toContain('with no other fields');
+    expect(noRefusal).not.toContain('Example 2');
+    expect(noRefusal.match(/Example \d/g)).toHaveLength(1);
+    expect(systemPrompt('repair', target, true)).toBe(systemPrompt('repair', target));
+  }
+});
