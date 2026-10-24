@@ -72,7 +72,10 @@ async function generate(req: Req): Promise<string> {
     const text = json?.choices?.[0]?.message?.content;
     if (!res.ok || json?.error || typeof text !== 'string') {
       console.error('[openrouter] bad response', res.status, json?.error ?? json);
-      throw new Error('The AI service had a problem. Please try again.');
+      // The detail lands in eval diagnostics; the screens show the generic generator message.
+      const choice = json?.choices?.[0];
+      const why = json?.error?.message ?? (choice ? `no text, finish_reason ${choice.finish_reason}` : 'no choices');
+      throw new Error(`The AI service had a problem (${res.status}, ${json?.model ?? 'model unknown'}: ${why}). Please try again.`);
     }
     return text.trim();
   }

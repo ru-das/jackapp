@@ -92,6 +92,6 @@ test('abort during the wait stops retrying', async () => {
 test('network failure and empty content give friendly errors', async () => {
   fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'));
   await expect(openrouterProvider.generate({ system: '', messages: [] })).rejects.toThrow("Can't reach OpenRouter");
-  fetchMock.mockResolvedValueOnce(ok(null));
-  await expect(openrouterProvider.generate({ system: '', messages: [] })).rejects.toThrow('had a problem');
+  fetchMock.mockResolvedValueOnce({ ...ok(null), json: async () => ({ model: 'm/x', choices: [{ finish_reason: 'length', message: { content: null } }] }) });
+  await expect(openrouterProvider.generate({ system: '', messages: [] })).rejects.toThrow('200, m/x: no text, finish_reason length');
 });
