@@ -16,7 +16,7 @@ export function useElapsed(): number {
   return s;
 }
 
-export function GenerationStages({ progress }: { progress: Pick<GenerationProgress, 'stage' | 'attempt'> }) {
+export function GenerationStages({ progress }: { progress: Pick<GenerationProgress, 'stage' | 'attempt' | 'freeForm'> }) {
   const t = useTheme();
   const repairing = progress.stage === 'repairing';
   const steps = [...STAGES.map(([id, label]) => ({ id: id as string, label })),
@@ -36,6 +36,13 @@ export function GenerationStages({ progress }: { progress: Pick<GenerationProgre
       <Text style={{ color: t.muted, fontSize: 14 }}>
         {elapsed} s · Sloth pace: this can take a minute or two on a phone.
       </Text>
+      {progress.freeForm ? (
+        <Text accessibilityLiveRegion="polite" style={{ color: t.muted, fontSize: 14 }}>
+          {progress.freeForm === 'cloud'
+            ? 'None of my ready-made app types fits this one, so the cloud model is building it.'
+            : 'None of my ready-made app types fits this one, so I am building it from scratch. That can take a few minutes and may not work.'}
+        </Text>
+      ) : null}
     </View>
   );
 }

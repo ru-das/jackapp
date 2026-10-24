@@ -1,7 +1,9 @@
 import corpus from '../../../../../evals/prompts.json';
 import { createScriptedMock } from '../../../providers/mock';
 import { generate, type GenerationProgress } from '../../generate';
+import { toCompact } from '../../compact';
 import { matchSync } from '../match';
+import { h1 } from '@/spec/fixtures';
 import { RECIPES } from '../index';
 
 function setup(responses: (string | Error)[]) {
@@ -33,10 +35,51 @@ test('the gate refuses without calling the model, and the suggestion can be buil
   expect(matchSync(result.unsupported.suggestion).id).toBe('log');
 });
 
-test('a request that matches nothing is declined without calling the model', async () => {
-  const { run, calls } = setup([]);
-  expect(await run('I want an app')).toMatchObject({ status: 'unsupported', unsupported: { missing: ['a matching app type'] } });
-  expect(calls).not.toHaveBeenCalled();
+const freeForm = toCompact(h1);
+
+test('a request nothing fits is classified as none and goes to free-form generation on this device, flagged for the UI', async () => {
+  const { run, calls, events } = setup(['none', freeForm]);
+  const result = await run('I want an app');
+  expect(result).toMatchObject({ status: 'done', spec: { meta: { generatedBy: { model: 'test-model' } } } });
+  expect(calls).toHaveBeenCalledTimes(2);
+  expect(calls.mock.calls[0][0]).toMatchObject({ maxTokens: 8, temperature: 0, plainText: true });
+  expect(calls.mock.calls[0][0].system).toContain('Pick the app type');
+  expect(events.some((e) => e.freeForm === 'device')).toBe(true);
+  expect(events.filter((e) => e.freeForm).every((e) => e.freeForm === 'device')).toBe(true);
+});
+
+test('with a cloud fallback the free-form call goes to the cloud provider and nothing else is stamped with the local one', async () => {
+  const local = createScriptedMock(['none']);
+  const cloud = createScriptedMock([freeForm]);
+  Object.assign(cloud, { id: 'openrouter' });
+  const events: GenerationProgress[] = [];
+  const result = await generate({ prompt: 'I want an app', provider: local, model: 'local-model', recipes: true, fallback: { provider: cloud, model: 'cloud-model' },
+    onProgress: (e) => events.push(e) });
+  expect(result).toMatchObject({ status: 'done', spec: { meta: { generatedBy: { provider: 'openrouter', model: 'cloud-model' } } } });
+  expect(events.some((e) => e.freeForm === 'cloud')).toBe(true);
+});
+
+test('unsure wording is decided by one tiny classification call, then the settings call', async () => {
+  const { run, calls } = setup(['splitter', 'name Receipt Split\nshare no']);
+  const result = await run('Read my receipt and tell me what each person owes');
+  expect(result).toMatchObject({ status: 'done', spec: { meta: { name: 'Receipt Split' } } });
+  expect(calls).toHaveBeenCalledTimes(2);
+  expect(calls.mock.calls[1][0].system).toContain('App type: Bill splitter.');
+});
+
+test('a classifier answer that is not readable keeps the keyword guess; an explicit none does not', async () => {
+  expect((await setup(['hmm', 'name Receipt Split']).run('Read my receipt and tell me what each person owes')).status).toBe('done');
+  const none = setup(['none', freeForm]);
+  await none.run('Read my receipt and tell me what each person owes');
+  expect(none.calls).toHaveBeenCalledTimes(2);
+  expect(none.calls.mock.calls[1][0].system).not.toContain('App type:');
+});
+
+test('a reply that cannot make the app (calculator without a formula) falls back to free-form', async () => {
+  const { run, calls, events } = setup(['name Tip Calculator', freeForm]);
+  expect((await run('Tip calculator')).status).toBe('done');
+  expect(calls).toHaveBeenCalledTimes(2);
+  expect(events.some((e) => e.freeForm === 'device')).toBe(true);
 });
 
 test.each(['', 'sorry I cannot do that', '{"json": true}', 'name\nfield\ntotal nothing\nreminder soon', 'name {{evil}} \u0000'])(
@@ -66,6 +109,7 @@ test('a provider error is a friendly failure; cancellation is reported as cancel
 // What a model would have to say for each corpus prompt to meet its mustUse / mustOps. Prompts not listed work with an empty reply.
 const replies: Record<string, string> = {
   e04: 'share yes', e10: 'share yes', e25: 'share yes',
+  e03: 'input photo photo Fridge photo\ninput note text Notes\noutput checklist',
   e05: 'field name text Plant\nfield lastWatered date Last watered\ntap lastWatered',
   e06: 'field name text Plant\nfield lastWatered date Last watered\ntap lastWatered',
   e07: 'field name text Plant\nfield lastWatered date Last watered\ntap lastWatered',
@@ -78,8 +122,10 @@ const replies: Record<string, string> = {
 };
 
 test.each(corpus.filter((row) => row.expect === 'spec'))('corpus $id: the built app has every required component and op', async (row) => {
-  const { run } = setup([replies[row.id] ?? '']);
-  const result = await run(row.prompt);
+  // A provider that answers the classifier with the keyword guess (this tests the builders, not the model) and the settings call with the table above.
+  const provider = { ...createScriptedMock([]), generate: async (req: { system: string }) =>
+    req.system.includes('Pick the app type') ? (matchSync(row.prompt).id ?? 'none') : (replies[row.id] ?? '') };
+  const result = await generate({ prompt: row.prompt, provider, model: 'test-model', recipes: true });
   expect(result.status).toBe('done');
   if (result.status !== 'done') return;
   const types = Object.values(result.spec.elements).map((e) => e.type);

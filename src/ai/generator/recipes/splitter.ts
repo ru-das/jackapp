@@ -38,6 +38,7 @@ export function parseSplitter(s: Settings, request: string): SplitterConfig {
 
 export const splitterRecipe: Recipe = {
   id: 'splitter', title: 'Bill splitter',
+  hint: 'split a bill or receipt (photo) between people',
   summary: 'The user takes a photo of a bill or receipt, the AI reads the lines and prices, and the total is split equally between a number of people.',
   lines: `name <app name, 2-4 words>
 icon <one emoji>

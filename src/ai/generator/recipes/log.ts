@@ -176,6 +176,7 @@ export function parseLog(s: Settings, request: string): LogConfig {
 
 export const logRecipe: Recipe = {
   id: 'log', title: 'List app',
+  hint: 'a list the user adds items to with a small form: checklists, logs, trackers, journals, collections, inventories, budgets',
   summary: 'A list the user adds items to with a small form. Each item has up to 4 fields. It can have tick boxes, totals, a tap action, sorting, a share button and a reminder. Use it for checklists, logs, trackers, journals, collections and inventories.',
   lines: `name <app name, 2-4 words>
 icon <one emoji>

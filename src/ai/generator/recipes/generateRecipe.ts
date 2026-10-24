@@ -4,15 +4,20 @@ import { validate } from '@/spec/validate';
 import { checkCancellation } from '../fill';
 import type { GenerateOptions, GenerationResult } from '../generate';
 import { RECIPES } from './index';
-import { matchRecipe, NO_MATCH, refusalGate } from './match';
+import { classifyPrompt, parseClassification } from './classify';
+import { matchRecipe, refusalGate } from './match';
 import { recipePrompt } from './prompt';
+import { RecipeError } from './kit';
 import { readSettings } from './settings';
+
+/** `fallback`: nothing ready-made fits, so the caller should generate freely (cloud model, or this one). */
+export type RecipeOutcome = GenerationResult | { status: 'fallback' };
 
 /**
  * The on-device path (ADR-027): refuse in code, pick the app type from the wording, ask the model for a few setting lines, build the app.
  * One model call and no repair: a bad reply falls back to the app type's defaults, so the result is always a valid app.
  */
-export async function generateRecipe(options: GenerateOptions): Promise<GenerationResult> {
+export async function generateRecipe(options: GenerateOptions): Promise<RecipeOutcome> {
   const progress = (stage: 'building' | 'checking' | 'done' | 'unsupported' | 'failed', errors?: SpecError[]) => {
     try { options.onProgress?.({ stage, target: 'spec', attempt: 0, ...(errors ? { errors } : {}) }); }
     catch (error) { console.warn('Generation progress listener failed', error); }
@@ -26,10 +31,21 @@ export async function generateRecipe(options: GenerateOptions): Promise<Generati
     const refusal = refusalGate(options.prompt);
     if (refusal) return unsupported(refusal);
     const match = await matchRecipe(options.prompt);
-    if (!match.id) return unsupported(NO_MATCH);
-    const recipe = RECIPES[match.id];
-
     progress('building');
+    let id = match.id;
+    if (!match.confident) {
+      // Unsure wording: one tiny call decides between the types, or says none of them.
+      const answer = await options.provider.generate({
+        system: classifyPrompt(), messages: [{ role: 'user', content: `Request: ${options.prompt}` }],
+        stage: 'fill', maxTokens: 8, temperature: 0, plainText: true, ...(options.signal ? { signal: options.signal } : {}),
+      });
+      checkCancellation(options.signal);
+      const said = parseClassification(answer);
+      // Only an explicit "none" (or nothing readable and no keyword guess) sends the request to free-form generation.
+      id = said ?? (/\bnone\b/i.test(answer) ? undefined : match.id);
+    }
+    if (!id) return { status: 'fallback' };
+    const recipe = RECIPES[id];
     const reply = await options.provider.generate({
       system: recipePrompt(recipe), messages: [{ role: 'user', content: `Request: ${options.prompt}` }],
       stage: 'fill', maxTokens: 400, temperature: 0.2, plainText: true,
@@ -38,7 +54,13 @@ export async function generateRecipe(options: GenerateOptions): Promise<Generati
     checkCancellation(options.signal);
 
     progress('checking');
-    const spec = recipe.make(readSettings(reply), options.prompt);
+    let spec;
+    try { spec = recipe.make(readSettings(reply), options.prompt); }
+    catch (error) {
+      // The reply cannot make a working app of this type (e.g. no usable formula): let the free-form path try.
+      if (error instanceof RecipeError) return { status: 'fallback' };
+      throw error;
+    }
     // Metadata is assigned here, never taken from the model, as in the free-form path.
     spec.meta = { ...(spec.meta as object), sourcePrompt: options.prompt, generatedBy: { provider: options.provider.id, model: options.model } };
     const errors = validate(spec);

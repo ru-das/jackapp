@@ -1,13 +1,13 @@
 import corpus from '../../../../../evals/prompts.json';
-import { matchSync, NO_MATCH, refusalGate } from '../match';
+import { matchSync, refusalGate } from '../match';
 import type { RecipeId } from '../types';
 
 // Expected app type per buildable corpus prompt. The keyword rules were tuned with these in view, so this table proves "no regression",
 // not generalisation: the held-out table below was written separately.
 const corpusExpect: Record<string, RecipeId> = {
-  e01: 'ai-list', e02: 'ai-list', e03: 'ai-list', e04: 'ai-list', e05: 'log', e06: 'log', e07: 'log',
+  e01: 'ai', e02: 'ai', e03: 'ai', e04: 'ai', e05: 'log', e06: 'log', e07: 'log',
   e08: 'splitter', e09: 'splitter', e10: 'splitter', e11: 'log', e12: 'log', e13: 'log', e14: 'counter', e15: 'log', e16: 'log',
-  e17: 'log', e18: 'log', e19: 'log', e20: 'log', e21: 'ai-list', e22: 'log', e23: 'log', e24: 'log', e25: 'log',
+  e17: 'log', e18: 'log', e19: 'log', e20: 'log', e21: 'ai', e22: 'log', e23: 'log', e24: 'log', e25: 'log',
 };
 
 test.each(corpus.filter((row) => row.expect === 'spec'))('corpus $id → its app type', ({ id, prompt }) => {
@@ -34,9 +34,9 @@ const heldOut: [string, RecipeId][] = [
   ['Divide the dinner bill between four people', 'splitter'],
   ['Split costs with my roommates from the receipt', 'splitter'],
   ['Figure out what each person owes from the receipt', 'splitter'],
-  ['Take a picture of my pantry and tell me what to buy', 'ai-list'],
-  ['Suggest dinner ideas from what is in my fridge', 'ai-list'],
-  ['Scan my bookshelf and list the titles', 'ai-list'],
+  ['Take a picture of my pantry and tell me what to buy', 'ai'],
+  ['Suggest dinner ideas from what is in my fridge', 'ai'],
+  ['Scan my bookshelf and list the titles', 'ai'],
 ];
 test.each(heldOut)('held-out: %s → %s', (prompt, expected) => {
   expect(refusalGate(prompt)).toBeUndefined();
@@ -55,18 +55,25 @@ test.each([
   'Track my bank balance every month', 'Record the live music gigs I went to',
 ])('not refused: %s', (prompt) => expect(refusalGate(prompt)).toBeUndefined());
 
-test('nothing recognisable has no match', () => {
+test('nothing recognisable has no match, and mixed wording is not confident', () => {
   expect(matchSync('I want an app').id).toBeUndefined();
   expect(matchSync('hello').id).toBeUndefined();
+  expect(matchSync('Read my receipt and tell me what each person owes').confident).toBe(false);
+  expect(matchSync('Tip calculator').confident).toBe(true);
 });
 
-test('every canned suggestion is itself buildable: it passes the gate and matches the list app', () => {
-  const suggestions = [NO_MATCH.suggestion, ...[
-    'Physics simulation', 'racing game', 'live weather', 'connect to my email', 'a map', 'video call',
-  ].map((p) => refusalGate(p)?.suggestion ?? '')];
-  for (const suggestion of suggestions) {
-    expect(suggestion).not.toBe('');
-    expect(refusalGate(suggestion)).toBeUndefined();
-    expect(matchSync(suggestion).id).toBe('log');
+test('every canned suggestion is itself buildable: it passes the gate and is placed by the keywords', () => {
+  const asked = ['Physics simulation', 'racing game', 'live weather', 'connect to my email', 'a map', 'video call', 'chat with my friends in real time',
+    'roll a dice', 'order food', 'scan a QR code', 'gantt chart', 'my location'];
+  for (const request of asked) {
+    const suggestion = refusalGate(request)?.suggestion;
+    expect(suggestion).toBeDefined();
+    expect(refusalGate(suggestion!)).toBeUndefined();
+    expect(matchSync(suggestion!).id).toBeDefined();
   }
 });
+
+test.each([
+  'Check register to record deposits and payments', 'Tenant rent payment tracker', 'Layaway payments tracker', 'Podcast episode list',
+  'Personal budget snapshot', 'Track my weight in the morning', 'List the movies I want to stream tonight',
+])('not refused: %s', (prompt) => expect(refusalGate(prompt)).toBeUndefined());

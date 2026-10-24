@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { generate, type GenerationProgress } from '@/ai/generator/generate';
 import type { Unsupported } from '@/ai/generator/outputSchemas';
-import { getActiveProvider } from '@/ai/provider';
+import { getActiveProvider, getCloudFallback } from '@/ai/provider';
 import { localModel } from '@/ai/providers/litert';
 import { toast } from '@/capabilities';
 import { Renderer } from '@/runtime/Renderer';
@@ -27,7 +27,7 @@ type Session = ReturnType<typeof createSession>;
 type Draft = { id: string; spec: Spec; session: Session };
 type Phase =
   | { kind: 'idle' } | { kind: 'loading' } | { kind: 'needsModel' }
-  | { kind: 'working'; progress: Pick<GenerationProgress, 'stage' | 'attempt'> }
+  | { kind: 'working'; progress: Pick<GenerationProgress, 'stage' | 'attempt' | 'freeForm'> }
   | ({ kind: 'preview' } & Draft)
   | { kind: 'unsupported'; unsupported: Unsupported }
   | { kind: 'failed'; message: string };
@@ -75,7 +75,8 @@ export default function Create() {
         // PLAN costs a whole extra call and made E2B's FILL worse on the phone (ADR-025); FILL can refuse by itself.
         noPlan: true,
         // On-device a repair costs minutes, and a third full rewrite rarely succeeds on E2B.
-        ...(provider.id === 'local' ? { maxRepairs: 1, recipes: true } : {}),
+        // Ready-made app types first; a request none of them fits goes to the cloud model when a key is set (ADR-028).
+        ...(provider.id === 'local' ? { maxRepairs: 1, recipes: true, fallback: await getCloudFallback() } : {}),
         onProgress: (e) => {
           if (live() && (e.stage === 'planning' || e.stage === 'building' || e.stage === 'checking' || e.stage === 'repairing')) {
             setPhase({ kind: 'working', progress: e });

@@ -68,3 +68,8 @@ export async function getActiveProvider() {
     : OPENROUTER_MODELS.fill;
   return { provider, model };
 }
+
+/** The cloud model, when the user has set an OpenRouter key: where on-device generation sends requests no ready-made app type fits. */
+export async function getCloudFallback() {
+  return (await openrouterProvider.isConfigured()) ? { provider: openrouterProvider, model: OPENROUTER_MODELS.fill } : undefined;
+}

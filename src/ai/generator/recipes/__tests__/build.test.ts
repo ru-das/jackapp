@@ -1,6 +1,6 @@
 import { SpecSchema } from '@/spec/schema';
 import { validate } from '@/spec/validate';
-import { buildAiList } from '../aiList';
+import { buildAi, type AiInput } from '../ai';
 import { buildCounter } from '../counter';
 import { RECIPES } from '../index';
 import { buildLog, type FieldType, type LogConfig, type LogField } from '../log';
@@ -53,8 +53,21 @@ test.each([1, 5, 100])('counter step %i', (step) => {
 
 test.each([false, true])('splitter share=%s', (share) => check(buildSplitter({ name: 'Bill', icon: '🧾', description: 'd', share })));
 
-test.each([['photo', false], ['photo', true], ['text', false], ['text', true]] as const)('ai-list %s share=%s', (source, share) => {
-  check(buildAiList({ name: 'List', icon: '📋', description: 'd', source, instruction: 'List things.', share }));
+describe('ai recipe builds a valid spec for every combination', () => {
+  const photo: AiInput = { key: 'photo', label: 'Photo', kind: 'photo' };
+  const note: AiInput = { key: 'note', label: 'Notes', kind: 'text' };
+  const inputSets: AiInput[][] = [
+    [photo], [note], [photo, note], [{ key: 'story', label: 'Story', kind: 'longtext' }, { key: 'tone', label: 'Tone', kind: 'choice', options: ['formal', 'friendly'] }, { key: 'words', label: 'Words', kind: 'number' }],
+  ];
+  const cases: [string, Parameters<typeof buildAi>[0]][] = [];
+  for (const [i, inputs] of inputSets.entries()) for (const output of ['text', 'checklist'] as const) for (const history of [false, true]) for (const share of [false, true]) {
+    cases.push([`inputs#${i} ${output} history=${history} share=${share}`, { name: 'Helper', icon: '✨', description: 'd', inputs, instruction: `Do it with [${inputs[0].key}] and [missing].`, output, button: 'Go', history, share }]);
+  }
+  test.each(cases)('%s', (_, config) => {
+    const spec = buildAi(config);
+    check(spec);
+    expect(JSON.stringify(spec)).not.toContain('[missing]');
+  });
 });
 
 test.each(Object.values(RECIPES))('the $id example reply builds a valid spec', (recipe) => {

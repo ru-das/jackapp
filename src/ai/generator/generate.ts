@@ -2,6 +2,7 @@ import { SpecSchema } from '@/spec/schema';
 import type { Spec, SpecError } from '@/spec/types';
 import { validate } from '@/spec/validate';
 import { callStage, checkCancellation, fill, type StageRequest } from './fill';
+import type { LLMProvider } from '../provider';
 import { PlanSchema, UnsupportedSchema, type Plan, type TargetStage, type Unsupported } from './outputSchemas';
 import { parseCompact, toCompact, toCompactSlice } from './compact';
 import { schemaErrors, validatePlan } from './plan';
@@ -15,6 +16,8 @@ export type GenerationResult =
 export type GenerationProgress = {
   stage: 'planning' | 'building' | 'checking' | 'repairing' | GenerationResult['status'];
   target: TargetStage; attempt: number; errors?: SpecError[];
+  /** Set when no ready-made app type fit and the request is being built freely, by the cloud model or on this device (slower, less reliable). */
+  freeForm?: 'cloud' | 'device';
 };
 export type GenerateOptions = StageRequest & {
   model: string; noPlan?: boolean;
@@ -22,11 +25,20 @@ export type GenerateOptions = StageRequest & {
   maxRepairs?: number;
   /** On-device path (ADR-027): refuse in code, pick a ready-made app type, let the model fill in its settings. */
   recipes?: boolean;
+  /** Where free-form generation goes when no ready-made type fits (the cloud model, when the user set a key). Without it the same provider tries. */
+  fallback?: { provider: LLMProvider; model: string };
   onProgress?: (event: GenerationProgress) => void;
 };
 
 export async function generate(options: GenerateOptions): Promise<GenerationResult> {
-  if (options.recipes) return generateRecipe(options);
+  if (options.recipes) {
+    const outcome = await generateRecipe(options);
+    if (outcome.status !== 'fallback') return outcome;
+    const { fallback, ...rest } = options;
+    const via = fallback ? 'cloud' : 'device';
+    return generate({ ...rest, ...(fallback ?? {}), recipes: false, noPlan: true,
+      onProgress: (event) => options.onProgress?.({ ...event, freeForm: via }) });
+  }
   let repairs = 0;
   let target: TargetStage = options.noPlan ? 'spec' : 'plan';
   let errors: SpecError[] = [];
