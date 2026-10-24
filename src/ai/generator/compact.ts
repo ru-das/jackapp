@@ -133,6 +133,8 @@ export function parseCompact(raw: string, target: TargetStage, base?: Obj): Pars
     const { kv, rest } = pairs(args, (message) => bad(at, message), step);
     // A line with an unreadable value is not applied, and neither is anything nested under it.
     if (errors.length > before) { if (component) stack.push({ indent, id: null }); continue; }
+    // The plan's vocabulary leaks into FILL because the plan is part of its input (E2B copied `purpose=` onto state lines); no spec field is called purpose.
+    if (!plan) delete kv.purpose;
     const id = rest[0];
     if (head === 'unsupported') { refusal = kv; continue; }
     others++;

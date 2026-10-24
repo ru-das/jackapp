@@ -39,6 +39,13 @@ test('the UI is a tree by indentation with generated ids', () => {
   expect(spec.elements.button2).toEqual({ type: 'Button', props: { label: 'b' } });
 });
 
+test('plan vocabulary copied into FILL is dropped: no spec line has a purpose', () => {
+  const spec = value('app name="A" description="d" icon=🧊\nstate photo image purpose="fridge photo"\nscreen main title="T" purpose=x\n  Text value="a" purpose=y\naction a\n- toast message=hi purpose=z');
+  expect(JSON.stringify(spec)).not.toContain('purpose');
+  expect(spec.state.photo).toEqual({ type: 'image', default: null });
+  expect(parseCompact('state k string purpose="p"', 'plan').value).toMatchObject({ state: [{ key: 'k', purpose: 'p' }] });
+});
+
 test('an explicit #id is kept and a repeated one is an error', () => {
   expect(value('screen s\n  Stack #root\n    Text #hello value="x"').elements.hello).toBeDefined();
   expect(parse('screen s\n  Stack #a\n    Text #a value="x"').errors[0]).toMatchObject({ path: 'line 3', message: '#a is used twice' });
