@@ -132,7 +132,7 @@ Every input has a label read by TalkBack or the browser's screen reader. Touch t
 
 ## 6. Eval scoring conventions (T-60)
 
-Run `runEval(provider, model, { noPlan?, only?, onResult? })` after loading the
+Run `runEval(provider, model, { noPlan?, only?, onResult? }` (`only`: one id or a list; `QUICK_IDS` = e01, e05, e09, e13, e26, e29, about 18 requests, fits the OpenRouter free daily limit; the eval screen's **Quick 6** chip uses it)` after loading the
 provider. Corpus order is stable (`e01`–`e30`): 10 hero variants, 15 everyday
 chores, 5 unsupported requests. Capture both default and `noPlan: true` runs on
 the phone; no real model runs on the dev laptop.

@@ -203,7 +203,7 @@ Store restoration validates image values against the existing state schema befor
 
 ## 13. Generator eval interface (T-60)
 
-`runEval(provider, model, { noPlan?, only?, onResult? } = {})` in
+`runEval(provider, model, { noPlan?, only?, onResult? } = {})` (`only` is one id or a list, e.g. `QUICK_IDS`)` in
 `src/ai/generator/eval.ts` runs the corpus sequentially through `generate()`.
 The caller supplies a selected, loaded provider; the runner imports its type only
 and never loads/downloads models or touches storage. Unknown prompt ids reject

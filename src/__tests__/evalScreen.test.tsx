@@ -43,3 +43,10 @@ test('AI not set up: points to Settings', async () => {
   await fireEvent.press(screen.getByText('Run'));
   expect(await screen.findByText(/in Settings first/)).toBeTruthy();
 });
+
+test('Quick chip runs the 6-prompt subset', async () => {
+  await render(<EvalScreen />);
+  await fireEvent.press(screen.getByLabelText('Prompt Quick 6'));
+  await fireEvent.press(screen.getByText('Run'));
+  expect(await screen.findByText(/6 \/ 6 done/)).toBeTruthy();
+});

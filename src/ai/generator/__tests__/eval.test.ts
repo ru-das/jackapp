@@ -2,7 +2,7 @@ import corpus from '../../../../evals/prompts.json';
 import { h1 } from '@/spec/fixtures';
 import { ActionStepSchema, ComponentNameSchema } from '@/spec/schema';
 import { createScriptedMock, mockProvider } from '../../providers/mock';
-import { runEval } from '../eval';
+import { QUICK_IDS, runEval } from '../eval';
 import { h1Plan } from '../prompts';
 import * as generation from '../generate';
 import type { ErrorCode } from '@/spec/types';
@@ -28,6 +28,7 @@ test('unknown filter rejects before inference, including empty id', async () => 
   const calls = jest.spyOn(provider, 'generate');
   await expect(runEval(provider, 'test', { only: 'missing' })).rejects.toThrow('Unknown eval prompt');
   await expect(runEval(provider, 'test', { only: '' })).rejects.toThrow('Unknown eval prompt');
+  await expect(runEval(provider, 'test', { only: ['e01', 'missing'] })).rejects.toThrow('Unknown eval prompt');
   expect(calls).not.toHaveBeenCalled();
 });
 
@@ -150,4 +151,11 @@ test('error ranking sorts by frequency then code and retains five', async () => 
       { code: 'BAD_JSON', count: 1 }, { code: 'BAD_PROP', count: 1 }, { code: 'BAD_VALUE', count: 1 },
     ]);
   } finally { pipeline.mockRestore(); }
+});
+
+test('QUICK_IDS runs only those prompts, in corpus order, as a partial run', async () => {
+  const output = await runEval(mockProvider, 'test', { only: QUICK_IDS });
+  expect(output.rows.map((r) => r.id)).toEqual([...QUICK_IDS]);
+  expect(output.options.only).toEqual([...QUICK_IDS]);
+  expect(output.targets.firstFillValidity.met).toBeNull();
 });

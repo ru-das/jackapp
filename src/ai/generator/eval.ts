@@ -13,7 +13,7 @@ export type EvalRow = EvalPrompt & {
   diagnostics: { target: 'plan' | 'spec'; attempt: number; errors: SpecError[] }[];
 };
 export type EvalOptions = {
-  noPlan?: boolean; only?: string; onResult?: (row: EvalRow) => void;
+  noPlan?: boolean; only?: string | readonly string[]; onResult?: (row: EvalRow) => void;
 };
 
 function ratio(count: number, denominator: number) {
@@ -61,10 +61,14 @@ function score(rows: EvalRow[], single: boolean) {
   return { metrics, targets, topErrors };
 }
 
-/** The caller selects and loads the provider. This runner only performs inference. */
+/** `only` is one id or a list (e.g. QUICK_IDS); any subset is a partial run. The caller selects and loads the provider. This runner only performs inference. */
+/** One of each kind: fridge, plant, bill, expenses, plus two refusals. Fits the OpenRouter free daily limit. */
+export const QUICK_IDS = ['e01', 'e05', 'e09', 'e13', 'e26', 'e29'] as const;
+
 export async function runEval(provider: LLMProvider, model: string, options: EvalOptions = {}) {
-  const prompts = (corpus as EvalPrompt[]).filter((prompt) => options.only === undefined || prompt.id === options.only);
-  if (!prompts.length) throw new Error(`Unknown eval prompt id: ${options.only}`);
+  const ids = options.only === undefined ? undefined : [options.only].flat();
+  const prompts = (corpus as EvalPrompt[]).filter((prompt) => !ids || ids.includes(prompt.id));
+  if (!prompts.length || (ids && prompts.length < new Set(ids).size)) throw new Error(`Unknown eval prompt id: ${ids}`);
   const startedAt = new Date().toISOString();
   const rows: EvalRow[] = [];
   for (const prompt of prompts) {

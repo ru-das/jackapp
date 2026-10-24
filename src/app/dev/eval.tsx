@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import corpus from '../../../evals/prompts.json';
-import { runEval, type EvalRow } from '@/ai/generator/eval';
+import { QUICK_IDS, runEval, type EvalRow } from '@/ai/generator/eval';
 import { getActiveProvider } from '@/ai/provider';
 import { saveFile, share, toast } from '@/capabilities';
 import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
@@ -35,7 +35,7 @@ export default function EvalScreen() {
   const t = useTheme();
   const [using, setUsing] = useState('');
   const [noPlan, setNoPlan] = useState(false);
-  const [only, setOnly] = useState<string | null>(null);
+  const [only, setOnly] = useState<string | readonly string[] | null>(null);
   const [phase, setPhase] = useState<Phase>('idle');
   const [rows, setRows] = useState<EvalRow[]>([]);
   const [result, setResult] = useState<Result | null>(null);
@@ -43,7 +43,7 @@ export default function EvalScreen() {
   const [elapsed, setElapsed] = useState(0);
   const started = useRef(0);
   const busy = phase === 'loading' || phase === 'running';
-  const total = only ? 1 : PROMPTS.length;
+  const total = only === null ? PROMPTS.length : [only].flat().length;
 
   useEffect(() => {
     if (phase !== 'running') return;
@@ -114,7 +114,7 @@ export default function EvalScreen() {
           <Switch accessibilityLabel="Skip plan stage" value={noPlan} disabled={busy} onValueChange={setNoPlan} />
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-          {[{ id: null, label: `All ${PROMPTS.length}` }, ...PROMPTS.map((p) => ({ id: p.id, label: p.id }))].map((c) => {
+          {[{ id: null, label: `All ${PROMPTS.length}` }, { id: QUICK_IDS, label: `Quick ${QUICK_IDS.length}` }, ...PROMPTS.map((p) => ({ id: p.id, label: p.id }))].map((c) => {
             const on = only === c.id;
             return (
               <Pressable
@@ -127,7 +127,7 @@ export default function EvalScreen() {
             );
           })}
         </ScrollView>
-        {only ? <Text style={{ color: t.muted, fontSize: 14 }}>{PROMPTS.find((p) => p.id === only)?.prompt}</Text> : null}
+        {typeof only === 'string' ? <Text style={{ color: t.muted, fontSize: 14 }}>{PROMPTS.find((p) => p.id === only)?.prompt}</Text> : null}
         <Btn label={busy ? 'Running…' : 'Run'} onPress={() => void start()} disabled={busy} />
       </View>
 
