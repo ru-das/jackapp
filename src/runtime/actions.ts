@@ -27,6 +27,11 @@ export interface ActionEngineOptions {
 }
 
 /** Executes a semantically validated, parsed spec. */
+/** Lowercase, trimmed, one trailing "s" dropped, so "Eggs" and "egg" are the same thing. */
+const sameThing = (value: unknown) => String(value ?? '').toLowerCase().trim().replace(/s$/, '');
+// ponytail: substring match ("milk" ~ "oat milk"), swap for a synonym table if "yogurt"/"yoghurt" misses matter.
+const matches = (a: string, b: string) => a.length > 0 && b.length > 0 && (a.includes(b) || b.includes(a));
+
 export function createActionEngine({ spec, store, services, getValueContext }: ActionEngineOptions) {
   const busy = new Set<string>();
   const listeners = new Set<() => void>();
@@ -88,6 +93,19 @@ export function createActionEngine({ spec, store, services, getValueContext }: A
           throw new Error(`Expected finite numbers: ${path}`);
         }
         candidate = current + by;
+        break;
+      }
+      case 'state.diff': {
+        const rows = (key: string) => {
+          const found = context.state[key];
+          if (!Array.isArray(found)) throw new Error(`Expected list: ${key}`);
+          return found as Record<string, unknown>[];
+        };
+        const seen = rows(step.without).map((row) => sameThing(row[step.field]));
+        const zero = { string: '', number: 0, boolean: false, date: null } as const;
+        const of = (declaration as { of: Record<string, keyof typeof zero> }).of;
+        candidate = rows(step.from).filter((row) => !seen.some((x) => matches(sameThing(row[step.field]), x))).map((row) => ({
+          ...Object.fromEntries(Object.entries(of).map(([key, type]) => [key, zero[type]])), [step.field]: row[step.field] }));
         break;
       }
       case 'state.reset': candidate = structuredClone(declaration.default); break;

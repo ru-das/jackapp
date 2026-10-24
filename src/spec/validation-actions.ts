@@ -73,6 +73,14 @@ function actionStep(ctx: ValidationContext, step: ActionStep, base: string, item
       expectType(ctx, decl, { type: 'number' }, `${base}.path`);
       assignment(ctx, step.by, { type: 'number' }, `${base}.by`, item);
     }
+    if (step.op === 'state.diff') {
+      for (const [key, name, where] of [[step.path, step.path, 'path'], [step.from, step.from, 'from'], [step.without, step.without, 'without']] as const) {
+        const list = where === 'path' ? decl : ctx.state(key, `${base}.${where}`);
+        if (list?.type !== 'list' || list.of[step.field] !== 'string') {
+          ctx.add('BAD_ACTION', `${base}.${where}`, `${name} must be a list with a string field “${step.field}”.`, `Declare ${name} as a list whose items have ${step.field}: string.`);
+        }
+      }
+    }
     if (step.op === 'state.toggle') expectType(ctx, decl, { type: 'boolean' }, `${base}.path`);
     if (['state.append', 'state.update', 'state.remove'].includes(step.op)) {
       if (decl && decl.type !== 'list') expectType(ctx, decl, { type: 'list' }, `${base}.path`);

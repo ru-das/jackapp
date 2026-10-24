@@ -1,3 +1,4 @@
+import { buildCompare, STAPLES } from './compare';
 import { assemble, NOW, ref, tree, type Obj } from './kit';
 import { cleanText, first, flag, icon, identifier, nameFromRequest, type Settings } from './settings';
 import type { Recipe } from './types';
@@ -6,10 +7,11 @@ export type AiInputKind = 'text' | 'longtext' | 'number' | 'choice' | 'photo';
 export type AiInput = { key: string; label: string; kind: AiInputKind; options?: string[] };
 export type AiConfig = {
   name: string; icon: string; description: string; inputs: AiInput[]; instruction: string;
-  output: 'text' | 'checklist'; button: string; history: boolean; share: boolean;
+  output: 'text' | 'checklist' | 'compare'; usual: string[]; button: string; history: boolean; share: boolean;
 };
 
 export function buildAi(c: AiConfig): Obj {
+  if (c.output === 'compare') return buildCompare({ ...c, usual: c.usual.length ? c.usual : STAPLES });
   const t = tree();
   const photo = c.inputs.find((i) => i.kind === 'photo');
   const checklist = c.output === 'checklist';
@@ -93,16 +95,20 @@ export function parseAi(s: Settings, request: string, notes: string[] = []): AiC
   if (!inputs.length) inputs = [wantsPhoto ? { key: 'photo', label: 'Photo', kind: 'photo' } : { key: 'text', label: 'Your text', kind: 'longtext' }];
   const wantsList = /\b(list|checklist|ideas|items|groceries|names)\b/i.test(request);
   const asked = (first(s, 'output') ?? '').toLowerCase();
-  const output = asked.startsWith('check') || asked.startsWith('list') ? 'checklist' : asked.startsWith('text') || asked.startsWith('answer') ? 'text' : wantsList ? 'checklist' : 'text';
+  // A photo of a fridge or pantry is a read-then-compare job, whatever the model chose, unless it asked for plain text.
+  const pantry = (wantsPhoto || inputs.some((i) => i.kind === 'photo')) && /\b(fridge|refrigerator|pantry|cupboard|freezer|groceries|running low)\b/i.test(request);
+  const output = asked.startsWith('compare') || (pantry && !asked.startsWith('text') && !asked.startsWith('answer')) ? 'compare'
+    : asked.startsWith('check') || asked.startsWith('list') ? 'checklist' : asked.startsWith('text') || asked.startsWith('answer') ? 'text' : wantsList ? 'checklist' : 'text';
+  const usual = [...new Set((first(s, 'usual') ?? '').split(/[,|]/).map((x) => cleanText(x, 24)).filter(Boolean).map((x) => x[0].toUpperCase() + x.slice(1)))].slice(0, 20);
   const fallbackKey = inputs[0].key;
   const instruction = cleanText(first(s, 'instruction')?.replace(/[[\]]/g, (c) => (c === '[' ? '\u0001' : '\u0002')), 300)
     .replace(/\u0001(\w+)\u0002/g, '[$1]').replace(/[\u0001\u0002]/g, '')
     || (inputs[0].kind === 'photo' ? 'Describe what you see and list what is useful.' : `Help with this: [${fallbackKey}]`);
-  if (!first(s, 'instruction') || !cleanText(first(s, 'instruction'), 300)) notes.push('No instruction was set, so the AI gets a general one.');
+  if (output !== 'compare' && (!first(s, 'instruction') || !cleanText(first(s, 'instruction'), 300))) notes.push('No instruction was set, so the AI gets a general one.');
   const name = cleanText(first(s, 'name'), 40, nameFromRequest(request));
   return {
-    name, icon: icon(first(s, 'icon'), '✨'), description: cleanText(first(s, 'description'), 140, `${name}: ask the AI`), inputs, instruction, output,
-    button: cleanText(first(s, 'button'), 24, output === 'checklist' ? 'Make my list' : 'Ask'), history: flag(first(s, 'history'), false), share: flag(first(s, 'share'), false),
+    name, icon: icon(first(s, 'icon'), '✨'), description: cleanText(first(s, 'description'), 140, `${name}: ask the AI`), inputs, instruction, output, usual,
+    button: cleanText(first(s, 'button'), 24, output === 'text' ? 'Ask' : output === 'compare' ? 'Make shopping list' : 'Make my list'), history: flag(first(s, 'history'), false), share: flag(first(s, 'share'), false),
   };
 }
 
@@ -115,7 +121,8 @@ icon <one emoji>
 description <one short sentence>
 input <key> <text|longtext|number|choice|photo> <label>   (1 to 3 lines; choice needs options: input tone choice Tone formal|friendly)
 instruction <what the AI should do, one or two sentences; write [key] where an input goes>
-output <text|checklist>   (text = a written answer, checklist = items to tick off)
+output <text|checklist|compare>   (text = a written answer, checklist = items to tick off, compare = a photo of a fridge or pantry compared with the usual items)
+usual <comma list>   (compare only: the things the user usually keeps, e.g. milk, eggs, bread)
 button <button label>
 history <yes|no>   (keep past answers; text output only)
 share <yes|no>`,
@@ -126,9 +133,10 @@ icon 🧊
 description Photo of your fridge to grocery list
 input photo photo Fridge photo
 input note text Anything to add?
-instruction List common groceries that look missing or nearly finished. Extra notes from the user: [note]
-output checklist
-button Make my list
+instruction List the food you can see in the photo.
+output compare
+usual milk, eggs, bread, butter, cheese, fruit
+button Make shopping list
 history no
 share no`,
   },

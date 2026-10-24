@@ -1,5 +1,7 @@
 import { createActionEngine, type ActionServices } from '@/runtime/actions';
 import { SpecSchema } from '@/spec/schema';
+import { readSettings } from '../settings';
+import { parseAi, buildAi } from '../ai';
 import { buildLog } from '../log';
 import { buildSplitter } from '../splitter';
 
@@ -96,5 +98,35 @@ describe('plant log with a date tap', () => {
     expect(items(f)[0].lastWatered).toBe(day('2026-10-15'));
     await f.engine.run('undo');
     expect(items(f)[0].lastWatered).toBe(day('2026-10-01'));
+  });
+});
+
+describe('fridge compare', () => {
+  const make = (usual = 'milk, eggs, bread, butter') => {
+    const config = parseAi(readSettings(`name Fridge Snap\ninput photo photo Fridge photo\noutput checklist\nusual ${usual}`), 'Take a photo of my fridge and make me a grocery list of what is running low');
+    return run(buildAi(config), { seen: [{ name: 'Eggs' }, { name: 'oat milk' }, { name: 'Jam' }] });
+  };
+
+  test('a fridge photo request becomes read, correct, compare, even if the model asked for a checklist', () => {
+    expect(parseAi(readSettings('output checklist'), 'grocery list from a photo of my fridge').output).toBe('compare');
+    expect(parseAi(readSettings('output checklist'), 'make a list from a photo of my receipt').output).toBe('checklist');
+  });
+
+  test('the list holds usual items not seen; plurals and partial names count as seen; corrections change the result', async () => {
+    const f = make();
+    await f.engine.run('look');
+    await f.engine.run('makeList');
+    expect(f.store.getState().items).toEqual([{ name: 'Bread', done: false }, { name: 'Butter', done: false }]);
+    f.store.setState({ newSeen: 'Bread' });
+    await f.engine.run('addSeen');
+    await f.engine.run('makeList');
+    expect(f.store.getState().items).toEqual([{ name: 'Butter', done: false }]);
+  });
+
+  test('nothing seen means every usual item is listed, nothing is dropped from the usual list', async () => {
+    const f = make();
+    await f.engine.run('makeList');
+    expect((f.store.getState().items as unknown[]).length).toBe(4);
+    expect((f.store.getState().staples as unknown[]).length).toBe(4);
   });
 });

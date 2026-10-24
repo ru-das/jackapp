@@ -70,8 +70,8 @@ describe('ai recipe builds a valid spec for every combination', () => {
     [photo], [note], [photo, note], [{ key: 'story', label: 'Story', kind: 'longtext' }, { key: 'tone', label: 'Tone', kind: 'choice', options: ['formal', 'friendly'] }, { key: 'words', label: 'Words', kind: 'number' }],
   ];
   const cases: [string, Parameters<typeof buildAi>[0]][] = [];
-  for (const [i, inputs] of inputSets.entries()) for (const output of ['text', 'checklist'] as const) for (const history of [false, true]) for (const share of [false, true]) {
-    cases.push([`inputs#${i} ${output} history=${history} share=${share}`, { name: 'Helper', icon: '✨', description: 'd', inputs, instruction: `Do it with [${inputs[0].key}] and [missing].`, output, button: 'Go', history, share }]);
+  for (const [i, inputs] of inputSets.entries()) for (const output of ['text', 'checklist', 'compare'] as const) for (const history of [false, true]) for (const share of [false, true]) {
+    cases.push([`inputs#${i} ${output} history=${history} share=${share}`, { name: 'Helper', icon: '✨', description: 'd', inputs, instruction: `Do it with [${inputs[0].key}] and [missing].`, output, usual: output === 'compare' ? ['Milk', 'Eggs'] : [], button: 'Go', history, share }]);
   }
   test.each(cases)('%s', (_, config) => {
     const spec = buildAi(config);

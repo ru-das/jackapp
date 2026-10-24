@@ -140,6 +140,7 @@ Templates render **plain text only**. Write `\{{` for a literal `{{`.
 | `state.toggle` | `path` (boolean) | Flip a boolean |
 | `state.increment` | `path` (number), `by: Value` (default 1) | Add to a number |
 | `state.reset` | `path` | Back to its `default` |
+| `state.diff` | `path` (list), `from` (list), `without` (list), `field` (string field in all three) | `path` becomes the rows of `from` whose `field` matches no row of `without` (case-insensitive, one trailing "s" ignored, either text may contain the other); other fields of `path` get zero values |
 | `ai.run` | `prompt` (template), `image?: Value`, `output`, `into`, `mode?`, `defaults?` | Calls the model (see below) |
 | `navigate` | `screen` | Switch screen |
 | `confirm` | `message` | Ask the user; "No" stops the action |

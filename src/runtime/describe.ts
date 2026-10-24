@@ -33,6 +33,7 @@ export function describeSpec(spec: Spec): string {
   if (steps.some((s) => s.op === 'ai.run')) out.push('The AI reads your input and writes the result.');
   const stats = strings(props('Stat').map((p) => p.label));
   if (stats.length) out.push(`Shows ${join(stats)}.`);
+  if (steps.some((s) => s.op === 'state.diff')) out.push('It compares what the photo shows with your usual items.');
   if (steps.some((s) => s.op === 'state.increment')) out.push('A button adds to the count.');
   for (const t of spec.triggers ?? []) {
     const s = t.schedule;

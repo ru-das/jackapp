@@ -134,6 +134,15 @@ test('all action operations have a valid representative', () => {
   ];
   for (const step of steps) expect(validate(withSteps([step], s))).toEqual([]);
 });
+test('state.diff needs three lists that share a string field', () => {
+  const names = { type: 'list', of: { name: 'string' }, default: [] };
+  const state = { a: names, b: names, c: { type: 'list', of: { name: 'string', done: 'boolean' }, default: [] }, nums: { type: 'list', of: { name: 'number' }, default: [] } };
+  const diff = (path: string, from: string, without: string) => withSteps([{ op: 'state.diff', path, from, without, field: 'name' }], state);
+  expect(validate(diff('c', 'a', 'b'))).toEqual([]);
+  expectError(diff('nums', 'a', 'b'), 'BAD_ACTION', 'actions.test.steps[0].path');
+  expectError(diff('c', 'a', 'nums'), 'BAD_ACTION', 'actions.test.steps[0].without');
+  expectError(diff('c', 'absent', 'b'), 'BAD_ACTION', 'actions.test.steps[0].from');
+});
 test('append needs all fields, update allows partial, and unknown fields fail', () => {
   const state = { items: h1.state.items };
   expectError(withSteps([{ op: 'state.append', path: 'items', value: { name: 'Milk' } }], state), 'BAD_ACTION', 'actions.test.steps[0].value.qty');
