@@ -6,6 +6,7 @@ import { RECIPES } from '../index';
 import { buildLog, type FieldType, type LogConfig, type LogField } from '../log';
 import { RecipeError } from '../kit';
 import { readSettings } from '../settings';
+import { buildReminder } from '../reminder';
 import { buildSplitter } from '../splitter';
 import { buildTimer } from '../timer';
 
@@ -55,6 +56,11 @@ test.each([1, 5, 100])('counter step %i', (step) => {
 
 test.each([[1, false], [90, true], [86400, true]])('timer %i s count=%s', (seconds, count) => check(buildTimer({ name: 'Timer', icon: '⏱️', description: 'd', label: 'Focus', seconds, count })));
 
+const some = { kind: 'daily' as const, weekday: 0, time: '09:00', body: 'Drink water' };
+const weekly = { kind: 'weekly' as const, weekday: 6, time: '21:30', body: 'Plan the week' };
+test.each([[[some], false], [[some, weekly], true], [[some, weekly, { ...some, time: '12:00' }], true]] as const)('reminder %j done=%s', (reminders, done) =>
+  check(buildReminder({ name: 'Water', icon: '💧', description: 'd', message: 'Drink', reminders: [...reminders], done })));
+
 test.each([false, true])('splitter share=%s', (share) => check(buildSplitter({ name: 'Bill', icon: '🧾', description: 'd', share })));
 
 describe('ai recipe builds a valid spec for every combination', () => {
@@ -80,7 +86,7 @@ test.each(Object.values(RECIPES))('the $id example reply builds a valid spec', (
 
 test('an empty reply still builds a valid app from the request alone, except where there is nothing to guess', () => {
   for (const recipe of Object.values(RECIPES)) {
-    if (recipe.id === 'calculator') expect(() => recipe.make(readSettings(''), 'tip calculator')).toThrow(RecipeError);
+    if (recipe.id === 'calculator' || recipe.id === 'reminder') expect(() => recipe.make(readSettings(''), 'tip calculator')).toThrow(RecipeError);
     else check(recipe.make(readSettings(''), 'plant watering reminders'));
   }
 });

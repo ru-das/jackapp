@@ -24,10 +24,15 @@ export function score(rows: Row[]) {
   return out;
 }
 
-describe.each([['dev set', dev as Row[]], ['hold-out set', holdout as Row[]]])('keyword routing on the %s', (name, rows) => {
-  const s = score(rows);
+// Guards, set just under what was measured (dev set 97.5%, hold-out 91.9% at the time): a change to the keyword rules that loses ground fails here.
+// The hold-out set was written before any tuning; the dev set was used to tune the rules, so only the hold-out number is a fair estimate.
+describe.each([['dev set', dev as Row[], 0.95, 1], ['hold-out set', holdout as Row[], 0.88, 2]] as const)('keyword routing on the %s', (name, rows, minRight, maxWrong) => {
+  const s = score([...rows]);
   test('report', () => {
     console.info(`${name}: ${s.total} prompts, ${s.right} routed right (${(100 * s.right / s.total).toFixed(1)}%), ${s.unsure.length} unsure (classifier), `
       + `${s.wrong.length} wrong, ${s.falseRefusal.length} wrongly refused\n` + [...s.wrong, ...s.falseRefusal].map((x) => `  WRONG ${x}`).join('\n') + '\n' + s.unsure.map((x) => `  UNSURE ${x}`).join('\n'));
   });
+  test('most prompts are routed right with no model call', () => expect(s.right / s.total).toBeGreaterThanOrEqual(minRight));
+  test(`at most ${maxWrong} are routed to the wrong app type`, () => expect(s.wrong.length).toBeLessThanOrEqual(maxWrong));
+  test('nothing buildable is refused by the gate', () => expect(s.falseRefusal).toEqual([]));
 });

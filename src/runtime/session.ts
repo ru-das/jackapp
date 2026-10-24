@@ -1,5 +1,5 @@
 import { getActiveProvider } from '@/ai/provider';
-import { confirm, share, toast } from '@/capabilities';
+import { confirm, notifyNow, share, toast } from '@/capabilities';
 import type { Spec } from '@/spec/types';
 import { createActionEngine } from './actions';
 import { createAiService } from './ai';
@@ -15,7 +15,7 @@ export function createSession(id: string, spec: Spec, signal?: AbortSignal) {
   const engine = createActionEngine({
     spec, store,
     services: {
-      share, toast, confirm, navigate: (to) => navigate?.(to),
+      share, toast, confirm, notify: notifyNow, navigate: (to) => navigate?.(to),
       ai: createAiService({ spec, store, getProvider: getActiveProvider, signal }),
     },
     getValueContext: () => ({

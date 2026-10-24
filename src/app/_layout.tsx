@@ -1,9 +1,14 @@
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
+import { useEffect } from 'react';
+import { onNotificationOpen } from '@/capabilities';
 import { Toaster } from '@/ui/Toaster';
 import { useTheme } from '@/ui/theme';
 
 export default function RootLayout() {
   const t = useTheme();
+  const router = useRouter();
+  // Tapping a reminder opens the mini-app it came from.
+  useEffect(() => onNotificationOpen((appId) => router.push({ pathname: '/run/[id]', params: { id: appId } })), [router]);
   return (
     <>
       <Stack screenOptions={{

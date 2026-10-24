@@ -1,7 +1,7 @@
 import type { Obj } from './kit';
 import type { Settings } from './settings';
 
-export type RecipeId = 'log' | 'counter' | 'splitter' | 'ai' | 'calculator' | 'timer';
+export type RecipeId = 'log' | 'counter' | 'splitter' | 'ai' | 'calculator' | 'timer' | 'reminder';
 
 /** A ready-made app type: the model fills in its settings, `make` returns a Spec-shaped object that is valid by construction. */
 export interface Recipe {

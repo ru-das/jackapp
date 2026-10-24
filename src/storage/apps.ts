@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SpecSchema } from '@/spec/schema';
 import type { Spec } from '@/spec/types';
 import { validate } from '@/spec/validate';
+import { cancelTriggers } from '@/capabilities';
 import { dataKey, readJson, removeKey, specKey, writeJson } from './index';
 
 export type AppSummary = { id: string; name: string; icon?: string; damaged?: boolean };
@@ -60,6 +61,7 @@ export async function duplicateApp(id: string, copyName: (name: string) => strin
 }
 
 export async function deleteApp(id: string): Promise<void> {
+  await cancelTriggers(id).catch((e) => console.warn('cancelTriggers failed', e));
   await removeKey(specKey(id));
   await removeKey(dataKey(id));
 }

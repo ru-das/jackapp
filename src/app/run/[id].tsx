@@ -4,6 +4,7 @@ import { ActivityIndicator, AppState, StyleSheet, Text, View } from 'react-nativ
 import type { createActionEngine } from '@/runtime/actions';
 import { Renderer, type RendererHandle } from '@/runtime/Renderer';
 import { createSession } from '@/runtime/session';
+import { syncTriggers } from '@/runtime/triggers';
 import type { Store } from '@/runtime/store';
 import { SpecSchema } from '@/spec/schema';
 import type { Spec } from '@/spec/types';
@@ -37,6 +38,8 @@ export default function Run() {
       store = session.store;
       await store.load();
       session.setNavigate((to) => navigateRef.current?.(to));
+      // Reminders are set (or replaced) each time the app opens; this never blocks showing the app.
+      void syncTriggers(id, spec, store.getState()).catch((e) => console.warn(`run/${id}: reminders not set`, e));
       if (live) setPhase({ kind: 'ready', spec, store: session.store, engine: session.engine });
     })().catch((e) => {
       console.error(`run/${id}: load failed`, e);

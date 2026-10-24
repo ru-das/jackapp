@@ -74,6 +74,10 @@ const RULES: Record<RecipeId, Rules> = {
     [/\bdays? (until|since|between|left|to)\b|\bcountdown (in|to)\b|\bhow many days\b/, 3],
     [/\b(tip|bmi|bmr|mortgage|loans?|interest|tax|gst|vat|discount|percent\w*|salary|inflation|retirement|annuity|currency|exchange|age|pace|calorie\w*|gpa|grade|fraction|triangle|concrete|paint|tile|profit|break-?even|fuel|electricity|due date|body fat|ideal weight|snowball|scaler|unit)\b/, 2],
   ] },
+  reminder: { min: 3, rules: [
+    [/\b(remind\w*|alarms?)\b/, 3], [/\b(every|daily|weekly|each)\b[^.]{0,20}\b(day|morning|evening|night|hour|week|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b|\bat \d{1,2}(:\d{2})? ?(am|pm)\b/, 1],
+    [/\b(tracker|track|log|list|journal|history|record)\b/, -2],
+  ] },
   timer: { min: 3, rules: [
     [/\b(timers?|pomodoro|focus sessions?)\b/, 4], [/\b(cooking|workout|interval|tea|egg|study|yoga|plank|meditation|exercise)\b/, 1],
   ] },
@@ -86,7 +90,7 @@ const RULES: Record<RecipeId, Rules> = {
     [/\b(status|owner|priority|rating|ratings|stars?|progress|due|deadline|mood|sleep)\b/, 1],
   ] },
 };
-const PRIORITY: RecipeId[] = ['splitter', 'ai', 'calculator', 'timer', 'counter', 'log'];
+const PRIORITY: RecipeId[] = ['splitter', 'ai', 'calculator', 'reminder', 'timer', 'counter', 'log'];
 
 export type Match = { id: RecipeId | undefined; confident: boolean; scores: Record<RecipeId, number> };
 

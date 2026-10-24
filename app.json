@@ -28,6 +28,12 @@
     "plugins": [
       "expo-router",
       [
+        "expo-notifications",
+        {
+          "color": "#CFE8C8"
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": false,
