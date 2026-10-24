@@ -236,3 +236,10 @@ Host the static export on GitHub Pages from a Pages workflow (no deploy branch) 
 - FILL shows a second example (Plant Pal) before the refusal example: about 2.5 s more prompt reading per FILL call.
 **Measured (text only).** Line format vs compact JSON on the fixtures: H1 1153 vs 1839 chars, H2 786 vs 1307, H3 868 vs 1410 (−37 to −40 %).
 **Not verified.** Whether E2B follows this simpler format; a phone run is needed (Skip plan on). Amends ADR-023 (`el` line, `>` children, the `app` restart rule).
+
+## ADR-025: No PLAN stage by default (T-77)
+2026-10-24 · Accepted · human
+
+**Context.** Phone runs of e01 on E2B (GPU, same prompts): with PLAN the run took 229 s and failed (PLAN 68 s, FILL 84 s, REPAIR 76 s); without PLAN it took 112 s on CPU and was valid on the first FILL with 0 repairs. The plan reached FILL as input; FILL followed the thin outline (4 components, no `TextInput`/`Card`) instead of the example, dropped `image=`/`output=`/`into=` from `ai.run`, wrote `{{item.qty}}` and a broken `state.append value={…}`. The patch repair then failed on the `#id` rules. There is no measurement showing PLAN improves any provider (the T-60 plan vs no-plan comparison never completed).
+**Decision.** Create always calls `generate({ noPlan: true })`; the eval screen's "Skip plan stage" switch is on by default. FILL refuses by itself (its prompt keeps the refusal rule and the `unsupported` example). The PLAN code, prompt and `noPlan: false` path stay for A/B runs; the mock now refuses at FILL too.
+**Consequences.** One fewer call (about 68 s on the phone, and one request off the OpenRouter daily limit per build). Refusal quality at FILL is unmeasured: run Quick 6 and look at e26 and e29 and the false-refusal rate on e01, e05, e09 and e13. Amends ADR-022 (which skipped PLAN only for `local`).

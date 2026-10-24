@@ -18,6 +18,8 @@ afterEach(() => { jest.restoreAllMocks(); mockSlow = null; });
 test('runs one prompt, shows row + metrics, shares and saves the results JSON', async () => {
   await render(<EvalScreen />);
   await fireEvent.press(screen.getByLabelText('Prompt e01'));
+  // Skip plan is on by default (ADR-025); this test walks the plan pipeline.
+  await fireEvent(screen.getByLabelText('Skip plan stage'), 'valueChange', false);
   await fireEvent.press(screen.getByText('Run'));
   expect(await screen.findByText('Results')).toBeTruthy();
   expect(screen.getByText(/1 \/ 1 done/)).toBeTruthy();
@@ -41,14 +43,18 @@ test('runs one prompt, shows row + metrics, shares and saves the results JSON', 
   expect((saveFile as jest.Mock).mock.calls[0][0]).toMatch(/^eval-.*-test-model-plan\.json$/);
 });
 
-test('no-plan switch is passed to the run', async () => {
+test('the plan stage is skipped by default and the switch is passed to the run', async () => {
   await render(<EvalScreen />);
   await fireEvent.press(screen.getByLabelText('Prompt e01'));
-  await fireEvent(screen.getByLabelText('Skip plan stage'), 'valueChange', true);
   await fireEvent.press(screen.getByText('Run'));
   await screen.findByText('Results');
   await fireEvent.press(screen.getByText('Share'));
   expect(JSON.parse((share as jest.Mock).mock.calls.at(-1)[0]).options.noPlan).toBe(true);
+  await fireEvent(screen.getByLabelText('Skip plan stage'), 'valueChange', false);
+  await fireEvent.press(screen.getByText('Run'));
+  await screen.findByText('Results');
+  await fireEvent.press(screen.getByText('Share'));
+  expect(JSON.parse((share as jest.Mock).mock.calls.at(-1)[0]).options.noPlan).toBe(false);
 });
 
 test('AI not set up: points to Settings', async () => {

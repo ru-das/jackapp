@@ -53,7 +53,8 @@ function Btn({ label, onPress, disabled }: { label: string; onPress: () => void;
 export default function EvalScreen() {
   const t = useTheme();
   const [using, setUsing] = useState('');
-  const [noPlan, setNoPlan] = useState(false);
+  // On by default: the PLAN call cost 68 s and made E2B's FILL worse (ADR-025); switch it off to compare.
+  const [noPlan, setNoPlan] = useState(true);
   const [only, setOnly] = useState<string | readonly string[] | null>(null);
   const [phase, setPhase] = useState<Phase>('idle');
   const [rows, setRows] = useState<EvalRow[]>([]);

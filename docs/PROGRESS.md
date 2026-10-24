@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-77 PLAN off (Claude Code, 2026-10-24, human-requested):** fourth phone run (GPU, Skip plan OFF): 229 s and failed. The plan anchored FILL on a thin outline, FILL dropped `ai.run` fields and broke a `state.append` value, and the patch repair ignored the `#id` rules. ADR-025: Create always uses `noPlan: true`; the eval switch is on by default (tests that walk the plan pipeline now switch it off); the mock refuses at FILL. `npm run check` green. **Human next:** GPU on, Quick 6 (e01, e05, e09, e13, e26, e29): check e05/e09/e13 generalise and that e26/e29 are still refused. Open: repair still copies whole apps and rejects patches without `#id`; idea is to show the repair only the lines the errors point at.
+>
 > **T-77 third phone run (human, 2026-10-24):** e01, local E2B, **CPU, Skip plan ON**: valid on the first FILL, 0 repairs, **112 s** (first token 55 s of prompt reading, ~57 s writing ~330 tokens). Output is nearly Example 1 (same fridge app), so it does not yet show generalisation. Estimated ~75–80 s on GPU (prompt reading ~3× faster; not measured). **Human next:** GPU on, Skip plan ON, Quick 6 (e01, e05, e09, e13, e26, e29); look at e05/e09/e13 and the two refusals.
 >
 > **T-77 follow-up after the second phone run (Claude Code, 2026-10-24):** run was on **CPU with Skip plan OFF**, so 347 s total (PLAN 98 s, FILL 127 s, REPAIR 122 s). The tree format worked: FILL was a complete, sensible app and failed only because it copied `purpose=` from the plan onto `state` lines (the plan is FILL's input; the strict state schema rejects `purpose`), and the repair re-emitted the whole app with the same mistake. Fix: the spec parser drops `purpose` everywhere (`compact.ts`); PLAN lines keep it. CPU vs GPU, roughly: prompt reading ~32 tok/s on CPU vs ~100 on GPU (FILL first token 66 s vs 19 s), writing about the same (~5 tok/s), so keep GPU. **Human next:** GPU on, Skip plan stage ON, run e01 again. Open idea if the repair still re-emits the whole app: show it only the lines the errors point at.
@@ -151,6 +153,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-24 | Claude Code | T-77 | PLAN off by default in Create and the eval screen; mock refuses at FILL; ADR-025. | (this commit) |
 | 2026-10-24 | Claude Code | T-77 | Indented-tree line format, shorthand values, always-patch repair; ADR-024. | (this commit) |
 | 2026-10-24 | Claude Code | T-76 | Line format for all generator output, patch repair, `maxRepairs` 1 on-device, `plainText` flag; ADR-023. | (this commit) |
 | 2026-10-24 | Claude Code | logo | Sloth icon replaced by a double-ended (mirrored) playing-card Jack with the upper half holding a wrench and the lower a pencil, both held upright (Jack of all trades): `assets/icon.svg` is source, PNGs + PWA icons rendered from it with `rsvg-convert`; Android adaptive/mono + favicon updated; not checked on a device | see git log |

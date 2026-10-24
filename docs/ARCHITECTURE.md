@@ -127,6 +127,8 @@ export interface LLMProvider {
 
 ## 6. Generation pipeline
 
+> PLAN is **off by default** (ADR-025): Create and the eval screen call `generate` with `noPlan: true`, so the diagram's first `PLAN` call only happens with the eval switch off.
+
 ```mermaid
 sequenceDiagram
   participant UI as Create screen

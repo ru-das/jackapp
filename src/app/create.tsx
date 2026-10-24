@@ -72,8 +72,8 @@ export default function Create() {
       setPhase({ kind: 'working', progress: { stage: 'planning', attempt: 0 } });
       const result = await generate({
         prompt: request, provider, model, signal: controller.signal,
-        // Every call re-reads the ~4K-token catalog prompt, which is the slow part on a phone, so skip the extra PLAN call.
-        noPlan: provider.id === 'local',
+        // PLAN costs a whole extra call and made E2B's FILL worse on the phone (ADR-025); FILL can refuse by itself.
+        noPlan: true,
         // On-device a repair costs minutes, and a third full rewrite rarely succeeds on E2B.
         ...(provider.id === 'local' ? { maxRepairs: 1 } : {}),
         onProgress: (e) => {

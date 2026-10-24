@@ -49,7 +49,8 @@ export const mockProvider: LLMProvider = {
     if (signal?.aborted) throw new Error('aborted');
     const text = (messages.at(-1)?.content ?? '').toLowerCase();
     const plan = system.includes('PLAN lines:');
-    if (plan && /physics|simulat|3d game/.test(text)) {
+    // FILL can refuse by itself now that PLAN is off by default (ADR-025).
+    if ((plan || system.includes('FILL: build')) && /physics|simulat|3d game/.test(text)) {
       return toCompactRefusal({
         reason: 'Physics simulation needs a real-time drawing canvas and a physics engine.',
         missing: ['physics simulation', 'animated canvas'],
