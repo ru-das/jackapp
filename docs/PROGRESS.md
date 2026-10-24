@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **Fourth eval fix (Claude Code, 2026-10-24, Quick 6 run 4):** first real builds: e01 valid in 39 s, e09 valid after 1 repair in 36 s, e29 correct refusal. Failures: e05 Nemotron PLAN 183 s still `finish_reason length` (reasoning runaway) → Nemotron dropped, all stages are Gemma (PLAN 26B, FILL/REPAIR/run 31B); e13 plans kept putting objects in `actions[].ops` → PLAN prompt now says ops are name strings and `of` types are string/number/boolean/date (touches Codex-owned `prompts.ts`); e26 upstream 'Provider timed out' with HTTP 200 → provider retries error bodies / 5xx up to 3 times. Run 4 metrics before these fixes: first-fill 1/4, within 2 repairs 2/4, refusals 1/2, median 37.5 s. **Human: rerun Quick 6.**
+>
 > **Third eval fix (Claude Code, 2026-10-24):** with `json_object`, Nemotron answered but `finish_reason: length`, `content: null`, `reasoning_tokens: 1024` of 1024: reasoning ate the PLAN cap; `reasoning.effort: low` is ignored by this model. OpenRouter provider now adds 6144 tokens of headroom to every `max_tokens`. If latency is high, try a non-reasoning PLAN model or lower the headroom. **Human: rerun Quick 6.**
 >
 > **Second eval fix (Claude Code, 2026-10-24):** Quick 6 run 2: all 6 failed in ~1 s with `Upstream error from Nvidia: Grammar error: Unimplemented keys: ["propertyNames"]`. The strict `json_schema` response_format is compiled to a grammar upstream and our Zod-derived PLAN schema is not accepted. OpenRouter provider now sends `json_object` only. Ollama still sends `format: <schema>` (llama.cpp grammar; may hit the same key, fix there if it does). **Human: rerun Quick 6.**

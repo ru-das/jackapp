@@ -28,7 +28,7 @@ test('sends the stage model with a fallback, the key, and no schema unless given
   expect(url).toBe('https://openrouter.ai/api/v1/chat/completions');
   expect(init.headers.Authorization).toBe('Bearer sk-or-test');
   expect(sent(fetchMock)).toEqual({
-    models: [OPENROUTER_MODELS.repair, ...OPENROUTER_FALLBACKS],
+    models: [OPENROUTER_MODELS.repair, ...OPENROUTER_FALLBACKS.filter((m) => m !== OPENROUTER_MODELS.repair)],
     reasoning: { effort: 'low' },
     messages: [{ role: 'system', content: 'S' }, { role: 'user', content: 'hi' }],
     max_tokens: 9 + 6144, temperature: 0.1,
@@ -96,4 +96,15 @@ test('network failure and empty content give friendly errors', async () => {
   await expect(openrouterProvider.generate({ system: '', messages: [] })).rejects.toThrow("Can't reach OpenRouter");
   fetchMock.mockResolvedValueOnce({ ...ok(null), json: async () => ({ model: 'm/x', choices: [{ finish_reason: 'length', message: { content: null } }] }) });
   await expect(openrouterProvider.generate({ system: '', messages: [] })).rejects.toThrow('200, m/x: no text, finish_reason length');
+});
+
+test('a 200 with an upstream error body (timeout) is retried', async () => {
+  jest.useFakeTimers();
+  fetchMock
+    .mockResolvedValueOnce({ ok: true, status: 200, headers: new Headers(), json: async () => ({ error: { message: 'Provider timed out' } }) })
+    .mockResolvedValueOnce(ok('{}'));
+  const p = openrouterProvider.generate({ system: '', messages: [] });
+  await jest.advanceTimersByTimeAsync(1000);
+  await expect(p).resolves.toBe('{}');
+  expect(fetchMock).toHaveBeenCalledTimes(2);
 });

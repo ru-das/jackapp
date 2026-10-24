@@ -75,6 +75,11 @@ async function generate(req: Req): Promise<string> {
     if (res.status === 429) throw new Error(BUSY);
     const json: any = await res.json().catch(() => null); // JSON parse boundary
     const text = json?.choices?.[0]?.message?.content;
+    // Free upstreams sometimes time out with a 200 and an error body; one quick retry is usually enough.
+    if ((res.status >= 500 || (json?.error && typeof text !== 'string')) && attempt < RETRIES) {
+      await sleep(1000 * (attempt + 1), req.signal);
+      continue;
+    }
     if (!res.ok || json?.error || typeof text !== 'string') {
       console.error('[openrouter] bad response', res.status, json?.error ?? json);
       // The detail lands in eval diagnostics; the screens show the generic generator message.

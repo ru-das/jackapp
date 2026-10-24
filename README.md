@@ -33,7 +33,7 @@ Details for each doc live in `docs/` (start with `docs/PROGRESS.md`).
 ## Credits
 
 - [Expo](https://expo.dev), [Expo Router](https://docs.expo.dev/router/introduction/), [React Native](https://reactnative.dev), [Zod](https://zod.dev): MIT.
-- Free open-weight models served by [OpenRouter](https://openrouter.ai), including Gemma 4 (Google DeepMind) and Nemotron (NVIDIA); optional local models through [Ollama](https://ollama.com).
+- Free open-weight models served by [OpenRouter](https://openrouter.ai), including Gemma 4 (Google DeepMind); optional local models through [Ollama](https://ollama.com).
 
 ## Post-deadline changes
 

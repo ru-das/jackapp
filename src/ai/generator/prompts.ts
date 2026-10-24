@@ -41,7 +41,7 @@ Triggers: {id,type:"schedule",schedule:{kind:"daily",time:"HH:MM"}|{kind:"weekly
 export function systemPrompt(stage: 'plan' | 'fill' | 'repair', target: TargetStage = 'spec') {
   const isPlan = stage === 'plan' || (stage === 'repair' && target === 'plan');
   const instruction = isPlan
-    ? 'PLAN: return {name,icon,summary,state:[{key,type,of?,purpose}],screens:[{id,purpose}],components:[{type,purpose,bind?}],actions:[{id,purpose,ops}],triggers:[],unsupported:null}. Set unsupported to null. Component types, ops and bind keys must be exact catalog and plan names; leave props and values to FILL.'
+    ? 'PLAN: return {name,icon,summary,state:[{key,type,of?,purpose}],screens:[{id,purpose}],components:[{type,purpose,bind?}],actions:[{id,purpose,ops}],triggers:[],unsupported:null}. Set unsupported to null. Component types, ops and bind keys must be exact catalog and plan names; leave props and values to FILL. ops is an array of op NAME strings such as ["state.append","toast"], never objects; list item fields in of are only "string", "number", "boolean" or "date".'
     : `FILL: build the complete spec from the request and plan. ${specRules}`;
   return [rules, stage === 'repair' ? `REPAIR target: ${target}. Correct every supplied error; return the complete corrected ${target}.` : '',
     instruction, buildCatalogPrompt().text,
