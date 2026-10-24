@@ -228,6 +228,13 @@ Rows retain corpus expectations/requirements, `durationMs`, full `result`,
 `firstFillValid`, `missingRequirements: {components, ops}`, and stage/attempt error
 `diagnostics`. See TESTING §2 for scoring.
 
+T-96 additions: `options.corpus: 'main' | 'behaviour'` selects `evals/prompts.json` or the
+hold-out `evals/behaviour.json`; `options.env` is caller-supplied run settings saved verbatim
+(the runner stays platform-free). Rows gain `checkResults` from `behaviour.ts` `runChecks`
+(generator may import the runtime, never the reverse). Metrics gain `layers.{structure,behaviour,intent}`,
+`firstBuildMs` and `warmMedianMs`. `timePhoto(provider, image, runs = 3)` times the real `ai.run`
+path separately from `runEval`.
+
 `generate({..., noPlan: true})` starts at FILL with no plan payload; default is
 still PLAN → FILL. Both modes preserve validation, metadata stamping, refusal,
 cancellation and the shared two-repair limit. `repairing` and `failed` progress

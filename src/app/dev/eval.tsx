@@ -1,21 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import Constants from 'expo-constants';
+import behaviourCorpus from '../../../evals/behaviour.json';
 import corpus from '../../../evals/prompts.json';
-import { QUICK_IDS, runEval, type EvalRow } from '@/ai/generator/eval';
+import { QUICK_IDS, runEval, timePhoto, type EvalRow } from '@/ai/generator/eval';
 import { getActiveProvider } from '@/ai/provider';
 import { localModel } from '@/ai/providers/litert';
 import { describeEvent, withLog, type CallEvent } from '@/ai/providers/logged';
-import { saveFile, share, toast } from '@/capabilities';
+import { pickImage, saveFile, share, toast } from '@/capabilities';
 import { EvalLog, SHOWN_LINES } from '@/ui/EvalLog';
+import { metricRows } from '@/ui/evalMetrics';
 import { LocalOptions } from '@/ui/LocalOptions';
 import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
 
 type Result = Awaited<ReturnType<typeof runEval>>;
-type Ratio = { count: number; denominator: number; rate: number | null };
+type Suite = 'main' | 'behaviour';
+type Photo = Awaited<ReturnType<typeof timePhoto>>;
 type Phase = 'idle' | 'loading' | 'running' | 'done' | 'needsModel';
 
-const PROMPTS = corpus as { id: string; prompt: string }[];
-const pct = (r: Ratio) => (r.rate === null ? '—' : `${Math.round(r.rate * 100)}%`);
+const SUITES: Record<Suite, { id: string; prompt: string }[]> = { main: corpus, behaviour: behaviourCorpus };
 const mark = (met: boolean | null) => (met === null ? '—' : met ? '✓' : '✗');
 const OUTPUT_MARK = '⎘ output:';
 const stamp = () => new Date().toTimeString().slice(0, 8);
@@ -57,6 +60,8 @@ export default function EvalScreen() {
   const [noPlan, setNoPlan] = useState(true);
   // On-device only (ADR-027): the free-form path stays available to compare.
   const [recipes, setRecipes] = useState(true);
+  const [suite, setSuite] = useState<Suite>('main');
+  const [photo, setPhoto] = useState<Photo | null>(null);
   const [only, setOnly] = useState<string | readonly string[] | null>(null);
   const [phase, setPhase] = useState<Phase>('idle');
   const [rows, setRows] = useState<EvalRow[]>([]);
@@ -73,6 +78,7 @@ export default function EvalScreen() {
   const call = useRef<Call>(IDLE);
   const [live, setLive] = useState('');
   const busy = phase === 'loading' || phase === 'running';
+  const PROMPTS = SUITES[suite];
   const total = only === null ? PROMPTS.length : [only].flat().length;
 
   // `quiet` lines (full model output) go to the saved log and logcat but not onto the screen.
@@ -111,6 +117,7 @@ export default function EvalScreen() {
     setError('');
     setRows([]);
     setResult(null);
+    setPhoto(null);
     fullLog.current = [];
     doneCount.current = 0;
     setShown([]);
@@ -127,10 +134,18 @@ export default function EvalScreen() {
       setElapsed(0);
       setPhase('running');
       const t = localModel.tuning;
+      // The first prompt is the cold start; loading here separates the model load from it. 0 s means it was already loaded.
+      const loadStart = Date.now();
+      if (base.id === 'local') await localModel.warmUp();
+      const loadMs = base.id === 'local' ? Date.now() - loadStart : null;
+      if (loadMs !== null) push(`Model load ${(loadMs / 1000).toFixed(1)} s`);
       push(`Starting ${order.current.length} prompt(s) on ${base.label} (${model}), plan stage ${noPlan ? 'off' : 'on'}${base.id === 'local' ? `, ${t.backend.toUpperCase()}, speculative ${t.speculative ? 'on' : 'off'}, recipes ${recipes ? 'on' : 'off'}` : ''}`);
       // shortcut: no cancel, runEval takes no signal; leave the screen or restart the app to stop, add a signal when needed
       const out = await runEval(provider, model, {
-        noPlan, only: only ?? undefined,
+        noPlan, only: only ?? undefined, corpus: suite,
+        // revision = the commit Metro was started from (npm scripts set it), not necessarily the installed build.
+        env: { revision: process.env.EXPO_PUBLIC_GIT_SHA ?? 'unknown', appVersion: Constants.expoConfig?.version ?? null,
+          loadMs, ...(base.id === 'local' ? { backend: t.backend, speculative: t.speculative, constrained: t.constrained } : {}) },
         // Same budget as Create, so the eval measures what the app does.
         ...(base.id === 'local' ? { maxRepairs: 1, recipes } : {}),
         onResult: (row) => {
@@ -138,6 +153,7 @@ export default function EvalScreen() {
           for (const d of row.diagnostics) for (const e of d.errors) push(`  ${d.target} attempt ${d.attempt}: ${e.code} ${e.path}: ${e.message}`);
           const missing = [...row.missingRequirements.components, ...row.missingRequirements.ops];
           if (missing.length) push(`  missing: ${missing.join(', ')}`);
+          for (const c of row.checkResults) push(`  ${c.layer} ${c.passed ? 'ok' : `failed: ${c.reason}`}`);
           call.current.repairs = 0;
           doneCount.current++;
           setRows((prev) => [...prev, row]);
@@ -154,9 +170,9 @@ export default function EvalScreen() {
     }
   };
 
-  const buildJson = () => JSON.stringify({ ...result, log: fullLog.current }, null, 2);
+  const buildJson = () => JSON.stringify({ ...result, photo, log: fullLog.current }, null, 2);
   const fileName = result
-    ? `eval-${result.startedAt.replace(/[:.]/g, '-')}-${result.model}-${result.options.noPlan ? 'noplan' : 'plan'}.json`
+    ? `eval-${result.startedAt.replace(/[:.]/g, '-')}-${result.model}-${result.options.noPlan ? 'noplan' : 'plan'}${suite === 'behaviour' ? '-behaviour' : ''}.json`
     : '';
   const onShare = async () => {
     try { await share(buildJson()); } catch (e) { console.error('eval: share failed', e); toast('Could not share. Try Save file.'); }
@@ -170,18 +186,24 @@ export default function EvalScreen() {
     }
   };
 
-  const card = [styles.card, { backgroundColor: t.surface, borderColor: t.border }];
-  const m = result?.metrics;
-  const metricRows: { label: string; value: string; met: boolean | null }[] = result && m ? [
-    { label: 'Valid on first fill', value: `${m.firstFillValidity.count}/${m.firstFillValidity.denominator} · ${pct(m.firstFillValidity)}`, met: result.targets.firstFillValidity.met },
-    { label: 'Valid after repair', value: `${m.validWithinTwoRepairs.count}/${m.validWithinTwoRepairs.denominator} · ${pct(m.validWithinTwoRepairs)}`, met: result.targets.validWithinTwoRepairs.met },
-    { label: 'Requirements met', value: `${m.requirementsSatisfied.count}/${m.requirementsSatisfied.denominator} · ${pct(m.requirementsSatisfied)}`, met: result.targets.requirementsSatisfied.met },
-    { label: 'Correct refusals', value: `${m.correctRefusals.count}/${m.correctRefusals.denominator} · ${pct(m.correctRefusals)}`, met: result.targets.correctRefusals.met },
-    { label: 'Refusal precision', value: `${m.refusalPrecision.count}/${m.refusalPrecision.denominator} · ${pct(m.refusalPrecision)}`, met: null },
-    { label: 'False refusals', value: `${m.falseRefusals.count}/${m.falseRefusals.denominator} · ${pct(m.falseRefusals)}`, met: result.targets.falseRefusals.met },
-    { label: 'Median latency', value: m.medianLatencyMs === null ? '—' : `${(m.medianLatencyMs / 1000).toFixed(1)} s (n=${m.latencySamples})`, met: result.targets.medianLatencyMs.met },
-  ] : [];
+  const onPhoto = async () => {
+    try {
+      const image = await pickImage({ source: 'any' });
+      if (!image) return;
+      setPhoto(null);
+      const { provider } = await getActiveProvider();
+      if (!(await provider.isConfigured())) return setPhase('needsModel');
+      toast('Timing 3 photo runs…');
+      const out = await timePhoto(provider, image);
+      push(out.ok ? `Photo ai.run: ${out.durationsMs.map((d) => (d / 1000).toFixed(1)).join(', ')} s` : `Photo ai.run failed: ${out.error}`);
+      setPhoto(out);
+    } catch (e) {
+      console.error('eval: photo timing failed', e);
+      toast('Could not time the photo.');
+    }
+  };
 
+  const card = [styles.card, { backgroundColor: t.surface, borderColor: t.border }];
   return (
     <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={styles.content}>
       <View style={card}>
@@ -195,8 +217,19 @@ export default function EvalScreen() {
           <Text style={{ color: t.text, fontSize: 16, flex: 1 }}>Recipes (on-device only)</Text>
           <Switch accessibilityLabel="Recipes" value={recipes} disabled={busy} onValueChange={setRecipes} />
         </View>
+        <View style={styles.switchRow}>
+          {(['main', 'behaviour'] as const).map((id) => (
+            <Pressable
+              key={id} accessibilityRole="radio" accessibilityLabel={`Suite ${id}`} accessibilityState={{ selected: suite === id, disabled: busy }}
+              disabled={busy} onPress={() => { setSuite(id); setOnly(null); }}
+              style={[styles.chip, { marginRight: space.sm, backgroundColor: suite === id ? t.accentSoft : 'transparent', borderColor: suite === id ? t.accent : t.border }]}
+            >
+              <Text style={{ color: t.text, fontSize: 15 }}>{id === 'main' ? `Main ${SUITES.main.length}` : `Behaviour ${SUITES.behaviour.length} (hold-out)`}</Text>
+            </Pressable>
+          ))}
+        </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-          {[{ id: null, label: `All ${PROMPTS.length}` }, { id: QUICK_IDS, label: `Quick ${QUICK_IDS.length}` }, ...PROMPTS.map((p) => ({ id: p.id, label: p.id }))].map((c) => {
+          {[{ id: null, label: `All ${PROMPTS.length}` }, ...(suite === 'main' ? [{ id: QUICK_IDS, label: `Quick ${QUICK_IDS.length}` }] : []), ...PROMPTS.map((p) => ({ id: p.id, label: p.id }))].map((c) => {
             const on = only === c.id;
             return (
               <Pressable
@@ -212,6 +245,7 @@ export default function EvalScreen() {
         {typeof only === 'string' ? <Text style={{ color: t.muted, fontSize: 14 }}>{PROMPTS.find((p) => p.id === only)?.prompt}</Text> : null}
         <LocalOptions disabled={busy} />
         <Btn label={busy ? 'Running…' : 'Run'} onPress={() => void start()} disabled={busy} />
+        <Btn label="Time a photo (ai.run)" onPress={() => void onPhoto()} disabled={busy} />
       </View>
 
       {phase === 'needsModel' ? (
@@ -242,7 +276,7 @@ export default function EvalScreen() {
       {result ? (
         <View style={card}>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Results</Text>
-          {metricRows.map((r) => (
+          {metricRows(result).map((r) => (
             <View key={r.label} style={styles.metric}>
               <Text style={{ color: t.text, fontSize: 15, flex: 1 }}>{r.label}</Text>
               <Text style={{ color: t.text, fontSize: 15 }}>{r.value} {mark(r.met)}</Text>
@@ -256,6 +290,9 @@ export default function EvalScreen() {
               ))}
             </>
           ) : null}
+          {photo ? <Text style={{ color: t.text, fontSize: 15 }}>
+            {photo.ok ? `Photo ai.run: first ${(photo.firstMs / 1000).toFixed(1)} s, median ${((photo.medianMs ?? 0) / 1000).toFixed(1)} s` : `Photo ai.run failed: ${photo.error}`}
+          </Text> : null}
           <Btn label="Share" onPress={() => void onShare()} />
           <Btn label="Save file" onPress={() => void onSave()} />
         </View>

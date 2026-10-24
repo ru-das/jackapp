@@ -49,6 +49,21 @@ Runner: `src/ai/generator/eval.ts` (pure TS, any provider, unit-tested with `moc
 
 Run it with and without the plan stage and keep both result files. The comparison goes in the write-up.
 
+### Structure, behaviour, intent (T-96)
+
+Valid is not the same as right. The results report three layers separately, over the buildable prompts:
+
+| Layer | Question | Example |
+|---|---|---|
+| Structure | Does it validate, with the required parts? | Every binding and action is valid. |
+| Behaviour | Does the workflow function? | Adding an expense appends a row; 80 at 15% shows 12. |
+| Intent | Does it fulfil this request? | "Weekly expenses" counts only this week. |
+
+- Input: `evals/behaviour.json` (Behaviour suite on the eval screen). Same row shape as `prompts.json` plus `checks: [{ layer, steps }]`; steps are `fill`, `press`, `expectStat`, `expectRow` and find things by visible label regex (ADR-031). Includes an unsupported request and a supported one with similar vocabulary (b07/b08, b09/b10).
+- **Hold-out rule:** never tune prompts, recipes, matchers or the gate against this set. Fixing a check that was wrong means a new id, not an edit after a run.
+- Timing: `firstBuildMs` (cold, the first prompt) and `warmMedianMs` are separate; the model load is `env.loadMs`. "Time a photo" on the eval screen runs the real `ai.run` path three times on a photo you pick (`photo` in the JSON), apart from building.
+- Saved metadata: `options` = `corpus, noPlan, maxRepairs, recipes, only, env`; `env` = `backend, speculative, constrained, revision, appVersion, loadMs`. Compare two runs only if these match.
+
 ## 3. Acceptance tests
 
 Format: **Given / When / Then**. Platforms: **W** = web (Chrome desktop + Android Chrome), **A** = Android APK/dev build.

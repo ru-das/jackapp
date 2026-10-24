@@ -2,7 +2,8 @@ import corpus from '../../../../evals/prompts.json';
 import { h1 } from '@/spec/fixtures';
 import { ActionStepSchema, ComponentNameSchema } from '@/spec/schema';
 import { createScriptedMock, mockProvider } from '../../providers/mock';
-import { QUICK_IDS, runEval } from '../eval';
+import behaviourCorpus from '../../../../evals/behaviour.json';
+import { QUICK_IDS, runEval, timePhoto } from '../eval';
 import { toCompact, toCompactPlan, toCompactRefusal } from '../compact';
 import { h1Plan } from '../prompts';
 import * as generation from '../generate';
@@ -40,7 +41,7 @@ test.each([false, true])('filter and pipeline noPlan=%s, result serializes and c
   expect(output.rows).toHaveLength(1);
   expect(output.rows[0]).toMatchObject({ id: 'e01', expect: 'spec', firstFillValid: true, result: { status: 'done' }, missingRequirements: { components: [], ops: [] } });
   expect(calls).toHaveBeenCalledTimes(noPlan ? 1 : 2);
-  expect(output.options).toEqual({ noPlan, only: 'e01' });
+  expect(output.options).toEqual({ corpus: 'main', noPlan, maxRepairs: null, recipes: false, only: 'e01', env: {} });
   expect(JSON.parse(JSON.stringify(output))).toEqual(output);
   for (const target of Object.values(output.targets)) expect(target.met).toBeNull();
 });
@@ -159,4 +160,55 @@ test('QUICK_IDS runs only those prompts, in corpus order, as a partial run', asy
   expect(output.rows.map((r) => r.id)).toEqual([...QUICK_IDS]);
   expect(output.options.only).toEqual([...QUICK_IDS]);
   expect(output.targets.firstFillValidity.met).toBeNull();
+});
+
+test('saved options carry the full configuration, including caller env', async () => {
+  const env = { backend: 'gpu', revision: 'abc1234', loadMs: 7600 };
+  const output = await runEval(createScriptedMock([spec]), 'test', { only: 'e01', noPlan: true, maxRepairs: 1, recipes: true, env });
+  expect(output.options).toEqual({ corpus: 'main', noPlan: true, maxRepairs: 1, recipes: true, only: 'e01', env });
+});
+
+test('behaviour corpus: unique ids, well-formed checks, supported rows have a check', () => {
+  expect(new Set(behaviourCorpus.map((r) => r.id)).size).toBe(behaviourCorpus.length);
+  expect(behaviourCorpus.filter((r) => r.expect === 'unsupported').length).toBeGreaterThanOrEqual(2);
+  for (const row of behaviourCorpus as { id: string; expect: string; checks?: { layer: string; steps: object[] }[] }[]) {
+    if (row.expect === 'unsupported') continue;
+    expect(row.checks?.length).toBeGreaterThan(0);
+    for (const check of row.checks!) {
+      expect(['behaviour', 'intent']).toContain(check.layer);
+      for (const step of check.steps) expect(['fill', 'press', 'expectStat', 'expectRow'].filter((k) => k in step)).toHaveLength(1);
+    }
+  }
+  expect(corpus.map((r) => r.id)).not.toContain(behaviourCorpus[0].id);
+});
+
+test('layers separate structure from behaviour; cold and warm builds are timed apart', async () => {
+  let now = 0;
+  const clock = jest.spyOn(Date, 'now').mockImplementation(() => now);
+  // h1 is a fridge/photo app: valid, but it cannot do an expense workflow.
+  const provider = createScriptedMock([spec, spec]);
+  const original = provider.generate;
+  let index = 0;
+  provider.generate = async (request) => { now += ++index === 1 ? 5000 : 500; return original(request); };
+  try {
+    const output = await runEval(provider, 'test', { corpus: 'behaviour', noPlan: true, only: ['b01', 'b03'] });
+    expect(output.options.corpus).toBe('behaviour');
+    expect(output.metrics.layers.structure).toEqual({ count: 2, denominator: 2, rate: 1 });
+    expect(output.metrics.layers.behaviour).toEqual({ count: 0, denominator: 2, rate: 0 });
+    expect(output.metrics.layers.intent).toEqual({ count: 0, denominator: 2, rate: 0 });
+    expect(output.rows[0].checkResults.every((c) => !c.passed && c.reason)).toBe(true);
+    expect(output.metrics.firstBuildMs).toBe(5000);
+    expect(output.metrics.warmMedianMs).toBe(500);
+  } finally { clock.mockRestore(); }
+});
+
+test('timePhoto times the real ai.run path on its own and reports failure', async () => {
+  const ok = await timePhoto(mockProvider, 'data:image/jpeg;base64,AAAA');
+  expect(ok).toMatchObject({ ok: true });
+  expect(ok.durationsMs).toHaveLength(3);
+  const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  try {
+    const bad = await timePhoto(mockProvider, 'not-an-image', 2);
+    expect(bad).toMatchObject({ ok: false, durationsMs: [] });
+  } finally { warn.mockRestore(); }
 });

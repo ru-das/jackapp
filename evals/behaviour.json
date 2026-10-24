@@ -1,0 +1,348 @@
+[
+ {
+  "id": "b01",
+  "prompt": "Track my expenses. Each one has a name, an amount and a category, and I want to see the total spent.",
+  "expect": "spec",
+  "mustUse": [
+   "List"
+  ],
+  "checks": [
+   {
+    "layer": "behaviour",
+    "steps": [
+     {
+      "fill": {
+       "name|what|note|descr|item|title": "Lunch",
+       "amount|price|cost|spent|how much": 12.5,
+       "categor": "Food"
+      }
+     },
+     {
+      "press": "add|save|log|record"
+     },
+     {
+      "expectRow": [
+       "Lunch",
+       12.5,
+       "Food"
+      ]
+     }
+    ]
+   },
+   {
+    "layer": "intent",
+    "steps": [
+     {
+      "fill": {
+       "name|what|note|descr|item|title": "Lunch",
+       "amount|price|cost|spent|how much": 12.5,
+       "categor": "Food"
+      }
+     },
+     {
+      "press": "add|save|log|record"
+     },
+     {
+      "fill": {
+       "name|what|note|descr|item|title": "Bus",
+       "amount|price|cost|spent|how much": 7.5,
+       "categor": "Travel"
+      }
+     },
+     {
+      "press": "add|save|log|record"
+     },
+     {
+      "expectStat": "total|spent",
+      "equals": 20
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "b02",
+  "prompt": "Keep track of my weekly expenses so I can see what I spent this week.",
+  "expect": "spec",
+  "mustUse": [
+   "List"
+  ],
+  "checks": [
+   {
+    "layer": "behaviour",
+    "steps": [
+     {
+      "fill": {
+       "name|what|note|descr|item|title": "Lunch",
+       "amount|price|cost|spent|how much": 10,
+       "categor": "Food"
+      }
+     },
+     {
+      "press": "add|save|log|record"
+     },
+     {
+      "expectRow": [
+       "Lunch",
+       10
+      ]
+     }
+    ]
+   },
+   {
+    "layer": "intent",
+    "steps": [
+     {
+      "fill": {
+       "name|what|note|descr|item|title": "Lunch",
+       "amount|price|cost|spent|how much": 10,
+       "date|when|day": "$today"
+      }
+     },
+     {
+      "press": "add|save|log|record"
+     },
+     {
+      "fill": {
+       "name|what|note|descr|item|title": "Old",
+       "amount|price|cost|spent|how much": 20,
+       "date|when|day": "2026-10-05"
+      }
+     },
+     {
+      "press": "add|save|log|record"
+     },
+     {
+      "expectStat": "week",
+      "equals": 10
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "b03",
+  "prompt": "Keep a list of my plants. Tap a plant to record that I watered it today, and show when each was last watered.",
+  "expect": "spec",
+  "mustUse": [
+   "List"
+  ],
+  "checks": [
+   {
+    "layer": "behaviour",
+    "steps": [
+     {
+      "fill": {
+       "name|plant": "Fern"
+      }
+     },
+     {
+      "press": "add|save"
+     },
+     {
+      "expectRow": [
+       "Fern"
+      ]
+     }
+    ]
+   },
+   {
+    "layer": "intent",
+    "steps": [
+     {
+      "fill": {
+       "name|plant": "Fern"
+      }
+     },
+     {
+      "press": "add|save"
+     },
+     {
+      "press": "row",
+      "row": 0
+     },
+     {
+      "expectRow": [
+       "Fern",
+       "$today"
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "b04",
+  "prompt": "Count my glasses of water. Each tap adds 250 ml and I see the total in ml.",
+  "expect": "spec",
+  "checks": [
+   {
+    "layer": "behaviour",
+    "steps": [
+     {
+      "press": "add|drink|\\+|glass|water|tap|log"
+     },
+     {
+      "expectStat": "ml|total|water|today",
+      "equals": 250
+     }
+    ]
+   },
+   {
+    "layer": "intent",
+    "steps": [
+     {
+      "press": "add|drink|\\+|glass|water|tap|log"
+     },
+     {
+      "press": "add|drink|\\+|glass|water|tap|log"
+     },
+     {
+      "expectStat": "ml|total|water|today",
+      "equals": 500
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "b05",
+  "prompt": "A tip calculator: I enter the bill and the tip percent and it shows the tip and what to pay in total.",
+  "expect": "spec",
+  "checks": [
+   {
+    "layer": "behaviour",
+    "steps": [
+     {
+      "fill": {
+       "bill|amount|price": 80,
+       "tip|percent|%": 15
+      }
+     },
+     {
+      "expectStat": "tip",
+      "equals": 12
+     }
+    ]
+   },
+   {
+    "layer": "intent",
+    "steps": [
+     {
+      "fill": {
+       "bill|amount|price": 50,
+       "tip|percent|%": 20
+      }
+     },
+     {
+      "expectStat": "total|pay",
+      "equals": 60
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "b06",
+  "prompt": "Split a restaurant bill between friends and show what each person pays.",
+  "expect": "spec",
+  "checks": [
+   {
+    "layer": "behaviour",
+    "steps": [
+     {
+      "fill": {
+       "bill|total|amount": 90,
+       "people|friends|diners|split|how many": 3
+      }
+     },
+     {
+      "expectStat": "each|per|share",
+      "equals": 30
+     }
+    ]
+   },
+   {
+    "layer": "intent",
+    "steps": [
+     {
+      "fill": {
+       "bill|total|amount": 90,
+       "people|friends|diners|split|how many": 4
+      }
+     },
+     {
+      "expectStat": "each|per|share",
+      "equals": 22.5
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "b07",
+  "prompt": "Translate what I say out loud into Spanish while I am talking, live.",
+  "expect": "unsupported"
+ },
+ {
+  "id": "b08",
+  "prompt": "A list of Spanish words I am learning, with a tick when I know each one.",
+  "expect": "spec",
+  "mustUse": [
+   "List"
+  ],
+  "checks": [
+   {
+    "layer": "behaviour",
+    "steps": [
+     {
+      "fill": {
+       "word|name|spanish": "gato"
+      }
+     },
+     {
+      "press": "add|save"
+     },
+     {
+      "expectRow": [
+       "gato"
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "b09",
+  "prompt": "Show today's live weather and the current bitcoin price on one dashboard.",
+  "expect": "unsupported"
+ },
+ {
+  "id": "b10",
+  "prompt": "A weather diary where I write down each day's weather myself and rate the day.",
+  "expect": "spec",
+  "mustUse": [
+   "List"
+  ],
+  "checks": [
+   {
+    "layer": "behaviour",
+    "steps": [
+     {
+      "fill": {
+       "weather|note|name|what": "Sunny"
+      }
+     },
+     {
+      "press": "add|save|log"
+     },
+     {
+      "expectRow": [
+       "Sunny"
+      ]
+     }
+    ]
+   }
+  ]
+ }
+]
