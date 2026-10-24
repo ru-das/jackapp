@@ -35,13 +35,14 @@ test('sends the stage model with a fallback, the key, and no schema unless given
   });
 });
 
-test('defaults to the fill model; schema becomes response_format; images become image_url parts', async () => {
+test('defaults to the fill model; a schema request becomes json_object mode; images become image_url parts', async () => {
   fetchMock.mockResolvedValue(ok('{}'));
   const schema = { type: 'object' };
   await openrouterProvider.generate({ system: '', jsonSchema: schema, messages: [{ role: 'user', content: 'x', images: ['data:image/png;base64,AA=='] }] });
   const body = sent(fetchMock);
   expect(body.models[0]).toBe(OPENROUTER_MODELS.fill);
-  expect(body.response_format).toEqual({ type: 'json_schema', json_schema: { name: 'out', strict: true, schema } });
+  expect(body.response_format).toEqual({ type: 'json_object' });
+  expect(JSON.stringify(body)).not.toContain('propertyNames');
   expect(body.messages[1].content).toEqual([
     { type: 'text', text: 'x' }, { type: 'image_url', image_url: { url: 'data:image/png;base64,AA==' } },
   ]);

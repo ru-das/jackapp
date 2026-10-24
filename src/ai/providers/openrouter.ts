@@ -43,7 +43,8 @@ async function generate(req: Req): Promise<string> {
     reasoning: { effort: 'low' },
     messages: toMessages(req),
     ...(req.jsonSchema
-      ? { response_format: { type: 'json_schema', json_schema: { name: 'out', strict: true, schema: req.jsonSchema } } }
+      // json_object, not json_schema: Nvidia's grammar compiler rejects our Zod-derived schema (`propertyNames`). The prompt and validator enforce the shape.
+      ? { response_format: { type: 'json_object' } }
       : {}),
     ...(req.maxTokens ? { max_tokens: req.maxTokens } : {}),
     ...(req.temperature !== undefined ? { temperature: req.temperature } : {}),
