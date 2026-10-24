@@ -3,14 +3,15 @@ import { h1 } from '@/spec/fixtures';
 import { ActionStepSchema, ComponentNameSchema } from '@/spec/schema';
 import { createScriptedMock, mockProvider } from '../../providers/mock';
 import { QUICK_IDS, runEval } from '../eval';
+import { toCompact, toCompactPlan, toCompactRefusal } from '../compact';
 import { h1Plan } from '../prompts';
 import * as generation from '../generate';
 import type { ErrorCode } from '@/spec/types';
 
 jest.mock('../../provider', () => { throw new Error('Eval must not load platform providers'); });
-const plan = JSON.stringify(h1Plan);
-const spec = JSON.stringify(h1);
-const refusal = JSON.stringify({ unsupported: { reason: 'Cannot do that', missing: ['capability'], suggestion: 'Try a checklist' } });
+const plan = toCompactPlan(h1Plan);
+const spec = toCompact(h1);
+const refusal = toCompactRefusal({ reason: 'Cannot do that', missing: ['capability'], suggestion: 'Try a checklist' });
 
 test('corpus has stable ordered ids, 25 supported and 5 unsupported with registered requirements', () => {
   expect(corpus.map((row) => row.id)).toEqual(Array.from({ length: 30 }, (_, i) => `e${String(i + 1).padStart(2, '0')}`));
@@ -84,7 +85,7 @@ test('suite executes sequentially in corpus order, survives individual failures 
   const prompts: string[] = [];
   provider.generate = async (request) => {
     expect(active++).toBe(0);
-    prompts.push(JSON.parse(request.messages[0].content).request);
+    prompts.push(request.messages[0].content.replace(/^Request: /, ''));
     await Promise.resolve();
     now += ++index * 100;
     active--;

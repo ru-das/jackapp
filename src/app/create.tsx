@@ -74,6 +74,8 @@ export default function Create() {
         prompt: request, provider, model, signal: controller.signal,
         // Every call re-reads the ~4K-token catalog prompt, which is the slow part on a phone, so skip the extra PLAN call.
         noPlan: provider.id === 'local',
+        // On-device a repair costs minutes, and a third full rewrite rarely succeeds on E2B.
+        ...(provider.id === 'local' ? { maxRepairs: 1 } : {}),
         onProgress: (e) => {
           if (live() && (e.stage === 'planning' || e.stage === 'building' || e.stage === 'checking' || e.stage === 'repairing')) {
             setPhase({ kind: 'working', progress: e });

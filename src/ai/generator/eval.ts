@@ -13,7 +13,7 @@ export type EvalRow = EvalPrompt & {
   diagnostics: { target: 'plan' | 'spec'; attempt: number; errors: SpecError[] }[];
 };
 export type EvalOptions = {
-  noPlan?: boolean; only?: string | readonly string[]; onResult?: (row: EvalRow) => void;
+  noPlan?: boolean; maxRepairs?: number; only?: string | readonly string[]; onResult?: (row: EvalRow) => void;
 };
 
 function ratio(count: number, denominator: number) {
@@ -75,7 +75,7 @@ export async function runEval(provider: LLMProvider, model: string, options: Eva
     const start = Date.now();
     const diagnostics: EvalRow['diagnostics'] = [];
     let specRepair = false;
-    const result = await generate({ provider, model, prompt: prompt.prompt, noPlan: options.noPlan,
+    const result = await generate({ provider, model, prompt: prompt.prompt, noPlan: options.noPlan, maxRepairs: options.maxRepairs,
       onProgress: (event) => {
         if (event.stage === 'repairing' && event.target === 'spec') specRepair = true;
         if (event.errors) diagnostics.push({ target: event.target, attempt: event.attempt,

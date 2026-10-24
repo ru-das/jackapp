@@ -134,15 +134,15 @@ sequenceDiagram
   participant P as Provider
   participant V as validate()
   UI->>G: prompt (+ current spec when editing)
-  G->>P: PLAN prompt (catalog summary, few-shot) → Plan JSON
+  G->>P: PLAN prompt (catalog summary, few-shot) → Plan lines
   alt plan.unsupported
     G-->>UI: Unsupported {reason, missing, suggestion}
   else
-    G->>P: FILL prompt (plan + full catalog props + examples) → Spec JSON
+    G->>P: FILL prompt (plan + full catalog props + examples) → Spec lines (compiled to the Spec object)
     G->>V: validate(spec)
     loop up to 2 repairs
       V-->>G: SpecError[]
-      G->>P: REPAIR prompt (spec + errors) → Spec JSON
+      G->>P: REPAIR prompt (draft + errors) → only the changed lines
       G->>V: validate(spec)
     end
     G-->>UI: valid spec → live preview → save
@@ -151,8 +151,8 @@ sequenceDiagram
 
 Rules:
 - Progress events: `planning`, `building`, `checking`, `repairing(n)`, `done`, `failed`, `unsupported`.
-- Parse defensively: strip code fences, take the first top-level JSON object. Failure → error `BAD_JSON` → goes to repair.
-- Temperatures: plan 0.4, fill 0.2, repair 0.0.
+- The model writes a line format, not JSON (ADR-023): `compact.ts` compiles it to the Spec / Plan / `{unsupported}` objects. Code fences and blank lines are ignored; an unknown line or unreadable value → `BAD_JSON` at `line N` (that line is not applied) → repair. Spec repairs are patches merged into the draft by kind + id (`drop` deletes, an `app` line starts over); PLAN repairs are whole. `maxRepairs` defaults to 2 (1 for `local`).
+- Temperatures: plan 0.4, fill 0.2, repair 0.1. No stage sends a JSON Schema; every stage sets `plainText`.
 - The catalog text in prompts is **generated from `catalog/*/meta.ts`**, never hand-copied. `COMPONENTS.md` documents the same data for humans; a test checks they stay in sync.
 - **Edit-by-chat** reuses FILL and REPAIR with the current spec as input. It must keep existing `state` keys whose type didn't change, so user data survives.
 

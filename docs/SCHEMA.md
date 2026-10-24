@@ -187,6 +187,8 @@ When a request can't be built from the catalog, the generator returns this **ins
 
 ## 10. Plan contract (generator stage 1, internal)
 
+> The model does not write this JSON (or the Spec JSON). It writes the line format of ADR-023, and `src/ai/generator/compact.ts` compiles it to the objects described here. This file stays the contract for those objects.
+
 ```json
 {
   "name": "Fridge Snap", "icon": "🧊", "summary": "…",

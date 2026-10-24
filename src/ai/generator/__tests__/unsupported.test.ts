@@ -1,9 +1,10 @@
 import { createScriptedMock } from '../../providers/mock';
+import { toCompactPlan, toCompactRefusal } from '../compact';
 import { generate, type GenerationProgress } from '../generate';
 import { h1Plan, unsupportedExample } from '../prompts';
 
-const plan = JSON.stringify(h1Plan);
-const refusal = JSON.stringify(unsupportedExample);
+const plan = toCompactPlan(h1Plan);
+const refusal = toCompactRefusal(unsupportedExample);
 const cases = [
   { name: 'PLAN', responses: [refusal], repairs: 0, target: 'plan' },
   { name: 'FILL', responses: [plan, refusal], repairs: 0, target: 'spec' },
@@ -28,18 +29,18 @@ test.each(cases)('valid refusal in $name terminates immediately', async ({ respo
   if (target === 'plan') expect(events.some((e) => e.stage === 'building')).toBe(false);
 });
 
+const refusalFields = 'reason="Needs a canvas" missing=["canvas"] suggestion="Try a calculator"';
 const malformed = [
-  { unsupported: true },
-  { unsupported: { reason: 42, missing: 'canvas', suggestion: 'calculator' } },
-  { unsupported: { reason: ' ', missing: [], suggestion: '' } },
-  { unsupported: { reason: 'canvas', missing: ['canvas'] } },
-  { ...unsupportedExample, specVersion: '0.1' },
-  { ...h1Plan, unsupported: unsupportedExample.unsupported },
+  'unsupported',
+  'unsupported reason=42 missing="canvas" suggestion=calculator',
+  'unsupported reason=" " missing=[] suggestion=""',
+  'unsupported reason="canvas" missing=["canvas"]',
+  `unsupported ${refusalFields}\napp name=x`,
+  `${toCompactPlan(h1Plan)}\nunsupported ${refusalFields}`,
 ];
 
 describe.each(['plan', 'spec'] as const)('malformed refusals at %s stage', (target) => {
-  test.each(malformed)('enters repair instead of bypassing validation: %j', async (value) => {
-    const raw = JSON.stringify(value);
+  test.each(malformed)('enters repair instead of bypassing validation: %j', async (raw) => {
     const provider = createScriptedMock([...(target === 'spec' ? [plan] : []), raw, refusal]);
     const calls = jest.spyOn(provider, 'generate');
     expect(await generate({ prompt: 'physics', provider, model: 'test' })).toEqual({
@@ -47,17 +48,14 @@ describe.each(['plan', 'spec'] as const)('malformed refusals at %s stage', (targ
     });
     const request = calls.mock.calls.at(-1)![0];
     expect(request.system).toContain(`REPAIR target: ${target}`);
-    const feedback = JSON.parse(request.messages[0].content);
-    expect(feedback).toMatchObject({ request: 'physics', previousResponse: raw, target });
-    expect(feedback.errors.length).toBeGreaterThan(0);
-    for (const error of feedback.errors) expect(error).toEqual(expect.objectContaining({
-      code: 'SHAPE', path: expect.any(String), message: expect.any(String), hint: expect.any(String),
-    }));
+    const content = request.messages[0].content;
+    expect(content).toContain(`Request: physics\nPrevious response:\n${raw}\nErrors:\n- `);
+    expect(content).toMatch(/\n- (SHAPE|BAD_JSON) at /);
   });
 });
 
 test('repeated malformed refusals fail after exactly two repairs', async () => {
-  const raw = JSON.stringify(malformed[0]);
+  const raw = malformed[0];
   const provider = createScriptedMock([raw, raw, raw]);
   const result = await generate({ prompt: 'physics', provider, model: 'test' });
   expect(result).toMatchObject({ status: 'failed', repairs: 2, message: expect.any(String) });
@@ -65,8 +63,8 @@ test('repeated malformed refusals fail after exactly two repairs', async () => {
   expect(result).not.toHaveProperty('unsupported');
 });
 
-test('null unsupported is a supported-plan marker, and invalid in FILL', async () => {
-  const provider = createScriptedMock([plan, '{"unsupported":null}', refusal]);
+test('a plan-shaped answer is invalid in FILL and gets repaired', async () => {
+  const provider = createScriptedMock([plan, plan, refusal]);
   expect(await generate({ prompt: 'physics', provider, model: 'test' })).toMatchObject({
     status: 'unsupported', repairs: 1,
   });

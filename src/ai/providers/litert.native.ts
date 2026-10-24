@@ -84,7 +84,7 @@ export const localProvider: LLMProvider = {
           temperature: req.temperature ?? 0.2, maxTokens: req.maxTokens ?? 0,
           backend: tuning.backend, speculative: tuning.speculative, constrained,
         });
-        let constrained = tuning.constrained;
+        let constrained = tuning.constrained && !req.plainText;
         let r;
         try {
           r = await call(constrained);

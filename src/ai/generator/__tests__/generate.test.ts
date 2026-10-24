@@ -2,14 +2,17 @@ import type { LLMProvider } from '../../provider';
 import { createScriptedMock, mockProvider } from '../../providers/mock';
 import { h1 } from '@/spec/fixtures';
 import { validate } from '@/spec/validate';
+import { toCompact, toCompactPlan, toCompactRefusal } from '../compact';
 import { generate, type GenerationProgress } from '../generate';
 import { h1Plan } from '../prompts';
 
 jest.mock('../../provider', () => { throw new Error('Generator must not load platform providers'); });
-const plan = JSON.stringify(h1Plan);
-const spec = JSON.stringify(h1);
+const plan = toCompactPlan(h1Plan);
+const spec = toCompact(h1);
 const badSpec = { ...h1, screens: [{ id: 'main', title: 'test', root: 'missing' }] };
-const bad = JSON.stringify(badSpec);
+const bad = toCompact(badSpec);
+const feedback = (e: { code: string; path: string; message: string; hint?: string }) =>
+  `- ${e.code} at ${e.path || '(whole response)'}: ${e.message}${e.hint ? ` (${e.hint})` : ''}`;
 
 function setup(responses: (string | Error)[]) {
   const provider = createScriptedMock(responses);
@@ -50,15 +53,15 @@ test('plan and spec repairs share a budget and preserve complete latest feedback
   const { options, calls, events } = setup(['{broken}', plan, bad, spec]);
   const result = await generate(options);
   expect(result).toMatchObject({ status: 'done', repairs: 2 });
-  const firstRepair = JSON.parse(calls.mock.calls[1][0].messages[0].content);
-  expect(firstRepair).toMatchObject({ request: options.prompt, target: 'plan', previousResponse: '{broken}',
-    errors: [expect.objectContaining({ code: 'BAD_JSON', hint: expect.any(String) })] });
+  const firstRepair = calls.mock.calls[1][0].messages[0].content;
+  expect(firstRepair).toContain(`Request: ${options.prompt}\nPrevious response:\n{broken}\nErrors:\n- BAD_JSON at line 1:`);
   expect(calls.mock.calls[1][0]).toMatchObject({ temperature: 0.1, maxTokens: 1024 });
-  const secondRepair = JSON.parse(calls.mock.calls[3][0].messages[0].content);
   const stamped = { ...badSpec, meta: { ...badSpec.meta, sourcePrompt: options.prompt,
     generatedBy: { provider: 'mock', model: options.model } } };
-  expect(secondRepair).toEqual({ request: options.prompt, target: 'spec', previousResponse: bad, errors: validate(stamped) });
-  expect(secondRepair.errors.length).toBeGreaterThan(1);
+  const errors = validate(stamped);
+  expect(errors.length).toBeGreaterThan(1);
+  expect(calls.mock.calls[3][0].messages[0].content).toBe(
+    `Request: ${options.prompt}\nPrevious response:\n${bad}\nErrors:\n${errors.map(feedback).join('\n')}`);
   expect(events.filter((e) => e.stage === 'repairing').map((e) => [e.target, e.attempt])).toEqual([['plan', 1], ['spec', 2]]);
 });
 
@@ -69,7 +72,7 @@ test('two plan repairs leave no repair budget for FILL', async () => {
 });
 
 test('invalid registered names are repaired before FILL', async () => {
-  const invalid = JSON.stringify({ ...h1Plan, components: [{ type: 'Canvas', purpose: '' }] });
+  const invalid = toCompactPlan({ ...h1Plan, components: [{ type: 'Canvas', purpose: '' }] });
   const { options, calls } = setup([invalid, plan, spec]);
   expect(await generate(options)).toMatchObject({ status: 'done', repairs: 1 });
   expect(calls.mock.calls[1][0].system).toContain('REPAIR target: plan');
@@ -77,19 +80,18 @@ test('invalid registered names are repaired before FILL', async () => {
   expect(calls.mock.calls[2][0].system).toContain('FILL:');
 });
 
-test.each([true, false])('schema capability %s applies to PLAN stages only', async (enabled) => {
+test.each([true, false])('schema capability %s: no stage sends a JSON Schema and every stage asks for plain text', async (enabled) => {
   const { options, calls } = setup(['{}', plan, bad, spec]);
   options.provider.caps = { ...options.provider.caps, jsonSchema: enabled };
   expect(await generate(options)).toMatchObject({ status: 'done', repairs: 2 });
   for (const [request] of calls.mock.calls) {
-    const planStage = request.system.includes('PLAN:') || request.system.includes('REPAIR target: plan');
-    expect(Object.hasOwn(request, 'jsonSchema')).toBe(enabled && planStage);
-    if (enabled && planStage) expect(request.jsonSchema).toHaveProperty('$defs');
+    expect(Object.hasOwn(request, 'jsonSchema')).toBe(false);
+    expect(request.plainText).toBe(true);
   }
 });
 
 test('model supplied metadata is overwritten before validation, including invalid types', async () => {
-  const tampered = JSON.stringify({ ...h1, meta: { ...h1.meta, sourcePrompt: 42, generatedBy: 'fake' } });
+  const tampered = spec.replace(/^app .*$/m, (line) => `${line} sourcePrompt=42 generatedBy=fake`);
   const { options } = setup([plan, tampered]);
   const result = await generate(options);
   expect(result).toMatchObject({ status: 'done', repairs: 0,
@@ -172,7 +174,7 @@ test('no-plan starts at FILL, omits plan payload, and retains repairs and metada
   const { options, calls, events } = setup(['{broken}', spec]);
   expect(await generate({ ...options, noPlan: true })).toMatchObject({ status: 'done', repairs: 1,
     spec: { meta: { sourcePrompt: options.prompt, generatedBy: { provider: 'mock', model: options.model } } } });
-  expect(JSON.parse(calls.mock.calls[0][0].messages[0].content)).toEqual({ request: options.prompt });
+  expect(calls.mock.calls[0][0].messages[0].content).toBe(`Request: ${options.prompt}`);
   expect(calls.mock.calls[0][0]).toMatchObject({ temperature: 0.2, maxTokens: 4096 });
   expect(events.map((event) => event.stage)).toEqual(['building', 'checking', 'repairing', 'checking', 'done']);
 });
@@ -182,16 +184,48 @@ test('diagnostic snapshots cannot mutate repair feedback or failed results', asy
   const result = await generate({ ...options, noPlan: true, onProgress: (event) => {
     if (event.errors) { event.errors[0].code = 'TREE'; event.errors.length = 0; }
   } });
-  expect(JSON.parse(calls.mock.calls[1][0].messages[0].content).errors[0].code).toBe('BAD_JSON');
+  expect(calls.mock.calls[1][0].messages[0].content).toContain('- BAD_JSON at line 1');
+  expect(calls.mock.calls[1][0].messages[0].content).not.toContain('TREE');
   expect(result).toMatchObject({ status: 'failed', errors: [{ code: 'BAD_JSON' }] });
 });
 
 test('no-plan preserves cancellation and refusals', async () => {
-  const { options, calls } = setup([JSON.stringify({ unsupported: {
+  const { options, calls } = setup([toCompactRefusal({
     reason: 'Needs physics', missing: ['physics'], suggestion: 'Try a calculator',
-  } })]);
+  })]);
   expect(await generate({ ...options, noPlan: true })).toMatchObject({ status: 'unsupported', repairs: 0 });
   const controller = new AbortController(); controller.abort();
   expect(await generate({ ...options, noPlan: true, signal: controller.signal })).toMatchObject({ status: 'failed', message: 'Generation cancelled.' });
   expect(calls).toHaveBeenCalledTimes(1);
+});
+
+test('a spec repair returns only the changed lines and they are merged into the draft', async () => {
+  const broken = spec.replace('onPress=makeList', 'onPress=nope');
+  const fix = 'el makeBtn Button label="Make my list" onPress=makeList variant=primary';
+  const { options, calls } = setup([broken, fix]);
+  expect(await generate({ ...options, noPlan: true })).toMatchObject({ status: 'done', repairs: 1, spec: { elements: h1.elements } });
+  const request = calls.mock.calls[1][0];
+  expect(request.system).toContain('Return only the lines that change');
+  expect(request.messages[0].content).toContain(`Previous response:\n${broken}`);
+});
+
+test('a patch with an unreadable line is not applied, and the model sees the draft plus the quoted problem', async () => {
+  const broken = spec.replace('onPress=makeList', 'onPress=nope');
+  const fix = 'el makeBtn Button label="Go" onPress=makeList variant=primary';
+  const { options, calls } = setup([broken, 'el notesIn TextInput label={"x":}', fix]);
+  expect(await generate({ ...options, noPlan: true })).toMatchObject({ status: 'done', repairs: 2 });
+  expect(calls.mock.calls[2][0].messages[0].content).toContain(`Previous response:\n${broken}\nErrors:\n- BAD_JSON at line 1: Cannot read the value in label=`);
+  expect(calls.mock.calls[2][0].system).toContain('Return only the lines that change');
+});
+
+test('a response with no usable lines is rewritten whole, not patched', async () => {
+  const { options, calls } = setup(['nonsense', spec]);
+  expect(await generate({ ...options, noPlan: true })).toMatchObject({ status: 'done', repairs: 1 });
+  expect(calls.mock.calls[1][0].system).toContain('Return the complete corrected spec');
+});
+
+test('maxRepairs caps the repair rounds', async () => {
+  const { options, calls } = setup([bad, bad, spec]);
+  expect(await generate({ ...options, noPlan: true, maxRepairs: 1 })).toMatchObject({ status: 'failed', repairs: 1 });
+  expect(calls).toHaveBeenCalledTimes(2);
 });

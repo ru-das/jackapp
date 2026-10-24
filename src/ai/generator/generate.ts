@@ -3,7 +3,7 @@ import type { Spec, SpecError } from '@/spec/types';
 import { validate } from '@/spec/validate';
 import { callStage, checkCancellation, fill, type StageRequest } from './fill';
 import { PlanSchema, UnsupportedSchema, type Plan, type TargetStage, type Unsupported } from './outputSchemas';
-import { parseResponse } from './parse';
+import { parseCompact, toCompact } from './compact';
 import { schemaErrors, validatePlan } from './plan';
 import { repair } from './repair';
 
@@ -16,13 +16,19 @@ export type GenerationProgress = {
   target: TargetStage; attempt: number; errors?: SpecError[];
 };
 export type GenerateOptions = StageRequest & {
-  model: string; noPlan?: boolean; onProgress?: (event: GenerationProgress) => void;
+  model: string; noPlan?: boolean;
+  /** Repair rounds before giving up (default 2). On-device each round costs minutes. */
+  maxRepairs?: number;
+  onProgress?: (event: GenerationProgress) => void;
 };
 
 export async function generate(options: GenerateOptions): Promise<GenerationResult> {
   let repairs = 0;
   let target: TargetStage = options.noPlan ? 'spec' : 'plan';
   let errors: SpecError[] = [];
+  const maxRepairs = options.maxRepairs ?? 2;
+  // The latest usable spec draft: repairs return only changed lines, and these are merged into it.
+  let draft: Record<string, unknown> | undefined;
   const emit = (stage: GenerationProgress['stage'], attempt = repairs, diagnostics?: SpecError[]) => {
     // An observer failure must not turn a terminal event into a second terminal event.
     try { options.onProgress?.({ stage, target, attempt,
@@ -34,14 +40,16 @@ export async function generate(options: GenerateOptions): Promise<GenerationResu
     checkCancellation(options.signal);
     emit(options.noPlan ? 'building' : 'planning');
     let raw = options.noPlan ? await fill(options)
-      : await callStage({ ...options, stage: 'plan', target, content: JSON.stringify({ request: options.prompt }) });
+      : await callStage({ ...options, stage: 'plan', target, content: `Request: ${options.prompt}` });
     let plan: Plan | undefined;
     for (;;) {
       checkCancellation(options.signal);
       emit('checking');
       checkCancellation(options.signal);
-      const parsed = parseResponse(raw);
+      const parsed = parseCompact(raw, target, draft);
       errors = parsed.errors;
+      const syntax = errors.length > 0;
+      if (target === 'spec' && parsed.draft) draft = parsed.draft;
       if (parsed.value) {
         if (Object.hasOwn(parsed.value, 'unsupported') && !(target === 'plan' && parsed.value.unsupported === null)) {
           const refusal = UnsupportedSchema.safeParse(parsed.value);
@@ -63,14 +71,17 @@ export async function generate(options: GenerateOptions): Promise<GenerationResu
       }
       if (!errors.length && target === 'plan' && plan) {
         target = 'spec';
+        draft = undefined;
         emit('building');
         raw = await fill({ ...options, plan });
         continue;
       }
-      if (repairs === 2) return finish({ status: 'failed', repairs, errors,
+      if (repairs >= maxRepairs) return finish({ status: 'failed', repairs, errors,
         message: 'I couldn’t build this mini-app. Try a simpler request.' });
       emit('repairing', repairs + 1, errors);
-      raw = await repair({ ...options, target, raw, errors });
+      // A whole response with broken lines is shown as written (the error line numbers match it); a patch is shown merged into the draft.
+      raw = await repair({ ...options, target, errors, patch: target === 'spec' && draft !== undefined,
+        raw: target !== 'spec' || !draft || (syntax && !parsed.patched) ? raw : toCompact(draft) });
       repairs++;
     }
   } catch (error) {

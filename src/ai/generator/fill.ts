@@ -1,5 +1,6 @@
 import type { LLMProvider } from '../provider';
-import { outputSchema, type Plan, type TargetStage } from './outputSchemas';
+import { toCompactPlan } from './compact';
+import type { Plan, TargetStage } from './outputSchemas';
 import { systemPrompt } from './prompts';
 
 export type StageRequest = { prompt: string; provider: LLMProvider; signal?: AbortSignal };
@@ -13,14 +14,14 @@ export function checkCancellation(signal?: AbortSignal) {
 }
 
 export async function callStage(options: StageRequest & {
-  stage: 'plan' | 'fill' | 'repair'; target: TargetStage; content: string; allowRefusal?: boolean;
+  stage: 'plan' | 'fill' | 'repair'; target: TargetStage; content: string; allowRefusal?: boolean; patch?: boolean;
 }) {
-  const { provider, signal, stage, target, content, allowRefusal } = options;
+  const { provider, signal, stage, target, content, allowRefusal, patch } = options;
   checkCancellation(signal);
   const raw = await provider.generate({
-    system: systemPrompt(stage, target, allowRefusal), messages: [{ role: 'user', content }],
-    // Only PLAN is schema-constrained: providers reject or choke on the 22 KB spec schema (ADR-017); the validator and repair loop guard the spec.
-    ...(provider.caps.jsonSchema && target === 'plan' ? { jsonSchema: outputSchema(target) } : {}),
+    system: systemPrompt(stage, target, allowRefusal, patch), messages: [{ role: 'user', content }],
+    // No JSON Schema and no JSON-only decoding: the model writes the line format (ADR-023), and the validator guards the spec.
+    plainText: true,
     stage,
     maxTokens: target === 'plan' ? 1024 : 4096,
     temperature: stage === 'repair' ? 0.1 : stage === 'plan' ? 0.4 : 0.2,
@@ -32,5 +33,5 @@ export async function callStage(options: StageRequest & {
 
 export function fill(options: StageRequest & { plan?: Plan }) {
   return callStage({ ...options, stage: 'fill', target: 'spec',
-    content: JSON.stringify({ request: options.prompt, plan: options.plan }) });
+    content: `Request: ${options.prompt}${options.plan ? `\nPlan:\n${toCompactPlan(options.plan)}` : ''}` });
 }

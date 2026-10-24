@@ -17,6 +17,8 @@ export interface LLMProvider {
     system: string;
     messages: { role: 'user' | 'assistant'; content: string; images?: string[] }[]; // images: data URLs
     jsonSchema?: object;
+    /** The reply is plain text lines, not JSON: skips any JSON-only decoding (the generator's line format, ADR-023). */
+    plainText?: boolean;
     maxTokens?: number;
     temperature?: number;
     /** Lets OpenRouter pick a different model per step; other providers ignore it. */

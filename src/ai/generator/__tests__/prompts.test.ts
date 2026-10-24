@@ -1,5 +1,6 @@
 import { h1 } from '@/spec/fixtures';
 import { validate } from '@/spec/validate';
+import { parseCompact } from '../compact';
 import { outputSchema, PlanSchema, UnsupportedSchema } from '../outputSchemas';
 import { validatePlan } from '../plan';
 import { h1Plan, systemPrompt, unsupportedExample } from '../prompts';
@@ -7,14 +8,15 @@ import { h1Plan, systemPrompt, unsupportedExample } from '../prompts';
 test.each([['plan', 'plan'], ['fill', 'spec'], ['repair', 'plan'], ['repair', 'spec']] as const)(
   '%s/%s prompt contains shared instructions and exactly two valid examples', (stage, target) => {
     const prompt = systemPrompt(stage, target);
-    for (const text of ['JSON only', 'only catalog components', 'unsupported', 'Aim for 5–15 elements', 'with no other fields', 'ai.run prompts must ask only']) {
+    for (const text of ['plain text lines only', 'only catalog components', 'unsupported', 'Aim for 5–15 elements', 'with no other fields', 'ai.run prompts must ask only']) {
       expect(prompt).toContain(text);
     }
     expect(prompt.match(/Example \d/g)).toHaveLength(2);
-    const examples = prompt.split(/Example \d — [^\n]+:\n/).slice(1).map((raw) => JSON.parse(raw));
-    expect(UnsupportedSchema.safeParse(examples[1]).success).toBe(true);
-    if (target === 'plan') expect(validatePlan(examples[0])).toEqual([]);
-    else expect(validate(examples[0])).toEqual([]);
+    const examples = prompt.split(/Example \d — [^\n]+:\n/).slice(1).map((raw) => parseCompact(raw, target));
+    for (const example of examples) expect(example.errors).toEqual([]);
+    expect(UnsupportedSchema.safeParse(examples[1].value).success).toBe(true);
+    if (target === 'plan') expect(validatePlan(examples[0].value)).toEqual([]);
+    else expect(validate(examples[0].value)).toEqual([]);
     if (stage === 'repair') expect(prompt).toContain(`REPAIR target: ${target}`);
   },
 );
@@ -46,6 +48,12 @@ test('schemas are generated with local references and constrain fill to catalog 
   }
   expect(validate(h1)).toEqual([]);
   expect(UnsupportedSchema.parse(unsupportedExample)).toEqual(unsupportedExample);
+});
+
+test('a spec repair that patches says so; plan repairs and rewrites ask for the whole object', () => {
+  expect(systemPrompt('repair', 'spec', false, true)).toContain('Return only the lines that change');
+  expect(systemPrompt('repair', 'spec', false)).toContain('Return the complete corrected spec');
+  expect(systemPrompt('repair', 'plan', false, true)).toContain('Return the complete corrected plan');
 });
 
 test('a repair of a real build attempt carries no refusal rule or refusal example; a repair of a refusal keeps both', () => {

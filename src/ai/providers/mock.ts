@@ -1,4 +1,5 @@
 import { h1, h2, h3 } from '@/spec/fixtures';
+import { toCompact, toCompactPlan, toCompactRefusal } from '../generator/compact';
 import type { LLMProvider } from '../provider';
 
 type Fixture = typeof h1 | typeof h2 | typeof h3;
@@ -47,16 +48,16 @@ export const mockProvider: LLMProvider = {
     if (delay) await new Promise((r) => setTimeout(r, delay));
     if (signal?.aborted) throw new Error('aborted');
     const text = (messages.at(-1)?.content ?? '').toLowerCase();
-    const plan = system.includes('PLAN: return');
+    const plan = system.includes('PLAN lines:');
     if (plan && /physics|simulat|3d game/.test(text)) {
-      return JSON.stringify({ unsupported: {
+      return toCompactRefusal({
         reason: 'Physics simulation needs a real-time drawing canvas and a physics engine.',
         missing: ['physics simulation', 'animated canvas'],
         suggestion: 'Build me a projectile calculator with inputs for angle and speed that shows range and height.',
-      } });
+      });
     }
-    if (plan) return JSON.stringify(planOf(pick(text)));
-    if (system.includes('FILL: build')) return JSON.stringify(pick(text));
+    if (plan) return toCompactPlan(planOf(pick(text)));
+    if (system.includes('FILL: build')) return toCompact(pick(text));
     return JSON.stringify(jsonSchema ? sample(jsonSchema) : { ok: true });
   },
 };

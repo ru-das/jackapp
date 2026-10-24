@@ -128,6 +128,8 @@ export default function EvalScreen() {
       // shortcut: no cancel, runEval takes no signal; leave the screen or restart the app to stop, add a signal when needed
       const out = await runEval(provider, model, {
         noPlan, only: only ?? undefined,
+        // Same budget as Create, so the eval measures what the app does.
+        ...(base.id === 'local' ? { maxRepairs: 1 } : {}),
         onResult: (row) => {
           push(`${rowMark(row)} ${row.result.status} after ${(row.durationMs / 1000).toFixed(1)} s, ${row.result.repairs} repair(s)${row.result.status === 'failed' ? `: ${row.result.message}` : ''}`);
           for (const d of row.diagnostics) for (const e of d.errors) push(`  ${d.target} attempt ${d.attempt}: ${e.code} ${e.path}: ${e.message}`);
