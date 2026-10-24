@@ -72,13 +72,17 @@ const TYPES: [RegExp, FieldType][] = [
 ];
 const typeOf = (word: string | undefined) => TYPES.find(([re]) => re.test(word ?? ''))?.[1];
 
+const TYPE_WORD = /^(text|string|number|money|date|time|price|amount|count|integer)$/i;
+
 function parseFields(lines: string[]): LogField[] {
   const out: LogField[] = [];
   for (const line of lines) {
     const words = line.replace(/[:=,|]/g, ' ').split(/\s+/).filter(Boolean);
     if (!words.length || out.length >= 4) continue;
     const type = typeOf(words[1]?.toLowerCase());
-    const label = cleanText(words.slice(type ? 2 : 1).join(' '), 30) || cleanText(cap(words[0]), 30);
+    // A 2B model sometimes repeats the type as the label ("water date date"); show the field name instead.
+    const given = cleanText(words.slice(type ? 2 : 1).join(' '), 30);
+    const label = !given || TYPE_WORD.test(given) ? cleanText(cap(words[0].replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()), 30) : given;
     const key = identifier(words[0], 'name', [...out.map((f) => f.key), 'done', 'items']);
     out.push({ key, label, type: type ?? 'text' });
   }
@@ -95,7 +99,7 @@ export function parseLog(s: Settings, request: string): LogConfig {
     ?? (totalWords.length && !/^(none|no|off)$/i.test(totalWords[0]) ? fields.find((f) => f.type === 'number' || f.type === 'money') : undefined);
   const tapWord = identifier((first(s, 'tap') ?? '').split(/\s+/)[0], '');
   let tap = fields.find((f) => f.key === tapWord && f.type === 'date')?.key ?? null;
-  if (!tap && first(s, 'tap') && !/^(none|no|off)/i.test(first(s, 'tap') ?? '')) {
+  if (!tap && first(s, 'tap') && !/^(none|no|off)\b/i.test(first(s, 'tap') ?? '')) {
     const date = fields.find((f) => f.type === 'date');
     if (date) tap = date.key;
     else if (fields.length < 4) { fields.push({ key: 'lastDone', label: 'Last done', type: 'date' }); tap = 'lastDone'; }

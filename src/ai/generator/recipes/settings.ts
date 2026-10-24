@@ -35,7 +35,8 @@ export function flag(value: string | undefined, fallback: boolean): boolean {
 /** camelCase identifier matching the spec's id rule, unique among `taken`. */
 export function identifier(value: string | undefined, fallback: string, taken: Iterable<string> = []): string {
   const words = (value ?? '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
-  let id = words.map((w, i) => (i ? w[0].toUpperCase() + w.slice(1) : w)).join('');
+  // Already a valid camelCase id (the model followed the format): keep it as written.
+  let id = value && /^[a-z][A-Za-z0-9]{0,31}$/.test(value) ? value : words.map((w, i) => (i ? w[0].toUpperCase() + w.slice(1) : w)).join('');
   if (!/^[a-z]/.test(id)) id = fallback;
   id = id.slice(0, 28);
   const used = new Set(taken);

@@ -48,7 +48,7 @@ share <yes|no>`,
     reply: `name Bill Splitter
 icon 🧾
 description Read a receipt and split it between friends
-share yes`,
+share no`,
   },
   make: (s, request) => buildSplitter(parseSplitter(s, request)),
 };
