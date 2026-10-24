@@ -39,14 +39,10 @@ export const mockProvider: LLMProvider = {
   id: 'mock',
   label: 'Mock',
   caps: { vision: true, jsonSchema: true, contextTokens: 4096 },
-  status: () => 'ready',
-  async load() {},
-  async setModel() {},
-  isDownloaded: async () => true,
-  async remove() {},
+  isConfigured: async () => true,
   async generate({ system, messages, jsonSchema, signal }) {
     if (signal?.aborted) throw new Error('aborted');
-    // Dev-only: lets the slow-model UI be walked through on web without a model (ADR-012).
+    // Dev-only: lets the slow-model UI be walked through on web without a model (ADR-021).
     const delay = Number(process.env.EXPO_PUBLIC_MOCK_DELAY_MS) || 0;
     if (delay) await new Promise((r) => setTimeout(r, delay));
     if (signal?.aborted) throw new Error('aborted');

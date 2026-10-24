@@ -78,7 +78,7 @@ Given a mini-app with data, when the app is reloaded or killed and reopened, the
 - A mock that is always bad → `failed` after 2 repairs, with a friendly UI message.
 - A plan with `unsupported` → the unsupported UI shows `reason` and `suggestion`.
 
-### AT-07 Real generation (A, on the phone; W if WebGPU passes)
+### AT-07 Real generation (W + A, with an OpenRouter key)
 Given each hero prompt from `PRD.md` §6, when generated, then a valid spec previews within 90 s and the mini-app works end to end: the photo goes through `ai.run` into the list, Plant Pal's trigger is saved, and Bill Splitter's Stat shows a correct split.
 
 ### AT-08 Edit-by-chat (W)
@@ -87,8 +87,8 @@ Given Fridge Snap with 5 items, when the user says "add a price field and show t
 ### AT-09 Triggers (A)
 Given Plant Pal with a `once` trigger 2 minutes ahead (test mode), then the notification fires, and tapping it opens Plant Pal.
 
-### AT-10 Offline (W with WebGPU, A on-device — only for providers that passed the spike)
-Given the model is downloaded, when the device is offline, then generation and `ai.run` both still work.
+### AT-10 Offline (W + A)
+Given a saved mini-app and no internet, then it opens and works; only generation and `ai.run` say the AI is unreachable.
 
 ### AT-11 Export / import (W + A)
 Exported JSON re-imports as an identical spec. A tampered file (unknown component) is rejected with a readable error.
@@ -96,12 +96,10 @@ Exported JSON re-imports as an identical spec. A tampered file (unknown componen
 ### AT-12 Security (auto + review)
 - `grep -rnE "eval\(|new Function|dangerouslySetInnerHTML|WebView" src/` returns nothing (except the test itself).
 - A spec with `"<b>hi</b><script>"` in a Text value renders literally.
-- Only configured model downloads/required metadata (and their signed storage redirects) appear as external requests during a full session; app and pinned runtime assets load from the app origin. There are no URL fields in Settings.
+- Only the chosen AI provider (OpenRouter, or the user's Ollama address) appears as an external request during a full session; app assets load from the app origin. There are no URL fields in Settings.
 - `security.test.ts` tests actual renderer text preservation (including event-handler strings), rejects forbidden components/actions/props, malformed JSON, remote images and semantic reference failures; invalid fixture saves/stored specs never reach navigation/session creation; restored remote images reach neither image display component. Non-image restoration behavior remains unchanged.
-- Worker tests mock fetch/decoding/inference: all three configured model repositories and local runtime/image requests pass, arbitrary repositories/destinations/uploads and remote/non-image inputs fail before delegation. No weights or real inference.
 - Run `npm test -- --runInBand --roots src --watchman=false --runTestsByPath src/__tests__/security.test.ts`, the exact grep above, then `npm run check -- -- --runInBand --roots src --watchman=false`. On the 4 GB laptop a cold first renderer mount can exceed Jest's 5 s default; focused runs may append `--testTimeout=15000` (assertions unchanged).
-- Run `npm run export:web`, then `node scripts/security-web-smoke.mjs <chromium executable>`. The dependency-free smoke server uses CSP to block external connections; imports the real local Transformers/ONNX modules and worker without inference, then tests a worker with stubbed inference (all three repositories, remote image rejection, local image generation). All runtime assets must be requested from the app origin.
-- **Pending phone acceptance:** capture a full web and Android session network log (download, generate, photo `ai.run`, save/reopen, offline reload); verify only model-source traffic externally and no user data uploads, plus WebGPU/WASM local asset compatibility and signed download/cache behavior. Record device/browser/results in PROGRESS. T-62/AT-12 remain incomplete until this is done. Import/edit UI remains outside T-62; T-53/T-51 must validate before saving/rendering when implemented.
+- **Pending acceptance (stale wording from T-62, now about the AI provider):** capture a full web and Android session network log (download, generate, photo `ai.run`, save/reopen, offline reload); verify only model-source traffic externally and no user data uploads, plus WebGPU/WASM local asset compatibility and signed download/cache behavior. Record device/browser/results in PROGRESS. T-62/AT-12 remain incomplete until this is done. Import/edit UI remains outside T-62; T-53/T-51 must validate before saving/rendering when implemented.
 
 ### AT-13 Builds (W + A)
 The static web build loads from the hosted URL on a phone and desktop and is installable as a PWA. The APK installs on a clean Android phone and launches with no dev server.
@@ -169,8 +167,8 @@ These checks establish runner correctness, not real-model quality or phone speed
 
 On the phone: open `jackapp://dev/eval`, choose model and mode, Run, then **Save file** and copy the JSON to `evals/results/`.
 
-## 7. Qwen3.5-2B addition (T-48)
+## 7. OpenRouter and Ollama (T-49, ADR-021)
 
-Automated mock checks cover persisted Qwen selection/restoration in Settings, exact GGUF/projector downloads and byte counts, GPU-offload configuration with thinking off, isolated model deletion, eval model identity, web repository selection and the worker's Qwen class/quantization on WebGPU and WASM. Browser smoke checks the real pinned Qwen class export and stubbed load/photo generation for all three repositories; no model weights or inference on the laptop.
+Automated (mock `fetch`, no network): `openrouterProvider.test.ts` (stage model + fallback, key header, schema, images, 401, 429 retry/abort, network failure), `ollamaProvider.test.ts` (body, bare base64, errors), `settings.test.ts` (old `local` settings fall back), `settingsScreen.test.tsx`.
 
-Phone acceptance (Moto G45, 8 GB; 6 GB remains an unverified target): Settings → Qwen3.5-2B → Download model (~1.95 GB Android, including projector) → generate a hero mini-app → run its photo action → save/reopen offline. Restart the app with Qwen selected and verify Settings checks/downloads Qwen. Switch to Gemma and back; delete Qwen and verify Gemma files remain. Run `jackapp://dev/eval` with Qwen, with and without PLAN; save both result files. Record RAM, latency, tokens/s, repairs and heat. Repeat text/photo/offline checks in phone Chrome using the ONNX model (a different download/quantization from GGUF). Agents have not validated real-model quality, RAM fit or acceleration on a device.
+Human, with a key: Settings → paste key → New mini-app → Fridge Snap → time to preview (target under 2 min) → Save → photo → Make list. Then `jackapp://dev/eval` (free tier is about 50 requests a day; a full 30-prompt run needs credits). Ollama: `ollama serve`, set address and model, repeat one build. Eval files from the old on-device runs in `evals/results/` are not comparable for latency.

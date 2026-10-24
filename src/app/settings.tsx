@@ -1,124 +1,91 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { confirm } from '@/capabilities';
-import { ggufBytes, MODELS, type ModelId } from '@/ai/models';
-import { getProvider } from '@/ai/provider';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { OPENROUTER_MODELS } from '@/ai/models';
 import { loadSettings, saveSettings, type Settings } from '@/storage/settings';
 import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
 
-const gb = (bytes: number) => (bytes / 1e9).toFixed(1);
+const STAGES = [
+  ['Planning', OPENROUTER_MODELS.plan],
+  ['Building', OPENROUTER_MODELS.fill],
+  ['Fixing mistakes', OPENROUTER_MODELS.repair],
+  ['Reading photos', OPENROUTER_MODELS.run],
+] as const;
 
 export default function SettingsScreen() {
   const t = useTheme();
   const [settings, setSettings] = useState<Settings | null>(null);
-  const [downloaded, setDownloaded] = useState(false);
-  const [progress, setProgress] = useState<{ loaded: number; total: number } | null>(null);
-  const [error, setError] = useState('');
 
-  const provider = settings ? getProvider(settings.provider) : null;
-  const [checks, setChecks] = useState(0);
-  const refresh = () => setChecks((n) => n + 1);
-
-  useEffect(() => {
-    void loadSettings().then(async (saved) => {
-      await getProvider(saved.provider).setModel(saved.model);
-      setSettings(saved);
-    });
-  }, []);
-  useEffect(() => {
-    let live = true;
-    void (provider?.isDownloaded() ?? Promise.resolve(false)).then((d) => { if (live) setDownloaded(d); });
-    return () => { live = false; };
-  }, [provider, settings?.model, checks]);
+  useEffect(() => { void loadSettings().then(setSettings); }, []);
 
   const update = async (patch: Partial<Settings>) => {
-    if (!settings || progress) return;
+    if (!settings) return;
     const next = { ...settings, ...patch };
-    await saveSettings(next);
-    await getProvider(next.provider).setModel(next.model);
     setSettings(next);
-    setError('');
+    await saveSettings(next);
   };
 
-  const download = async () => {
-    if (!provider || progress) return;
-    setError('');
-    setProgress({ loaded: 0, total: settings?.provider === 'local' ? ggufBytes(settings.model) : 1 });
-    try {
-      await provider.load((p) => setProgress(p));
-    } catch (e) {
-      console.error('settings: download failed', e);
-      setError(e instanceof Error ? e.message : 'Download failed. Check your connection and try again.');
-    }
-    setProgress(null);
-    refresh();
-  };
-
-  const remove = async () => {
-    if (!provider || !(await confirm('Delete the downloaded model? You can download it again later.'))) return;
-    await provider.remove();
-    refresh();
-  };
-
-  if (!settings || !provider) return <View style={{ flex: 1, backgroundColor: t.bg }}><ActivityIndicator accessibilityLabel="Loading settings" color={t.accent} style={{ marginTop: space.lg * 2 }} /></View>;
-  const status = progress ? 'Downloading…' : provider.status() === 'ready' ? 'Ready' : downloaded ? 'Downloaded' : 'Not downloaded';
-  const pct = progress ? Math.min(100, Math.round((progress.loaded / Math.max(progress.total, 1)) * 100)) : 0;
+  if (!settings) return <View style={{ flex: 1, backgroundColor: t.bg }}><ActivityIndicator accessibilityLabel="Loading settings" color={t.accent} style={{ marginTop: space.lg * 2 }} /></View>;
   const card = [styles.card, { backgroundColor: t.surface, borderColor: t.border }];
+  const input = [styles.input, { color: t.text, borderColor: t.border, backgroundColor: t.bg }];
+  const choices: [Settings['provider'], string][] = [
+    ['openrouter', 'OpenRouter (free models)'], ['ollama', 'Ollama (your own computer)'],
+    ...(__DEV__ ? [['mock', 'Mock (dev, no AI)'] as [Settings['provider'], string]] : []),
+  ];
 
   return (
     <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={styles.content}>
       <View style={card}>
-        <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Model</Text>
+        <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>AI</Text>
         <Text style={{ color: t.muted, fontSize: 15 }}>
-          Runs on this device. The only network use is downloading the model.
+          Your request, and any photo you ask it to read, is sent to the AI you pick. Your mini-apps and their data stay on this device.
         </Text>
-        {(Object.keys(MODELS) as ModelId[]).map((id) => {
-          const on = settings.model === id;
+        {choices.map(([id, label]) => {
+          const on = settings.provider === id;
           return (
             <Pressable
-              key={id} accessibilityRole="radio" accessibilityState={{ selected: on }}
-              accessibilityLabel={`${MODELS[id].label}, ${gb(ggufBytes(id))} GB`}
-              onPress={() => void update({ model: id })}
+              key={id} accessibilityRole="radio" accessibilityState={{ selected: on }} accessibilityLabel={label}
+              onPress={() => void update({ provider: id })}
               style={[styles.row, { backgroundColor: on ? t.accentSoft : 'transparent', borderColor: on ? t.accent : t.border }]}
             >
-              <Text style={[styles.name, { color: t.text }]}>{MODELS[id].label} · {gb(ggufBytes(id))} GB</Text>
-              <Text style={{ color: t.muted, fontSize: 14 }}>{MODELS[id].note}</Text>
+              <Text style={[styles.name, { color: t.text }]}>{label}</Text>
             </Pressable>
           );
         })}
-        <Text accessibilityLiveRegion="polite" style={{ color: t.text, fontSize: 16 }}>Status: {status}</Text>
-        {progress ? (
-          <View accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: pct }}>
-            <View style={[styles.bar, { backgroundColor: t.accentSoft }]}>
-              <View style={{ width: `${pct}%`, height: 8, borderRadius: 4, backgroundColor: t.accent }} />
-            </View>
-            <Text style={{ color: t.muted, fontSize: 14 }}>{gb(progress.loaded)} of {gb(progress.total)} GB</Text>
-          </View>
-        ) : null}
-        {error ? <Text style={{ color: t.danger, fontSize: 15 }}>{error}</Text> : null}
-        {!downloaded && !progress ? (
-          <Pressable accessibilityRole="button" onPress={() => void download()} style={[styles.btn, { backgroundColor: t.accent }]}>
-            <Text style={[styles.btnText, { color: t.accentText }]}>Download model</Text>
-          </Pressable>
-        ) : null}
-        {downloaded && !progress ? (
-          <Pressable accessibilityRole="button" onPress={() => void remove()} style={[styles.btn, { backgroundColor: t.dangerSoft }]}>
-            <Text style={[styles.btnText, { color: t.danger }]}>Delete model</Text>
-          </Pressable>
-        ) : null}
       </View>
-      {__DEV__ ? (
+
+      {settings.provider === 'openrouter' ? (
         <View style={card}>
-          <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Dev: provider</Text>
-          {(['local', 'mock'] as const).map((id) => (
-            <Pressable
-              key={id} accessibilityRole="radio" accessibilityState={{ selected: settings.provider === id }}
-              onPress={() => void update({ provider: id })}
-              style={[styles.row, { backgroundColor: settings.provider === id ? t.accentSoft : 'transparent', borderColor: t.border }]}
-            >
-              <Text style={[styles.name, { color: t.text }]}>{id === 'local' ? 'On-device model' : 'Mock (no model)'}</Text>
-            </Pressable>
+          <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>OpenRouter</Text>
+          <Text style={{ color: t.muted, fontSize: 15 }}>Get a free key at openrouter.ai/keys. It is kept on this device only.</Text>
+          <Text style={{ color: t.text, fontSize: 16 }}>API key</Text>
+          <TextInput
+            accessibilityLabel="OpenRouter API key" style={input} value={settings.openrouterKey}
+            onChangeText={(v) => void update({ openrouterKey: v })}
+            secureTextEntry autoCapitalize="none" autoCorrect={false} placeholder="sk-or-…" placeholderTextColor={t.muted}
+          />
+          <Text style={{ color: t.muted, fontSize: 15 }}>Free models used:</Text>
+          {STAGES.map(([stage, id]) => (
+            <Text key={stage} style={{ color: t.muted, fontSize: 14 }}>{stage}: {id}</Text>
           ))}
+        </View>
+      ) : null}
+
+      {settings.provider === 'ollama' ? (
+        <View style={card}>
+          <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Ollama</Text>
+          <Text style={{ color: t.muted, fontSize: 15 }}>Run `ollama serve` on your computer. On a phone, use your computer’s address on the same Wi-Fi.</Text>
+          <Text style={{ color: t.text, fontSize: 16 }}>Server address</Text>
+          <TextInput
+            accessibilityLabel="Ollama server address" style={input} value={settings.ollamaUrl}
+            onChangeText={(v) => void update({ ollamaUrl: v })}
+            autoCapitalize="none" autoCorrect={false} keyboardType="url" placeholderTextColor={t.muted}
+          />
+          <Text style={{ color: t.text, fontSize: 16 }}>Model name</Text>
+          <TextInput
+            accessibilityLabel="Ollama model name" style={input} value={settings.ollamaModel}
+            onChangeText={(v) => void update({ ollamaModel: v })}
+            autoCapitalize="none" autoCorrect={false} placeholder="a model from `ollama list`" placeholderTextColor={t.muted}
+          />
         </View>
       ) : null}
     </ScrollView>
@@ -129,9 +96,7 @@ const styles = StyleSheet.create({
   content: { padding: space.lg, gap: space.md, maxWidth: 640, width: '100%', alignSelf: 'center' },
   card: { padding: space.lg, gap: space.sm, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth },
   h: { fontSize: 19, fontWeight: '600' },
-  row: { minHeight: MIN_TARGET, padding: space.md, borderRadius: radius.control, borderWidth: 1, gap: 2, justifyContent: 'center' },
+  row: { minHeight: MIN_TARGET, padding: space.md, borderRadius: radius.control, borderWidth: 1, justifyContent: 'center' },
   name: { fontSize: 16, fontWeight: '600' },
-  bar: { height: 8, borderRadius: 4, marginBottom: 4 },
-  btn: { minHeight: MIN_TARGET, borderRadius: radius.control, alignItems: 'center', justifyContent: 'center', padding: space.md },
-  btnText: { fontSize: 16, fontWeight: '600' },
+  input: { minHeight: MIN_TARGET, borderWidth: 1, borderRadius: radius.control, paddingHorizontal: space.md, fontSize: 16 },
 });

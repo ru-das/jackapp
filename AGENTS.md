@@ -1,6 +1,6 @@
 # AGENTS.md — Rules for every coding agent (Claude Code, Codex, others)
 
-JackApp: describe a mini-app in plain language → an open model (Gemma 4) builds a **JSON spec** from pre-built components → the app renders it. Expo app for web + Android. Local-only. Deadline: **Mon Oct 26, 2026, 12:29 PM IST** (Oct 25, 11:59 PM PDT).
+JackApp: describe a mini-app in plain language → an open model (Gemma 4 via OpenRouter) builds a **JSON spec** from pre-built components → the app renders it. Expo app for web + Android. Mini-apps and data stay on the device. Deadline: **Mon Oct 26, 2026, 12:29 PM IST** (Oct 25, 11:59 PM PDT).
 
 ## 1. Read before you work
 
@@ -48,14 +48,14 @@ A prompt may contain several tasks. Do them in the order given, one commit per t
 2. **Validate every spec** before rendering or saving it: generated, loaded, or imported.
 3. **Respect module boundaries** (`ARCHITECTURE.md` §4): `src/spec` has no React or platform imports; the runtime never imports the generator; catalog components never call AI or storage.
 4. **Platform code goes in `.web.ts` / `.native.ts`** behind one interface.
-5. **No network** except model downloads. No telemetry. No user-set URLs.
+5. **No network** except the AI provider the user picked (OpenRouter, or the user's own Ollama address). No telemetry. The only user-set URL is the Ollama address. Never log or commit the API key. (ADR-021)
 6. **No new dependency** without a `DECISIONS.md` line saying why. Prefer what Expo already ships.
 7. **Contract changes** (`SCHEMA.md`, `COMPONENTS.md`) update code, tests, and docs in the same commit, plus a `DECISIONS.md` entry.
 8. **TypeScript strict.** No `any` except at JSON parse boundaries, where data immediately goes through Zod.
 9. **Never delete or weaken a test** to make it pass. Fix the code, or explain in the reply and ask.
 10. **Never commit secrets, model weights, or large binaries.** Weights are downloaded at runtime.
 11. **Don't edit the other agent's files** (§8).
-12. **Never run a model on the dev laptop (4 GB RAM). Use the mock provider; real-model checks happen on the human's phone.** (ADR-012)
+12. **Tests and agents use the mock provider; never hit OpenRouter or Ollama from tests, and never put a real key in the repo.** Real-model checks happen in the app with the human's key. (ADR-021)
 
 ## 5. Code conventions
 

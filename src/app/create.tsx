@@ -62,10 +62,7 @@ export default function Create() {
     await discard();
     try {
       const { provider, model } = await getActiveProvider();
-      if (provider.status() !== 'ready') {
-        if (!(await provider.isDownloaded())) return live() && setPhase({ kind: 'needsModel' });
-        await provider.load();
-      }
+      if (!(await provider.isConfigured())) return live() && setPhase({ kind: 'needsModel' });
       if (!live()) return;
       setPhase({ kind: 'working', progress: { stage: 'planning', attempt: 0 } });
       const result = await generate({
@@ -150,14 +147,14 @@ export default function Create() {
       {phase.kind === 'loading' ? (
         <View accessibilityLiveRegion="polite" style={styles.wait}>
           <ActivityIndicator color={t.accent} />
-          <Text style={{ color: t.muted, fontSize: 16 }}>Waking the model up…</Text>
+          <Text style={{ color: t.muted, fontSize: 16 }}>Getting started…</Text>
         </View>
       ) : null}
       {phase.kind === 'working' ? <GenerationStages progress={phase.progress} /> : null}
       {phase.kind === 'needsModel' ? (
         <View style={card}>
-          <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Download a model first</Text>
-          <Text style={{ color: t.muted, fontSize: 16 }}>JackApp builds mini-apps with a model that runs on this device.</Text>
+          <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Set up AI first</Text>
+          <Text style={{ color: t.muted, fontSize: 16 }}>JackApp needs an OpenRouter key (free) or an Ollama model to build mini-apps.</Text>
           <ActionButton label="Open settings" onPress={() => router.push('/settings')} />
         </View>
       ) : null}

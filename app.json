@@ -28,13 +28,6 @@
     "plugins": [
       "expo-router",
       [
-        "llama.rn",
-        {
-          "forceCxx20": true,
-          "enableOpenCLAndHexagon": true
-        }
-      ],
-      [
         "expo-image-picker",
         {
           "photosPermission": false,
@@ -46,7 +39,7 @@
         {
           "android": {
             "minSdkVersion": 24,
-            "extraProguardRules": "-keep class com.rnllama.** { *; }"
+            "usesCleartextTraffic": true
           }
         }
       ]

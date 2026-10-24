@@ -90,11 +90,12 @@ test('prompt over 2000 chars never reaches the provider (ADR-015)', async () => 
   expect(rows(t.get())).toEqual([]);
 });
 
-test('model not downloaded: no inference, no download', async () => {
-  const p = { ...mockProvider, status: () => 'unloaded' as const, isDownloaded: async () => false, load: jest.fn() };
+test('AI not set up: no inference', async () => {
+  const generate = jest.fn();
+  const p = { ...mockProvider, isConfigured: async () => false, generate };
   const t = setup(p);
   await t.engine.run('makeList');
-  expect(p.load).not.toHaveBeenCalled();
+  expect(generate).not.toHaveBeenCalled();
   expect(t.toast).toHaveBeenCalled();
 });
 

@@ -11,7 +11,7 @@ JackApp is a single **Expo (React Native + React Native Web)** TypeScript app th
 ```mermaid
 flowchart LR
   U[User prompt] --> G[Generator<br/>plan → fill → repair]
-  G <--> P[LLM Provider<br/>llama.rn on-device / WebGPU / mock]
+  G <--> P[LLM Provider<br/>OpenRouter / Ollama / mock]
   G --> V[Spec Validator]
   V -->|valid spec| S[(Local storage)]
   S --> R[Runtime<br/>renderer + state + actions]
@@ -32,9 +32,8 @@ flowchart LR
 | Images | `expo-image-picker`, `expo-image-manipulator` | Downscale to ≤ 1024 px JPEG before storing or sending to a model |
 | Notifications | `expo-notifications` (native) | Web: best-effort, only while the tab is open |
 | Tests | `jest-expo`, `@testing-library/react-native` | |
-| Inference: web | Transformers.js (`@huggingface/transformers`) with WebGPU, in a Web Worker | Spike T-11 decides feasibility |
-| Inference: Android | `llama.rn` + Gemma 4 / Qwen3.5 GGUF (+ mmproj for images) | Needs a dev build, not Expo Go. Ported from the human's earlier shipped app (ADR-012). T-10 |
-| Inference: tests / agents | `mock` provider | No model ever runs on the dev laptop (4 GB RAM) |
+| Inference | `fetch` to OpenRouter (default, free models) or the user's Ollama server | Same code on web and Android (ADR-021) |
+| Inference: tests / agents | `mock` provider | Tests never call OpenRouter or Ollama |
 | Optional renderer lib | Vercel `json-render` | Spike T-13 decides (ADR-005). Our spec stays canonical either way |
 
 ## 3. Directory layout
@@ -53,10 +52,9 @@ jackapp/
     │   ├── create.tsx         # Prompt → generate → preview → save
     │   ├── run/[id].tsx       # Run a mini-app
     │   ├── edit/[id].tsx      # Edit-by-chat
-    │   ├── settings.tsx       # Model choice (E2B/E4B/Qwen3.5-2B), download progress, delete model
+    │   ├── settings.tsx       # AI choice: OpenRouter key / Ollama address + model
     │   └── dev/               # hidden dev screens, run on the phone
-    │       ├── spike.tsx      # 5 JSON prompts + 1 photo prompt: load time, tokens/s, valid JSON
-    │       └── eval.tsx       # runs generator/eval.ts with the local provider, shares results JSON
+    │       └── eval.tsx       # runs generator/eval.ts with the chosen provider, shares results JSON
     ├── spec/                  # THE CONTRACT. No React imports here.
     │   ├── types.ts           # TS types inferred from Zod
     │   ├── schema.ts          # Zod schemas (structure)
@@ -74,8 +72,8 @@ jackapp/
     │   ├── provider.ts        # LLMProvider interface + registry
     │   ├── providers/
     │   │   ├── mock.ts
-    │   │   ├── local.web.ts       # Transformers.js worker client
-    │   │   └── local.native.ts    # llama.rn
+    │   │   ├── openrouter.ts      # default; one free model per stage
+    │   │   └── ollama.ts          # user's own server
     │   └── generator/
     │       ├── catalogPrompt.ts   # builds the catalog section of prompts from catalog/*/meta.ts
     │       ├── prompts.ts         # system prompts + few-shot examples
@@ -95,40 +93,32 @@ jackapp/
 4. **`src/runtime/` never imports `src/ai/generator/`.** The runtime only knows the `LLMProvider` interface, for `ai.run`.
 5. **Catalog components never call AI or storage directly.** They get props and callbacks from the runtime.
 6. **Platform differences live in `.web.ts` / `.native.ts` files** behind one interface. No `Platform.OS` branching in feature code, except for small UI tweaks.
-7. **No network calls** except model downloads (weights and required tokenizer/processor/config metadata) from the configured model source. App/runtime files load from the app origin. No user-set URLs, no analytics, no telemetry.
+7. **No network calls** except the AI provider the user picked in Settings (OpenRouter, or their Ollama address). No analytics, no telemetry. The Ollama address is the only user-set URL.
 8. **No new dependency** without a line in `DECISIONS.md` saying why.
 
 ## 5. LLM provider interface
 
 ```ts
 export interface LLMProvider {
-  id: 'mock' | 'local';
+  id: 'mock' | 'openrouter' | 'ollama';
   label: string;
   caps: { vision: boolean; jsonSchema: boolean; contextTokens: number };
-  status(): ProviderStatus;                 // 'unloaded' | 'downloading' | 'ready' | 'error'
-  setModel(model: 'E2B' | 'E4B' | 'Qwen3.5-2B'): Promise<void>;   // releases a loaded different model
-  isDownloaded(): Promise<boolean>;         // load() will not download
-  remove(): Promise<void>;                  // release + delete downloaded files
-  load(onProgress?: (p: { loaded: number; total: number }) => void): Promise<void>;
+  isConfigured(): Promise<boolean>;         // key / model name set in Settings
   generate(req: {
     system: string;
     messages: { role: 'user' | 'assistant'; content: string; images?: string[] }[]; // images: data URLs
     jsonSchema?: object;                    // used when caps.jsonSchema is true
     maxTokens?: number;
     temperature?: number;
+    stage?: 'plan' | 'fill' | 'repair' | 'run'; // OpenRouter picks a model per stage
     signal?: AbortSignal;
   }): Promise<string>;                      // raw text; callers parse and validate
 }
 ```
 
-- **mock**: returns fixtures by keyword. Used by tests, UI work, and agents without a model.
-- **local (web)**: Transformers.js + WebGPU in a Web Worker (`public/llm-worker.js`, checksum-pinned library/WASM served from same-origin `public/vendor/`; client in `local.web.ts`; see ADR-018). The main thread talks to it via `postMessage`. No WebGPU → falls back to wasm CPU with a one-time slow warning. `jsonSchema` is not enforced on web (the repair loop covers it). Model files are cached by the browser. If the browser has no WebGPU or the model fails to load, the web build shows "this browser can't run the model, use the Android app".
-- **local (native)**: `llama.rn`. GGUF model file is downloaded once into app storage with progress. JSON output uses llama.rn grammar / JSON-schema mode. Images go through the mmproj file. Ported from the human's earlier app (credit in README).
-
-Default models (confirm in spike, record in ADR-003):
-- User picks **E2B**, **E4B**, or **Qwen3.5-2B** in Settings. Generation and `ai.run` use the chosen model; E2B remains the default.
-- Qwen Android: `unsloth/Qwen3.5-2B-GGUF`, `Qwen3.5-2B-Q4_K_M.gguf` + `mmproj-F16.gguf` (~1.95 GB combined). Retains the existing GPU-offload request (`n_gpu_layers: 99`, projector `use_gpu: true`); installed llama.rn source includes Q4_K/Q6_K kernels, though device acceleration is unverified. Files use a `Qwen3.5-2B-` prefix, isolated from both Gemma downloads. Thinking stays disabled.
-- Qwen web: `onnx-community/Qwen3.5-2B-ONNX`, loaded with the pinned runtime's `Qwen3_5ForConditionalGeneration` (`q4f16` WebGPU / `q4` WASM). Web uses ONNX, not the Android GGUF quant. Settings and eval enumerate the shared registry; saved choices are restored into the provider before Settings checks/downloads. Real phone speed, RAM and photo acceptance are pending (ADR-020).
+- **mock**: returns fixtures by keyword. Used by tests, UI work, and agents.
+- **openrouter**: `src/ai/providers/openrouter.ts`. Key from Settings. Model per stage from `src/ai/models.ts` plus an `openrouter/free` fallback. `jsonSchema` becomes `response_format` (PLAN only, ADR-017). Retries 429 with backoff. See ADR-021.
+- **ollama**: `src/ai/providers/ollama.ts`. `POST <ollamaUrl>/api/chat`, `format` = schema, images as bare base64.
 
 ## 6. Generation pipeline
 
@@ -184,7 +174,7 @@ Rules:
 |---|---|---|---|
 | Render + state + persistence | ✅ | ✅ | ✅ |
 | Camera / library | ✅ library + camera via browser | ✅ | ✅ |
-| Local model | ✅ if WebGPU (Chrome Android; else "use the Android app") | ✅ llama.rn (main demo) | ⏳ |
+| AI (OpenRouter / Ollama) | ✅ | ✅ | ⏳ |
 | Scheduled notifications | ⚠️ only while open | ✅ | ✅ |
 
 ## 10. Performance and size budgets
@@ -192,20 +182,18 @@ Rules:
 - Spec ≤ 32 KB. Render of a 60-element spec < 100 ms on a mid-range phone.
 - Images downscaled to ≤ 1024 px before storage and before `ai.run`.
 - Web JS bundle (excluding model weights) ≤ 3 MB.
-- Generation (plan + fill + repairs) median ≤ 90 s on a mid-range Android phone.
+- Generation (plan + fill + repairs) median ≤ 90 s.
 
 ## 11. Security notes
 
 - Specs are imported only after validation. Bad imports are rejected with readable errors.
 - Template rendering produces **plain text** only. No HTML, no markdown links that open URLs.
-- No URL fields anywhere. The only external network traffic is model downloads and required metadata; app/runtime assets load from the app origin. Never send user data anywhere.
-- No secrets in the repo. The app needs none.
+- No URL fields anywhere. The only external traffic is to the AI provider chosen in Settings; it receives the request text and any photo `ai.run` reads, never saved apps or other data.
+- No secrets in the repo. The OpenRouter key lives in on-device storage only and is never logged.
 
-### Web runtime preparation and request policy (T-62)
+### Trust boundaries (T-62, updated by ADR-021)
 
-`npm run web` / `npm run export:web` run `scripts/prepare-web-runtime.mjs` first. It verifies the SHA-256 manifest (`scripts/web-runtime-assets.json`), downloads missing/changed files and licenses, and refuses mismatches before writing an asset. `public/vendor/` is ignored and exported with the app. Direct `npx expo start --web` or `npx expo export -p web` requires `npm run prepare:web` first. No weights are prepared by this script.
-
-The first-party worker restricts model ids to E2B/E4B/Qwen3.5-2B repositories and images to local image data URLs. Global fetch and Transformers' `env.fetch` delegate only known model files, exact same-origin runtime assets and image data URLs (GET/HEAD, credentials omitted); Hugging Face may redirect weight downloads to its signed storage. Explicit local WASM paths, one thread and disabled proxy/blob-module caching avoid CDN and nested-worker fetches. Store restoration validates image values against the existing state schema before either image renderer can see them; defaults survive rejected values. No spec or public TypeScript API change.
+Store restoration validates image values against the existing state schema before either image renderer can see them; defaults survive rejected values. The web worker and vendored runtime were removed in ADR-021.
 
 ## 12. Deployment
 

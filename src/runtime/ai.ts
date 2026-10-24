@@ -89,10 +89,7 @@ export function createAiService({ spec, store, getProvider, signal }: AiServiceO
     }
     const { provider } = await getProvider();
     if (image && !provider.caps.vision) throw new Error('This model cannot read images.');
-    if (provider.status() !== 'ready') {
-      if (!(await provider.isDownloaded())) throw new Error('Model not downloaded.');
-      await provider.load();
-    }
+    if (!(await provider.isConfigured())) throw new Error('Set up AI in Settings.');
 
     const { key, schema } = jsonSchema(step.output);
     const system = `Reply with JSON only, no prose, matching this JSON Schema: ${JSON.stringify(schema)}`;
@@ -108,7 +105,7 @@ export function createAiService({ spec, store, getProvider, signal }: AiServiceO
       let lastError: unknown;
       for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
         const raw = await provider.generate({
-          system, messages, signal: abort.signal, temperature: attempt ? 0 : 0.2, maxTokens: 1024,
+          system, messages, signal: abort.signal, temperature: attempt ? 0 : 0.2, maxTokens: 1024, stage: 'run',
           ...(provider.caps.jsonSchema ? { jsonSchema: schema } : {}),
         });
         if (abort.signal.aborted) throw new Error('ai.run was cancelled or timed out.');

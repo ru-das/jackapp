@@ -175,3 +175,16 @@ Host the static export on GitHub Pages from a Pages workflow (no deploy branch) 
 - Restore the saved model into the provider before Settings queries download status or starts a download; otherwise a cold start could use E2B while displaying Qwen.
 
 **Consequences.** No new dependencies, URLs in Settings, model runs on the laptop or spec-format changes. Model files remain runtime downloads. Native source includes Qwen3.5 support, but real loading, JSON quality, photo processing, RAM, heat and speed still require Moto G45/Chrome checks (TESTING §7). A 6 GB target is not a measured acceptance result. Only Gemma is the current default; choosing a faster default requires phone eval evidence.
+
+## ADR-021: OpenRouter default, Ollama for local, on-device inference removed (T-49)
+2026-10-24 · Accepted · human
+
+**Context.** On-device Gemma and Qwen took 5–10+ minutes per eval prompt on the phone; the product goal is a mini-app in 1–2 minutes.
+**Decision.**
+- Default provider `openrouter`: plain `fetch` to `https://openrouter.ai/api/v1/chat/completions` on web and Android. The key is pasted in Settings and kept in on-device storage only; never in the repo or the bundle.
+- **One free model per step** (`src/ai/models.ts`, ids checked against OpenRouter's model list on 2026-10-24): PLAN `nvidia/nemotron-3-super-120b-a12b:free` (supports structured outputs, and only PLAN sends a schema, ADR-017); FILL `google/gemma-4-31b-it:free`; REPAIR `google/gemma-4-26b-a4b-it:free`; `ai.run` `nvidia/nemotron-3.5-super-vl:free` (image input). Every request also lists `openrouter/free` as a fallback. `429` retries up to 3 times (honors `retry-after`).
+- Second provider `ollama` for anything local: POST `<ollamaUrl>/api/chat`. The user sets the address and model name. Android allows cleartext `http` for LAN use (`usesCleartextTraffic`). Web needs `OLLAMA_ORIGINS`.
+- `LLMProvider` is now `{ id, label, caps, isConfigured(), generate() }`; `generate` takes an optional `stage`. Providers read Settings themselves.
+- Removed: `llama.rn`, Transformers.js worker and vendored runtime, model download/delete UI, `dev/spike`, Gemma/Qwen GGUF/ONNX registry, worker security tests. Saved specs with `generatedBy.provider: "local"` still validate.
+**Supersedes.** ADR-003 (model files), ADR-012, ADR-013, ADR-018 (worker parts; spec/renderer trust boundaries stay), ADR-020. **Amends** ADR-007 and hard rule 5: prompts and `ai.run` photos leave the device for the chosen AI service; specs and app data do not. A user-set URL now exists for Ollama only (http/https checked).
+**Consequences.** Fast generation, smaller app, no 2–4 GB download. Needs internet (or a reachable Ollama) and a key; offline generation is gone, but saved apps still run offline except `ai.run`. Free-tier limits apply. Free model ids can disappear, so the fallback and the id list are the first thing to check when generation fails.

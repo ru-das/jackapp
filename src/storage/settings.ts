@@ -1,11 +1,17 @@
 import { z } from 'zod';
+import { DEFAULT_OLLAMA_URL } from '@/ai/models';
 import { readJson, writeJson } from './index';
 
 export const SETTINGS_KEY = 'jackapp:settings';
 
+const httpUrl = z.string().refine((v) => /^https?:\/\/[^\s/]+/i.test(v));
+
+// Old saved values ('local', model ids) fall back to the defaults.
 const SettingsSchema = z.object({
-  provider: z.enum(['local', 'mock']).catch('local'),
-  model: z.enum(['E2B', 'E4B', 'Qwen3.5-2B']).catch('E2B'),
+  provider: z.enum(['openrouter', 'ollama', 'mock']).catch('openrouter'),
+  openrouterKey: z.string().catch(''),
+  ollamaUrl: httpUrl.catch(DEFAULT_OLLAMA_URL),
+  ollamaModel: z.string().catch(''),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 

@@ -1,40 +1,37 @@
 import { mockProvider } from './providers/mock';
-import { localProvider } from './providers/local';
+import { ollamaProvider } from './providers/ollama';
+import { openrouterProvider } from './providers/openrouter';
+import { OPENROUTER_MODELS } from './models';
 import { loadSettings } from '@/storage/settings';
-import type { ModelId } from './models';
 
-export type ProviderStatus = 'unloaded' | 'downloading' | 'ready' | 'error';
+export type Stage = 'plan' | 'fill' | 'repair' | 'run';
 
 export interface LLMProvider {
-  id: 'mock' | 'local';
+  id: 'mock' | 'openrouter' | 'ollama';
   label: string;
   caps: { vision: boolean; jsonSchema: boolean; contextTokens: number };
-  status(): ProviderStatus;
-  /** Switching to a different model releases the loaded one; files stay on disk. */
-  setModel(model: ModelId): Promise<void>;
-  /** True when the selected model's files are already stored, so load() will not download. */
-  isDownloaded(): Promise<boolean>;
-  /** Releases the model and deletes its downloaded files. */
-  remove(): Promise<void>;
-  load(onProgress?: (p: { loaded: number; total: number }) => void): Promise<void>;
+  /** False until Settings has what the provider needs (API key, model name). */
+  isConfigured(): Promise<boolean>;
   generate(req: {
     system: string;
     messages: { role: 'user' | 'assistant'; content: string; images?: string[] }[]; // images: data URLs
     jsonSchema?: object;
     maxTokens?: number;
     temperature?: number;
+    /** Lets OpenRouter pick a different model per step; other providers ignore it. */
+    stage?: Stage;
     signal?: AbortSignal;
   }): Promise<string>;
 }
 
 export function getProvider(id: LLMProvider['id']): LLMProvider {
-  return id === 'mock' ? mockProvider : localProvider;
+  return id === 'mock' ? mockProvider : id === 'ollama' ? ollamaProvider : openrouterProvider;
 }
 
-/** The provider and model chosen in Settings. */
+/** The provider chosen in Settings, plus the model name recorded in `meta.generatedBy`. */
 export async function getActiveProvider() {
-  const { provider, model } = await loadSettings();
-  const p = getProvider(provider);
-  await p.setModel(model);
-  return { provider: p, model };
+  const settings = await loadSettings();
+  const provider = getProvider(settings.provider);
+  const model = provider.id === 'ollama' ? settings.ollamaModel : provider.id === 'mock' ? 'mock' : OPENROUTER_MODELS.fill;
+  return { provider, model };
 }

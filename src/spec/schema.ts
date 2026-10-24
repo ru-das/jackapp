@@ -69,7 +69,7 @@ export const MetaSchema = z.strictObject({
   name: z.string().min(1).max(40), description: z.string().max(140),
   icon: z.string().regex(/^(?:\p{Regional_Indicator}{2}|[#*0-9]\uFE0F?\u20E3|\p{Extended_Pictographic}(?:\uFE0F|\p{Emoji_Modifier})?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\p{Emoji_Modifier})?)*)$/u),
   sourcePrompt: z.string().optional(),
-  generatedBy: z.strictObject({ provider: z.enum(['mock', 'local']), model: z.string() }).optional(),
+  generatedBy: z.strictObject({ provider: z.enum(['mock', 'local', 'openrouter', 'ollama']), model: z.string() }).optional(),
 });
 export const ScreenSchema = z.strictObject({ id: IdentifierSchema, title: z.string(), root: IdentifierSchema });
 export const ComponentNameSchema = z.enum([

@@ -13,7 +13,7 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 beforeEach(async () => {
   mockReplace.mockClear();
   mockPush.mockClear();
-  await saveSettings({ provider: 'mock', model: 'E2B' });
+  await saveSettings({ provider: 'mock', openrouterKey: '', ollamaUrl: 'http://localhost:11434', ollamaModel: '' });
   jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 afterEach(() => jest.restoreAllMocks());
@@ -41,13 +41,12 @@ test('unsupported request shows reason, suggestion and builds the suggestion', a
   await waitFor(() => expect(screen.queryByText('Build the suggestion')).toBeNull());
 });
 
-test('model missing: friendly card pointing to settings', async () => {
-  jest.spyOn(mockProvider, 'status').mockReturnValue('unloaded');
-  jest.spyOn(mockProvider, 'isDownloaded').mockResolvedValue(false);
+test('AI not set up: friendly card pointing to settings', async () => {
+  jest.spyOn(mockProvider, 'isConfigured').mockResolvedValue(false);
   await render(<Create />);
   await type('A water tracker');
   await fireEvent.press(screen.getByText('Build'));
-  expect(await screen.findByText('Download a model first')).toBeTruthy();
+  expect(await screen.findByText('Set up AI first')).toBeTruthy();
   await fireEvent.press(screen.getByText('Open settings'));
   expect(mockPush).toHaveBeenCalledWith('/settings');
 });

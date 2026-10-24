@@ -15,7 +15,6 @@
     "expo-linking": "~58.0.14",
     "expo-router": "~58.0.25",
     "expo-status-bar": "~58.0.4",
-    "llama.rn": "0.12.9",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-native": "0.88.0",
@@ -46,9 +45,7 @@
     "lint": "expo lint",
     "test": "jest",
     "check": "npm run typecheck && npm run lint && npm test",
-    "prepare:web": "node scripts/prepare-web-runtime.mjs",
-    "preweb": "npm run prepare:web",
-    "export:web": "npm run prepare:web && expo export -p web"
+    "export:web": "expo export -p web"
   },
   "private": true,
   "jest": {

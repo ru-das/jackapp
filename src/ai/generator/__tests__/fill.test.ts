@@ -9,7 +9,7 @@ test('FILL passes the plan and original request with limits and signal, without 
   await expect(fill({ prompt: 'groceries', plan: h1Plan, provider, signal: controller.signal })).resolves.toBe('{"raw":true}');
   expect(generate).toHaveBeenCalledWith(expect.objectContaining({
     system: expect.stringContaining('FILL:'),
-    temperature: 0.2, maxTokens: 4096, signal: controller.signal,
+    temperature: 0.2, stage: 'fill', maxTokens: 4096, signal: controller.signal,
     messages: [{ role: 'user', content: JSON.stringify({ request: 'groceries', plan: h1Plan }) }],
   }));
   expect((generate.mock.calls as unknown[][])[0][0]).not.toHaveProperty('jsonSchema');

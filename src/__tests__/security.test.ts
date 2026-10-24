@@ -3,7 +3,6 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { runInNewContext } from 'node:vm';
 import Home from '@/app/index';
 import Run from '@/app/run/[id]';
 import { toast } from '@/capabilities';
@@ -59,10 +58,9 @@ async function mount(raw: unknown, restore = false) {
   return { store, view: await render(createElement(Renderer, { spec, store, engine })) };
 }
 
-test('AT-12: src and first-party workers contain no executable-spec APIs', () => {
+test('AT-12: src contains no executable-spec APIs', () => {
   const forbidden = /eval\s*\(|new\s+Function\b|dangerouslySetInnerHTML|WebView/;
   const source = files(resolve('src')).filter((file) => file !== __filename);
-  source.push(resolve('public/llm-worker.js'));
   expect(source.filter((file) => forbidden.test(readFileSync(file, 'utf8')))).toEqual([]);
 });
 
@@ -167,92 +165,4 @@ test.each([null, 'data:image/png;base64,aGVsbG8=', 'file:///local/photo.jpg'])
     state: { photo: { type: 'image', default: null } } }).state);
   await store.load();
   expect(store.getState().photo).toBe(photo);
-});
-
-function worker() {
-  const fetch = jest.fn(async (input: unknown, init?: unknown) => ({ ok: true, input, init }));
-  const fromURL = jest.fn(async () => { throw new Error('local decoder reached'); });
-  const from_pretrained = jest.fn(async () => ({}));
-  const qwenLoad = jest.fn(async () => ({}));
-  const env = { backends: { onnx: { wasm: {} } }, fetch: undefined };
-  const context = { URL, fetch, env, navigator: {}, postMessage: jest.fn(), onmessage: null,
-    AutoProcessor: { from_pretrained }, Gemma4ForConditionalGeneration: { from_pretrained },
-    Qwen3_5ForConditionalGeneration: { from_pretrained: qwenLoad },
-    InterruptableStoppingCriteria: class { interrupt() {} }, RawImage: { fromURL } };
-  const code = readFileSync(resolve('public/llm-worker.js'), 'utf8')
-    .replace(/^import \{[\s\S]*?\} from '[^']+';/, '')
-    .replaceAll('import.meta.url', JSON.stringify('https://app.example/llm-worker.js'));
-  runInNewContext(code, context);
-  return { context, fetch, fromURL, from_pretrained, qwenLoad,
-    send: (data: unknown) => (context.onmessage as unknown as (event: { data: unknown }) => Promise<void>)({ data }) };
-}
-
-test('worker configures local WASM and guarded Transformers fetch', () => {
-  const { context } = worker();
-  expect(context.env.fetch).toBe(context.fetch);
-  expect(context.env.backends.onnx.wasm).toMatchObject({ numThreads: 1, proxy: false,
-    wasmPaths: { mjs: 'https://app.example/vendor/ort-wasm-simd-threaded.asyncify.mjs',
-      wasm: 'https://app.example/vendor/ort-wasm-simd-threaded.asyncify.wasm' } });
-});
-
-test.each(['onnx-community/gemma-4-E2B-it-ONNX', 'onnx-community/gemma-4-E4B-it-ONNX', 'onnx-community/Qwen3.5-2B-ONNX'])
-('worker accepts configured repository %s without inference', async (model) => {
-  const w = worker(); await w.send({ type: 'load', model });
-  expect(w.from_pretrained).toHaveBeenCalledWith(model);
-  expect(w.context.postMessage).toHaveBeenCalledWith({ type: 'ready', device: 'wasm' });
-  for (const file of ['config.json', 'tokenizer.json', 'onnx/decoder_model_merged_q4.onnx', 'onnx/decoder_model_merged_q4.onnx_data']) {
-    await w.context.fetch(`https://huggingface.co/${model}/resolve/main/${file}`);
-  }
-  expect(w.fetch).toHaveBeenCalledTimes(4);
-});
-
-test('worker selects Qwen class and quantization for the detected browser backend', async () => {
-  for (const gpu of [false, true]) {
-    const w = worker();
-    Object.assign(w.context.navigator, gpu ? { gpu: { requestAdapter: async () => ({}) } } : {});
-    const repo = 'onnx-community/Qwen3.5-2B-ONNX';
-    await w.send({ type: 'load', model: repo });
-    expect(w.qwenLoad).toHaveBeenCalledWith(repo, expect.objectContaining({
-      device: gpu ? 'webgpu' : 'wasm', dtype: gpu ? 'q4f16' : 'q4',
-    }));
-    expect(w.from_pretrained).toHaveBeenCalledTimes(1);
-  }
-});
-
-test('worker rejects arbitrary repositories before loading', async () => {
-  const w = worker(); await w.send({ type: 'load', model: 'attacker/model' });
-  expect(w.from_pretrained).not.toHaveBeenCalled();
-  expect(w.context.postMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'error', message: 'Unknown model.' }));
-});
-
-test.each(['https://evil.example/image.png', 'data:text/html,<script>', 'file:///photo.jpg'])
-('worker rejects image %s before decoding', async (url) => {
-  const w = worker(); await w.send({ type: 'generate', messages: [{ images: [url] }] });
-  expect(w.fromURL).not.toHaveBeenCalled();
-  expect(w.fetch).not.toHaveBeenCalled();
-});
-
-test('worker delegates local image decoding', async () => {
-  const w = worker(); const image = 'data:image/png;base64,aGVsbG8=';
-  await w.send({ type: 'generate', messages: [{ images: [image] }] });
-  expect(w.fromURL).toHaveBeenCalledWith(image);
-  await w.context.fetch(image);
-  await w.context.fetch('https://app.example/vendor/ort-wasm-simd-threaded.asyncify.wasm');
-  expect(w.fetch).toHaveBeenCalledTimes(2);
-});
-
-test.each(['https://evil.example/', 'https://cdn.jsdelivr.net/runtime.js',
-  'https://huggingface.co/attacker/model/resolve/main/config.json',
-  'https://huggingface.co/onnx-community/gemma-4-E2B-it-ONNX/resolve/main/config.json?leak=secret',
-  'https://app.example/api/upload', 'https://app.example/vendor/unknown.js', 'data:text/plain,secret'])
-('worker blocks unrelated destination %s', async (url) => {
-  const w = worker(); await expect(w.context.fetch(url)).rejects.toThrow('not allowed');
-  expect(w.fetch).not.toHaveBeenCalled();
-});
-
-test('worker blocks uploads even to an allowed model destination', async () => {
-  const w = worker();
-  await expect(w.context.fetch('https://huggingface.co/onnx-community/gemma-4-E2B-it-ONNX/resolve/main/config.json',
-    { method: 'POST', body: 'private' })).rejects.toThrow('not allowed');
-  expect(w.fetch).not.toHaveBeenCalled();
 });

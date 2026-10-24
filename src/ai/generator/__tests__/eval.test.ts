@@ -110,15 +110,14 @@ test('suite executes sequentially in corpus order, survives individual failures 
   } finally { clock.mockRestore(); }
 });
 
-test('default mock completes suite; lifecycle methods never run and throwing callback is isolated', async () => {
-  const provider = { ...mockProvider, load: jest.fn(), setModel: jest.fn(), remove: jest.fn(), isDownloaded: jest.fn() };
+test('default mock completes suite; throwing callback is isolated', async () => {
+  const provider = { ...mockProvider };
   const warning = jest.spyOn(console, 'warn').mockImplementation(() => {});
   try {
     const output = await runEval(provider, 'test', { onResult: () => { throw new Error('UI'); } });
     expect(output.rows).toHaveLength(30);
     expect(output.metrics.validWithinTwoRepairs.count).toBeGreaterThan(0);
     expect(warning).toHaveBeenCalledTimes(30);
-    for (const fn of [provider.load, provider.setModel, provider.remove, provider.isDownloaded]) expect(fn).not.toHaveBeenCalled();
   } finally { warning.mockRestore(); }
 });
 

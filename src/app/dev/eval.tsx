@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import corpus from '../../../evals/prompts.json';
 import { runEval, type EvalRow } from '@/ai/generator/eval';
-import { MODELS, type ModelId } from '@/ai/models';
-import { getProvider } from '@/ai/provider';
+import { getActiveProvider } from '@/ai/provider';
 import { saveFile, share, toast } from '@/capabilities';
 import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
 
@@ -34,7 +33,7 @@ function Btn({ label, onPress, disabled }: { label: string; onPress: () => void;
 
 export default function EvalScreen() {
   const t = useTheme();
-  const [model, setModel] = useState<ModelId>('E2B');
+  const [using, setUsing] = useState('');
   const [noPlan, setNoPlan] = useState(false);
   const [only, setOnly] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>('idle');
@@ -58,12 +57,9 @@ export default function EvalScreen() {
     setResult(null);
     setPhase('loading');
     try {
-      const provider = getProvider('local');
-      await provider.setModel(model);
-      if (provider.status() !== 'ready') {
-        if (!(await provider.isDownloaded())) return setPhase('needsModel');
-        await provider.load();
-      }
+      const { provider, model } = await getActiveProvider();
+      setUsing(`${provider.label}${provider.id === 'ollama' ? `: ${model}` : ''}`);
+      if (!(await provider.isConfigured())) return setPhase('needsModel');
       started.current = Date.now();
       setElapsed(0);
       setPhase('running');
@@ -112,18 +108,7 @@ export default function EvalScreen() {
     <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={styles.content}>
       <View style={card}>
         <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Eval (dev)</Text>
-        {(Object.keys(MODELS) as ModelId[]).map((id) => {
-          const on = model === id;
-          return (
-            <Pressable
-              key={id} accessibilityRole="radio" accessibilityState={{ selected: on, disabled: busy }}
-              accessibilityLabel={MODELS[id].label} disabled={busy} onPress={() => setModel(id)}
-              style={[styles.row, { backgroundColor: on ? t.accentSoft : 'transparent', borderColor: on ? t.accent : t.border }]}
-            >
-              <Text style={{ color: t.text, fontSize: 16 }}>{MODELS[id].label}</Text>
-            </Pressable>
-          );
-        })}
+        <Text style={{ color: t.muted, fontSize: 15 }}>{using ? `Using ${using}.` : 'Uses the AI chosen in Settings.'}</Text>
         <View style={styles.switchRow}>
           <Text style={{ color: t.text, fontSize: 16, flex: 1 }}>Skip plan stage</Text>
           <Switch accessibilityLabel="Skip plan stage" value={noPlan} disabled={busy} onValueChange={setNoPlan} />
@@ -148,7 +133,7 @@ export default function EvalScreen() {
 
       {phase === 'needsModel' ? (
         <View style={card}>
-          <Text style={{ color: t.text, fontSize: 16 }}>Download {MODELS[model].label} in Settings first, then come back.</Text>
+          <Text style={{ color: t.text, fontSize: 16 }}>Set up AI in Settings first, then come back.</Text>
         </View>
       ) : null}
       {error ? <Text accessibilityRole="alert" style={{ color: t.danger, fontSize: 15 }}>{error}</Text> : null}
@@ -156,7 +141,7 @@ export default function EvalScreen() {
       {phase !== 'idle' && phase !== 'needsModel' ? (
         <View style={card} accessibilityLiveRegion="polite">
           <Text style={{ color: t.text, fontSize: 16 }}>
-            {phase === 'loading' ? 'Loading model…' : `${rows.length} / ${total} done${phase === 'running' ? ` · ${elapsed} s` : ''}`}
+            {phase === 'loading' ? 'Starting…' : `${rows.length} / ${total} done${phase === 'running' ? ` · ${elapsed} s` : ''}`}
           </Text>
           <View style={[styles.bar, { backgroundColor: t.accentSoft }]}>
             <View style={{ width: `${(rows.length / total) * 100}%`, height: 8, borderRadius: 4, backgroundColor: t.accent }} />

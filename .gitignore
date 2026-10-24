@@ -41,4 +41,3 @@ yarn-error.*
 /android
 
 # Downloaded, checksum-verified web inference runtime
-/public/vendor/
