@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { generate, type GenerationProgress } from '@/ai/generator/generate';
 import type { Unsupported } from '@/ai/generator/outputSchemas';
+import { RECIPES, type RecipeId } from '@/ai/generator/recipes';
 import { getActiveProvider, getCloudFallback } from '@/ai/provider';
 import { localModel } from '@/ai/providers/litert';
 import { toast } from '@/capabilities';
@@ -30,6 +31,7 @@ type Phase =
   | { kind: 'working'; progress: Pick<GenerationProgress, 'stage' | 'attempt' | 'freeForm'> }
   | ({ kind: 'preview' } & Draft)
   | { kind: 'unsupported'; unsupported: Unsupported }
+  | { kind: 'choose'; choices: [RecipeId, RecipeId] }
   | { kind: 'failed'; message: string };
 
 export default function Create() {
@@ -43,6 +45,8 @@ export default function Create() {
   const draft = useRef<Draft | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
+  // A tool type the user picked: the request is built as that type without guessing from its wording.
+  const [picked, setPicked] = useState<RecipeId>();
 
   // An unsaved preview must not leave its data behind.
   const discard = async () => {
@@ -63,7 +67,7 @@ export default function Create() {
     void getActiveProvider().then(async ({ provider }) => { if (provider.id === 'local') await localModel.warmUp(); });
   }, []);
 
-  const build = async (text: string) => {
+  const build = async (text: string, recipe: RecipeId | undefined = picked) => {
     const request = text.trim();
     if (!request) return;
     const mine = ++run.current;
@@ -83,7 +87,8 @@ export default function Create() {
         noPlan: true,
         // On-device a repair costs minutes, and a third full rewrite rarely succeeds on E2B.
         // Ready-made app types first; a request none of them fits goes to the cloud model when a key is set (ADR-028).
-        ...(provider.id === 'local' ? { maxRepairs: 1, recipes: true, fallback: await getCloudFallback() } : {}),
+        ...(provider.id === 'local' ? { maxRepairs: 1, recipes: true, askWhenUnsure: true, fallback: await getCloudFallback() } : {}),
+        ...(recipe ? { recipe } : {}),
         onProgress: (e) => {
           if (live() && (e.stage === 'planning' || e.stage === 'building' || e.stage === 'checking' || e.stage === 'repairing')) {
             setPhase({ kind: 'working', progress: e });
@@ -91,6 +96,7 @@ export default function Create() {
         },
       });
       if (!live()) return;
+      if (result.status === 'choose') return setPhase({ kind: 'choose', choices: result.choices });
       if (result.status === 'unsupported') return setPhase({ kind: 'unsupported', unsupported: result.unsupported });
       if (result.status === 'failed') {
         console.error('create: generation failed', result.errors);
@@ -175,6 +181,16 @@ export default function Create() {
           </Pressable>
         ))}
       </View>
+      <Text style={{ color: t.muted, fontSize: 15 }}>Or pick a type of tool:</Text>
+      <View style={styles.chips}>
+        {(Object.keys(RECIPES) as RecipeId[]).map((id) => (
+          <Pressable key={id} accessibilityRole="button" accessibilityLabel={`Tool type: ${RECIPES[id].title}`} accessibilityState={{ selected: picked === id }} disabled={busy}
+            onPress={() => setPicked(picked === id ? undefined : id)}
+            style={[styles.chip, { backgroundColor: picked === id ? t.accent : t.accentSoft }]}>
+            <Text style={{ color: picked === id ? t.accentText : t.text, fontSize: 15 }}>{RECIPES[id].title}</Text>
+          </Pressable>
+        ))}
+      </View>
       {busy ? <ActionButton kind="quiet" label="Cancel" onPress={cancel} />
         : <ActionButton label="Build" disabled={!prompt.trim()} onPress={() => void build(prompt)} />}
 
@@ -197,6 +213,17 @@ export default function Create() {
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>That didn’t work</Text>
           <Text style={{ color: t.muted, fontSize: 16 }}>{phase.message}</Text>
           <ActionButton label="Try again" onPress={() => void build(prompt)} />
+        </View>
+      ) : null}
+      {phase.kind === 'choose' ? (
+        <View style={card}>
+          <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>
+            {RECIPES[phase.choices[0]].title} or {RECIPES[phase.choices[1]].title}?
+          </Text>
+          <Text style={{ color: t.muted, fontSize: 16 }}>Your request could be either. Pick the one you want.</Text>
+          {phase.choices.map((id) => (
+            <ActionButton key={id} label={RECIPES[id].title} onPress={() => { setPicked(id); void build(prompt, id); }} />
+          ))}
         </View>
       ) : null}
       {phase.kind === 'unsupported' ? (

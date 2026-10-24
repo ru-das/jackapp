@@ -28,9 +28,10 @@ export async function generateRecipe(options: GenerateOptions): Promise<RecipeOu
   };
   try {
     checkCancellation(options.signal);
-    const refusal = refusalGate(options.prompt);
+    const refusal = options.recipe ? undefined : refusalGate(options.prompt);
     if (refusal) return unsupported(refusal);
-    const match = await matchRecipe(options.prompt);
+    const match = options.recipe ? { id: options.recipe, confident: true } : await matchRecipe(options.prompt);
+    if (options.askWhenUnsure && 'close' in match && match.close) return { status: 'choose', choices: match.close, repairs: 0 };
     progress('building');
     let id = match.id;
     if (!match.confident) {

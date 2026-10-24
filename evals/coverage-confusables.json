@@ -1,0 +1,212 @@
+[
+ {
+  "id": "x001",
+  "prompt": "Keep a list of physics books",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x002",
+  "prompt": "Notes from my physics class",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x003",
+  "prompt": "Track my physics homework with due dates",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x004",
+  "prompt": "Physics simulation of bouncing balls",
+  "source": "t97-confusables",
+  "expect": "unsupported"
+ },
+ {
+  "id": "x005",
+  "prompt": "Track my chess ratings",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x006",
+  "prompt": "Log the chess games I played this week",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x007",
+  "prompt": "Build me a chess game",
+  "source": "t97-confusables",
+  "expect": "unsupported"
+ },
+ {
+  "id": "x008",
+  "prompt": "A watch list of Netflix shows",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x009",
+  "prompt": "Keep a list of YouTube videos to watch",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x010",
+  "prompt": "Wish list of things from Amazon",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x011",
+  "prompt": "Order food from Uber Eats",
+  "source": "t97-confusables",
+  "expect": "unsupported"
+ },
+ {
+  "id": "x012",
+  "prompt": "Track my monthly payments",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x013",
+  "prompt": "Log payments I receive from clients",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x014",
+  "prompt": "Record the rent payments I make",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x015",
+  "prompt": "Accept card payments from customers",
+  "source": "t97-confusables",
+  "expect": "unsupported"
+ },
+ {
+  "id": "x016",
+  "prompt": "Take online payments for my shop",
+  "source": "t97-confusables",
+  "expect": "unsupported"
+ },
+ {
+  "id": "x017",
+  "prompt": "Log the food I order online",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x018",
+  "prompt": "Track the tickets I bought",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x019",
+  "prompt": "Book a flight for me",
+  "source": "t97-confusables",
+  "expect": "unsupported"
+ },
+ {
+  "id": "x020",
+  "prompt": "Split my workout into sets",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x021",
+  "prompt": "Split my study time by subject",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x022",
+  "prompt": "Divide chores among the family",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x023",
+  "prompt": "Split my reading list into months",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x024",
+  "prompt": "Split the dinner bill between four friends",
+  "source": "t97-confusables",
+  "expect": "splitter"
+ },
+ {
+  "id": "x025",
+  "prompt": "Divide the rent equally between roommates",
+  "source": "t97-confusables",
+  "expect": "splitter"
+ },
+ {
+  "id": "x026",
+  "prompt": "Not a game, just a score list",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x027",
+  "prompt": "A log with no reminders",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x028",
+  "prompt": "A tracker without any maps",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x029",
+  "prompt": "Count my steps, not a timer",
+  "source": "t97-confusables",
+  "expect": "counter"
+ },
+ {
+  "id": "x030",
+  "prompt": "List of maps I own",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x031",
+  "prompt": "Track my gaming hours",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x032",
+  "prompt": "Log the weather I saw each day",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x033",
+  "prompt": "Keep a list of friends I want to message",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "x034",
+  "prompt": "Show a map of my route",
+  "source": "t97-confusables",
+  "expect": "unsupported"
+ },
+ {
+  "id": "x035",
+  "prompt": "Chat with my friends in real time",
+  "source": "t97-confusables",
+  "expect": "unsupported"
+ }
+]

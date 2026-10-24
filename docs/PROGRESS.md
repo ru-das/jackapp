@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M0 — Setup done except T-04 CI; T-14 decisions drafted (ADR-003/005 await human Accept); M1 phone spikes pending |
-| Last updated | 2026-10-25 by Claude Code (T-96) |
+| Last updated | 2026-10-25 by Claude Code (T-97) |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-97 matching (Claude Code, 2026-10-25, human-requested; edits Codex-owned `src/ai/generator/{generate.ts,recipes/match.ts,recipes/generateRecipe.ts}`; ask Codex to review):** ADR-032. Gates refuse capabilities not topics, splitter needs money/people, negation dropped, close calls return `choose`, `recipe` builds a picked type; Create has type chips and a "A or B?" card. Confusables sets (new): 60% → 91.4% dev, 60% → 90.0% hold-out; old sets unchanged within guards. "Track my monthly payments" was never broken. Known miss: "Notes about GPS devices I own" refused. No embedding model. **Not tried on a device.** **Human next:** Create on the phone: tap a type chip and build; try "Read my receipt and tell me what each person owes" for the two-way question.
+>
 > **T-96 eval measures behaviour and intent (Claude Code, 2026-10-25, human-requested; edits Codex-owned `eval.ts`, new `behaviour.ts`, `evals/behaviour.json`; ask Codex to review):** ADR-031. Eval now scores structure / behaviour / intent apart, using a 10-prompt hold-out set with scripted label-matched checks (expense total + category, weekly intent, plant last-watered, water 250 ml increment, tip 80@15%=12, split 90/3=30, unsupported vs supported with similar words). Cold (`firstBuildMs`) and warm (`warmMedianMs`) builds are timed apart; the screen times the model load first; **Time a photo** measures photo `ai.run` alone. Saved `options` include corpus, maxRepairs, recipes and `env` (backend, speculative, constrained, revision, appVersion, loadMs); `revision` comes from `EXPO_PUBLIC_GIT_SHA`, set by `npm start/web/android`. **Human next:** restart Metro with `npm run android`, Eval, Behaviour suite, local GPU, recipes on, Run, Save file to `evals/results/`; then Time a photo. **Do not tune recipes against the Behaviour set.** Expect recipes to fail some intent checks (that is the point); read the reasons in the log.
 >
 > **T-95 persistence (Claude Code, 2026-10-25, human-requested):** `readJson`/`writeJson`/`removeKey` now throw `StorageError` (`kind: 'unavailable' | 'unreadable'`); missing key is still `null`. `createStore(id, decls, onSaveError)` keeps a failed write pending; `flush()` waits for in-flight writes and rejects if the save still fails; `load()` rejects on unavailable storage. No auto-retry timer (retry = next change, background, unmount, or Save). Tests added in storage, store, create (acceptance: reject → no success → retry → reopen intact) and home. **Not tried on a device.**

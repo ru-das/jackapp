@@ -137,3 +137,18 @@ test.each(corpus.filter((row) => row.expect === 'spec'))('corpus $id: the built 
 test('every recipe example request is matched to its own recipe', () => {
   for (const recipe of Object.values(RECIPES)) expect(matchSync(recipe.example.request).id).toBe(recipe.id);
 });
+
+test('with askWhenUnsure, a close call returns the two choices and calls no model', async () => {
+  const { run, calls } = setup([]);
+  const result = await run('Read my receipt and tell me what each person owes', { askWhenUnsure: true });
+  expect(result).toMatchObject({ status: 'choose', choices: expect.arrayContaining(['splitter', 'ai']) });
+  expect(calls).not.toHaveBeenCalled();
+});
+
+test('a picked recipe skips the gate and the classifier and builds that type', async () => {
+  const { run, calls } = setup(['name Reps\nnoun rep']);
+  const result = await run('Build an interactive physics simulation with bouncing objects.', { recipe: 'counter', askWhenUnsure: true });
+  expect(calls).toHaveBeenCalledTimes(1);
+  expect(calls.mock.calls[0][0].system).toContain('Counter');
+  expect(result.status).toBe('done');
+});

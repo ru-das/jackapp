@@ -77,3 +77,29 @@ test.each([
   'Check register to record deposits and payments', 'Tenant rent payment tracker', 'Layaway payments tracker', 'Podcast episode list',
   'Personal budget snapshot', 'Track my weight in the morning', 'List the movies I want to stream tonight',
 ])('not refused: %s', (prompt) => expect(refusalGate(prompt)).toBeUndefined());
+
+// Subject versus capability (T-97): the topic of a tool is not the capability it needs.
+test.each([
+  'Keep a list of physics books', 'Track my monthly payments', 'Log payments I receive from clients', 'Keep a watch list of Netflix shows',
+  'Track my chess ratings', 'Not a game, just a score list', 'Log the food I order online',
+])('recording a subject is not refused: %s', (prompt) => expect(refusalGate(prompt)).toBeUndefined());
+
+test.each([
+  'Physics simulation of bouncing balls', 'Accept card payments from customers', 'Order food from Uber Eats', 'Connect to my bank and track spending',
+  'Build me a chess game', 'Play tic-tac-toe with me',
+])('doing the thing is still refused: %s', (prompt) => expect(refusalGate(prompt)).toBeDefined());
+
+test('splitting needs money or people, not just the word', () => {
+  expect(matchSync('Split my workout into sets').id).not.toBe('splitter');
+  expect(matchSync('Split the dinner bill between four friends')).toMatchObject({ id: 'splitter', confident: true });
+});
+
+test('a negated idea does not count', () => {
+  expect(matchSync('Count my steps, not a timer').id).toBe('counter');
+  expect(refusalGate('A tracker without any maps')).toBeUndefined();
+});
+
+test('near-equal scores name the two candidates', () => {
+  expect(matchSync('Read my receipt and tell me what each person owes').close).toEqual(expect.arrayContaining(['splitter', 'ai']));
+  expect(matchSync('Tip calculator').close).toBeUndefined();
+});

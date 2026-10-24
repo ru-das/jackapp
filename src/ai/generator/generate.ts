@@ -8,10 +8,13 @@ import { parseCompact, toCompact, toCompactSlice } from './compact';
 import { schemaErrors, validatePlan } from './plan';
 import { repair } from './repair';
 import { generateRecipe } from './recipes/generateRecipe';
+import type { RecipeId } from './recipes/types';
 
 export type GenerationResult =
   | { status: 'done'; spec: Spec; repairs: number }
   | { status: 'unsupported'; unsupported: Unsupported; repairs: number }
+  /** The wording fits two app types about equally and `askWhenUnsure` is set: the caller asks the user which one. */
+  | { status: 'choose'; choices: [RecipeId, RecipeId]; repairs: number }
   | { status: 'failed'; message: string; errors: SpecError[]; repairs: number };
 export type GenerationProgress = {
   stage: 'planning' | 'building' | 'checking' | 'repairing' | GenerationResult['status'];
@@ -25,13 +28,17 @@ export type GenerateOptions = StageRequest & {
   maxRepairs?: number;
   /** On-device path (ADR-027): refuse in code, pick a ready-made app type, let the model fill in its settings. */
   recipes?: boolean;
+  /** Build this app type directly, skipping the refusal gate, the matcher and the classifier: the user picked a supported tool. */
+  recipe?: RecipeId;
+  /** Return `choose` instead of calling the classifier when two app types score too close to call. */
+  askWhenUnsure?: boolean;
   /** Where free-form generation goes when no ready-made type fits (the cloud model, when the user set a key). Without it the same provider tries. */
   fallback?: { provider: LLMProvider; model: string };
   onProgress?: (event: GenerationProgress) => void;
 };
 
 export async function generate(options: GenerateOptions): Promise<GenerationResult> {
-  if (options.recipes) {
+  if (options.recipes || options.recipe) {
     const outcome = await generateRecipe(options);
     if (outcome.status !== 'fallback') return outcome;
     const { fallback, ...rest } = options;

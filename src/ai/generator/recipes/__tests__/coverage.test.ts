@@ -1,5 +1,7 @@
 import dev from '../../../../../evals/coverage.json';
 import holdout from '../../../../../evals/coverage-holdout.json';
+import conf from '../../../../../evals/coverage-confusables.json';
+import confHold from '../../../../../evals/coverage-confusables-holdout.json';
 import { matchSync, refusalGate } from '../match';
 
 type Row = { id: string; prompt: string; expect: string | string[] };
@@ -26,7 +28,7 @@ export function score(rows: Row[]) {
 
 // Guards, set just under what was measured (dev set 97.5%, hold-out 91.9% at the time): a change to the keyword rules that loses ground fails here.
 // The hold-out set was written before any tuning; the dev set was used to tune the rules, so only the hold-out number is a fair estimate.
-describe.each([['dev set', dev as Row[], 0.95, 1], ['hold-out set', holdout as Row[], 0.88, 2]] as const)('keyword routing on the %s', (name, rows, minRight, maxWrong) => {
+describe.each([['dev set', dev as Row[], 0.95, 1, 0], ['hold-out set', holdout as Row[], 0.88, 2, 0], ['confusables set', conf as Row[], 0.88, 0, 0], ['confusables hold-out set', confHold as Row[], 0.85, 0, 1]] as const)('keyword routing on the %s', (name, rows, minRight, maxWrong, maxRefused) => {
   const s = score([...rows]);
   test('report', () => {
     console.info(`${name}: ${s.total} prompts, ${s.right} routed right (${(100 * s.right / s.total).toFixed(1)}%), ${s.unsure.length} unsure (classifier), `
@@ -34,5 +36,6 @@ describe.each([['dev set', dev as Row[], 0.95, 1], ['hold-out set', holdout as R
   });
   test('most prompts are routed right with no model call', () => expect(s.right / s.total).toBeGreaterThanOrEqual(minRight));
   test(`at most ${maxWrong} are routed to the wrong app type`, () => expect(s.wrong.length).toBeLessThanOrEqual(maxWrong));
-  test('nothing buildable is refused by the gate', () => expect(s.falseRefusal).toEqual([]));
+  // The one allowed in the confusables hold-out is 'Notes about GPS devices I own': the maps gate stays strict because 'gps' is the capability.
+  test(`at most ${maxRefused} buildable prompts are refused by the gate`, () => expect(s.falseRefusal.length).toBeLessThanOrEqual(maxRefused));
 });

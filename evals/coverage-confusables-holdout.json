@@ -1,0 +1,122 @@
+[
+ {
+  "id": "y001",
+  "prompt": "Reading list of physics papers",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "y002",
+  "prompt": "Collision simulation for pool balls",
+  "source": "t97-confusables",
+  "expect": "unsupported"
+ },
+ {
+  "id": "y003",
+  "prompt": "Record my tic-tac-toe wins",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "y004",
+  "prompt": "Play tic-tac-toe with me",
+  "source": "t97-confusables",
+  "expect": "unsupported"
+ },
+ {
+  "id": "y005",
+  "prompt": "List of Spotify playlists I like",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "y006",
+  "prompt": "Control my smart lights",
+  "source": "t97-confusables",
+  "expect": "unsupported"
+ },
+ {
+  "id": "y007",
+  "prompt": "Log the payments my tenants make",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "y008",
+  "prompt": "Process payments with Stripe",
+  "source": "t97-confusables",
+  "expect": "unsupported"
+ },
+ {
+  "id": "y009",
+  "prompt": "Split my gym session into rounds",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "y010",
+  "prompt": "Split the grocery receipt between three of us",
+  "source": "t97-confusables",
+  "expect": "splitter"
+ },
+ {
+  "id": "y011",
+  "prompt": "Divide my budget across categories",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "y012",
+  "prompt": "No games, just a habit tracker",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "y013",
+  "prompt": "Track my savings, without a calculator",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "y014",
+  "prompt": "Notes about GPS devices I own",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "y015",
+  "prompt": "Navigation directions to my office",
+  "source": "t97-confusables",
+  "expect": "unsupported"
+ },
+ {
+  "id": "y016",
+  "prompt": "Keep a list of video games I want to buy",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "y017",
+  "prompt": "Make me a video game",
+  "source": "t97-confusables",
+  "expect": "unsupported"
+ },
+ {
+  "id": "y018",
+  "prompt": "Log my podcast episodes",
+  "source": "t97-confusables",
+  "expect": "log"
+ },
+ {
+  "id": "y019",
+  "prompt": "Record audio notes",
+  "source": "t97-confusables",
+  "expect": "unsupported"
+ },
+ {
+  "id": "y020",
+  "prompt": "Keep track of emails I need to answer",
+  "source": "t97-confusables",
+  "expect": "log"
+ }
+]
