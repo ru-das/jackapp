@@ -29,6 +29,8 @@ export type ScheduledTrigger = { id: string; plan: Plan; title: string; body: st
 /** Stable per-app, per-trigger identifier so a re-sync replaces instead of duplicating. */
 export const notificationId = (appId: string, triggerId: string) => `jackapp:${appId}:${triggerId}`;
 
+export const testId = (appId: string) => notificationId(appId, 'test');
+
 /** The next time a plan fires after `now`; the web fallback uses it to set a timer. */
 export function nextFire(plan: Plan, now: Date): Date {
   if (plan.type === 'once') return plan.at;

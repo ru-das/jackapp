@@ -100,7 +100,7 @@ Given each hero prompt from `PRD.md` §6, when generated, then a valid spec prev
 Given Fridge Snap with 5 items, when the user says "add a price field and show the total", then the spec updates, the 5 items remain, and a total Stat appears.
 
 ### AT-09 Triggers (A)
-Given Plant Pal with a `once` trigger 2 minutes ahead (test mode), then the notification fires, and tapping it opens Plant Pal.
+Given Plant Pal, when the user taps **Send a test in 2 minutes** (then closes JackApp), then the notification fires, and tapping it opens Plant Pal.
 
 ### AT-10 Offline (W + A)
 Given a saved mini-app and no internet, then it opens and works; only generation and `ai.run` say the AI is unreachable.

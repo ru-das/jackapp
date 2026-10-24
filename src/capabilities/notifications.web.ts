@@ -1,4 +1,4 @@
-import { nextFire, notificationId, type ScheduledTrigger } from './notificationPlan';
+import { nextFire, notificationId, testId, type ScheduledTrigger } from './notificationPlan';
 import { toast } from './toast';
 
 // shortcut: browsers cannot schedule notifications while the page is closed, so reminders fire only while JackApp is open in a tab.
@@ -17,13 +17,24 @@ export async function notifyNow(message: { title: string; body: string }): Promi
   else toast(`${message.title}: ${message.body}`);
 }
 
-export async function cancelTriggers(appId: string): Promise<void> {
+function cancelFor(appId: string, keep?: string) {
   const prefix = notificationId(appId, '');
-  for (const [key, timer] of timers) if (key.startsWith(prefix)) { clearTimeout(timer); timers.delete(key); }
+  for (const [key, timer] of timers) if (key.startsWith(prefix) && key !== keep) { clearTimeout(timer); timers.delete(key); }
+}
+
+export async function cancelTriggers(appId: string): Promise<void> { cancelFor(appId); }
+
+export const isSupported = supported;
+
+export async function scheduleTest(appId: string, message: { title: string; body: string }, minutes = 2): Promise<Date> {
+  const key = testId(appId);
+  clearTimeout(timers.get(key));
+  timers.set(key, setTimeout(() => { timers.delete(key); void notifyNow(message); }, minutes * 60_000));
+  return new Date(Date.now() + minutes * 60_000);
 }
 
 export async function scheduleTriggers(appId: string, triggers: ScheduledTrigger[]): Promise<void> {
-  await cancelTriggers(appId);
+  cancelFor(appId, testId(appId));
   for (const { id, plan, title, body } of triggers) {
     const key = notificationId(appId, id);
     const arm = () => {

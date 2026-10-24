@@ -1,4 +1,4 @@
-import { cancelTriggers, ensurePermission, notifyNow, onNotificationOpen, scheduleTriggers } from '../notifications.native';
+import { cancelTriggers, ensurePermission, notifyNow, onNotificationOpen, scheduleTest, scheduleTriggers } from '../notifications.native';
 // The factory runs when the module under test is imported, so everything it needs is built inside it.
 jest.mock('expo-notifications', () => {
   const scheduled: { identifier?: string; content: unknown; trigger: unknown }[] = [];
@@ -63,4 +63,12 @@ test('tapping a reminder reports the app id; foreign notifications are ignored',
   expect(open).toHaveBeenCalledTimes(1);
   expect(open).toHaveBeenCalledWith('app-9');
   stop();
+});
+
+test('a pending test reminder survives a re-sync but goes when the app is deleted', async () => {
+  await scheduleTest('app-1', { title: 'T', body: 'B' });
+  await scheduleTriggers('app-1', [{ id: 'water', plan: { type: 'daily', hour: 9, minute: 0 }, title: 'W', body: 'b' }]);
+  expect(scheduled.map((s) => s.identifier).sort()).toEqual(['jackapp:app-1:test', 'jackapp:app-1:water']);
+  await cancelTriggers('app-1');
+  expect(scheduled).toEqual([]);
 });

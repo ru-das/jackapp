@@ -4,12 +4,13 @@ import { ActivityIndicator, AppState, StyleSheet, Text, View } from 'react-nativ
 import type { createActionEngine } from '@/runtime/actions';
 import { Renderer, type RendererHandle } from '@/runtime/Renderer';
 import { createSession } from '@/runtime/session';
-import { syncTriggers } from '@/runtime/triggers';
+import { syncTriggers, type SyncResult } from '@/runtime/triggers';
 import type { Store } from '@/runtime/store';
 import { SpecSchema } from '@/spec/schema';
 import type { Spec } from '@/spec/types';
 import { validate } from '@/spec/validate';
 import { readJson, specKey, StorageError } from '@/storage';
+import { ReminderStatus } from '@/ui/ReminderStatus';
 import { radius, space, useTheme } from '@/ui/theme';
 
 type Loaded = { spec: Spec; store: Store; engine: ReturnType<typeof createActionEngine> };
@@ -19,12 +20,14 @@ export default function Run() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const t = useTheme();
   const [phase, setPhase] = useState<Phase>({ kind: 'loading' });
+  const [reminders, setReminders] = useState<SyncResult>();
   const navigateRef = useRef<RendererHandle['navigate']>(undefined);
 
   useEffect(() => {
     let store: Store | undefined;
     const abort = new AbortController();
     let live = true;
+    let resync = () => Promise.resolve();
     (async () => {
       const raw = await readJson(specKey(id)).catch((e) => {
         if (e instanceof StorageError && e.kind === 'unreadable') return {}; // fails validate() below: damaged
@@ -42,14 +45,16 @@ export default function Run() {
       await store.load();
       session.setNavigate((to) => navigateRef.current?.(to));
       // Reminders are set (or replaced) each time the app opens; this never blocks showing the app.
-      void syncTriggers(id, spec, store.getState()).catch((e) => console.warn(`run/${id}: reminders not set`, e));
+      const sync = () => syncTriggers(id, spec, store!.getState()).then((r) => { if (live) setReminders(r); }).catch((e) => console.warn(`run/${id}: reminders not set`, e));
+      void sync();
+      resync = sync;
       if (live) setPhase({ kind: 'ready', spec, store: session.store, engine: session.engine });
     })().catch((e) => {
       console.error(`run/${id}: load failed`, e);
       const unavailable = e instanceof StorageError;
       if (live) setPhase({ kind: 'error', message: unavailable ? "We couldn't reach your saved data, so nothing was opened. Close the app and try again." : 'Something went wrong opening this mini-app.' });
     });
-    const sub = AppState.addEventListener('change', (s) => { if (s !== 'active') void store?.flush().catch(() => {}); });
+    const sub = AppState.addEventListener('change', (s) => { if (s !== 'active') void store?.flush().catch(() => {}); else void resync(); }); // coming back may follow turning notifications on in system settings
     return () => { live = false; abort.abort(); sub.remove(); void store?.flush().catch(() => {}); };
   }, [id]);
 
@@ -58,6 +63,7 @@ export default function Run() {
     <View style={[styles.fill, { backgroundColor: t.bg }]}>
       <Stack.Screen options={{ title }} />
       {phase.kind === 'loading' ? <ActivityIndicator accessibilityLabel="Opening mini-app" color={t.accent} style={styles.spin} /> : null}
+      {phase.kind === 'ready' && reminders ? <ReminderStatus appId={id} result={reminders} /> : null}
       {phase.kind === 'ready' ? <Renderer spec={phase.spec} store={phase.store} engine={phase.engine} onReady={(h) => { navigateRef.current = h.navigate; }} /> : null}
       {phase.kind === 'error' ? (
         <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>

@@ -1,6 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { AndroidImportance } from 'expo-notifications';
-import { notificationId, type ScheduledTrigger } from './notificationPlan';
+import { notificationId, testId, type ScheduledTrigger } from './notificationPlan';
 
 const CHANNEL = 'reminders';
 let ready = false;
@@ -26,7 +26,7 @@ export async function ensurePermission(): Promise<boolean> {
 /** Replaces everything scheduled for this app; the triggers' templates are already evaluated. */
 export async function scheduleTriggers(appId: string, triggers: ScheduledTrigger[]): Promise<void> {
   await setup();
-  await cancelTriggers(appId);
+  await cancelFor(appId, testId(appId)); // a pending "test in 2 minutes" survives a re-sync
   const T = Notifications.SchedulableTriggerInputTypes;
   for (const { id, plan, title, body } of triggers) {
     const trigger = plan.type === 'daily' ? { type: T.DAILY, hour: plan.hour, minute: plan.minute, channelId: CHANNEL } as const
@@ -36,10 +36,23 @@ export async function scheduleTriggers(appId: string, triggers: ScheduledTrigger
   }
 }
 
-export async function cancelTriggers(appId: string): Promise<void> {
+async function cancelFor(appId: string, keep?: string): Promise<void> {
   const prefix = notificationId(appId, '');
   const all = await Notifications.getAllScheduledNotificationsAsync();
-  await Promise.all(all.filter((n) => n.identifier.startsWith(prefix)).map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)));
+  await Promise.all(all.filter((n) => n.identifier.startsWith(prefix) && n.identifier !== keep).map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)));
+}
+
+export const cancelTriggers = (appId: string) => cancelFor(appId);
+
+export const isSupported = () => true;
+
+/** One-off copy of a reminder a few minutes ahead, so the user can check delivery without waiting for Sunday. */
+export async function scheduleTest(appId: string, message: { title: string; body: string }, minutes = 2): Promise<Date> {
+  await setup();
+  const at = new Date(Date.now() + minutes * 60_000);
+  await Notifications.scheduleNotificationAsync({ identifier: testId(appId), content: { ...message, data: { appId } },
+    trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at, channelId: CHANNEL } });
+  return at;
 }
 
 export async function notifyNow(message: { title: string; body: string }): Promise<void> {
