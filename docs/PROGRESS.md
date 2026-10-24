@@ -143,7 +143,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
-| 2026-10-24 | Claude Code | logo | Sloth icon replaced by a Jack playing card with a jester face (Jack of all trades): `assets/icon.svg` is source, PNGs + PWA icons rendered from it with `rsvg-convert`; Android adaptive/mono + favicon updated; not checked on a device | see git log |
+| 2026-10-24 | Claude Code | logo | Sloth icon replaced by the Joker/jester (Jack of all trades): `assets/icon.svg` is source, PNGs + PWA icons rendered from it with `rsvg-convert`; Android adaptive/mono + favicon updated; not checked on a device | see git log |
 | 2026-10-24 | Claude Code | T-75 | On-device Gemma 4 E2B via LiteRT-LM (Kotlin Expo module, download, Settings card), eval live status + saved log, OpenRouter daily-quota 429 fails fast; 642 tests, web export OK; Kotlin not yet compiled, no device run | see git log |
 | 2026-10-24 | Codex | T-48 code | Optional Qwen3.5-2B Q4_K_M + vision/ONNX, persisted Settings/eval selection, cold-start restoration; 635 tests/export/browser smoke pass; phone acceptance pending | see git log |
 | 2026-10-23 | Claude Code | T-63 | Sloth icon set, PWA manifest, `+html.tsx`, Pages workflow, `baseUrl` `/jackapp`; export verified under subpath; installability on phone pending (AT-13) | see git log |

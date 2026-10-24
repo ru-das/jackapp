@@ -1,10 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><rect width="1024" height="1024" fill="#CFE8C8"/><g transform="translate(512 512) scale(1.12) translate(-512 -512)"><g stroke-linecap="round" stroke-linejoin="round" transform="rotate(-6 512 512)">
-  <rect x="322" y="246" width="380" height="532" rx="40" fill="#FFFDF6" stroke="#1B2340" stroke-width="16"/>
-  <g id="corner">
-    <path d="M388 292 V342 Q388 370 364 370 Q346 370 344 352 M370 292 H406" fill="none" stroke="#1B2340" stroke-width="15"/>
-    <path d="M375 424 C350 406 354 384 365 384 C371 384 375 389 375 394 C375 389 379 384 385 384 C396 384 400 406 375 424Z" fill="#C8283C"/>
-  </g>
-  <use href="#corner" transform="rotate(180 512 512)"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><rect width="1024" height="1024" fill="#CFE8C8"/><g transform="translate(512 512) scale(2.0) translate(-512 -542)"><g stroke-linecap="round" stroke-linejoin="round">
   <g transform="translate(512 560) scale(.92) translate(-512 -560)">
   <path d="M438 506 Q396 486 392 428 Q452 438 490 488 Z" fill="#C8283C" stroke="#1B2340" stroke-width="12"/>
   <path d="M586 506 Q628 486 632 428 Q572 438 534 488 Z" fill="#232C52" stroke="#1B2340" stroke-width="12"/>
