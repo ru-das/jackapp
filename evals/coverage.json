@@ -1,0 +1,1208 @@
+[
+ {
+  "id": "c001",
+  "prompt": "To-do list",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c002",
+  "prompt": "Packing checklist for my trip",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c003",
+  "prompt": "Wedding checklist",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c004",
+  "prompt": "Home inventory tracker",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c005",
+  "prompt": "Asset tracker for my equipment",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c006",
+  "prompt": "Game collection tracker",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c007",
+  "prompt": "Action items list with owners and due dates",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c008",
+  "prompt": "Timesheet with hours worked",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c009",
+  "prompt": "Time log for my projects",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c010",
+  "prompt": "Attendance tracker for my class",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c011",
+  "prompt": "Employee leave tracker",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c012",
+  "prompt": "Check register to record deposits and payments",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c013",
+  "prompt": "Weekly budget with categories",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c014",
+  "prompt": "Wedding budget with estimated and actual cost",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c015",
+  "prompt": "Family budget planner",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c016",
+  "prompt": "Class schedule",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c017",
+  "prompt": "Meal planner for the week",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c018",
+  "prompt": "Habit tracker",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c019",
+  "prompt": "Invoice register with client and amount",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c020",
+  "prompt": "Expense report for my business trip",
+  "source": "vertex42",
+  "expect": "log"
+ },
+ {
+  "id": "c021",
+  "prompt": "Reading list with ratings",
+  "source": "notion",
+  "expect": "log"
+ },
+ {
+  "id": "c022",
+  "prompt": "Goal tracker with status",
+  "source": "notion",
+  "expect": "log"
+ },
+ {
+  "id": "c023",
+  "prompt": "Student planner with subjects and deadlines",
+  "source": "notion",
+  "expect": "log"
+ },
+ {
+  "id": "c024",
+  "prompt": "Personal budget tracker",
+  "source": "notion",
+  "expect": "log"
+ },
+ {
+  "id": "c025",
+  "prompt": "Movie watchlist",
+  "source": "notion",
+  "expect": "log"
+ },
+ {
+  "id": "c026",
+  "prompt": "Book database with author and status",
+  "source": "notion",
+  "expect": "log"
+ },
+ {
+  "id": "c027",
+  "prompt": "Weekly habit tracker for reading running and meditation",
+  "source": "notion",
+  "expect": "log"
+ },
+ {
+  "id": "c028",
+  "prompt": "Daily journal with prompts",
+  "source": "create.xyz/flavio",
+  "expect": "log"
+ },
+ {
+  "id": "c029",
+  "prompt": "Personal budget snapshot",
+  "source": "create.xyz/flavio",
+  "expect": "log"
+ },
+ {
+  "id": "c030",
+  "prompt": "Recipe keeper",
+  "source": "create.xyz/flavio",
+  "expect": "log"
+ },
+ {
+  "id": "c031",
+  "prompt": "Workout log",
+  "source": "create.xyz/flavio",
+  "expect": "log"
+ },
+ {
+  "id": "c032",
+  "prompt": "Local event board",
+  "source": "create.xyz/flavio",
+  "expect": "log"
+ },
+ {
+  "id": "c033",
+  "prompt": "Client intake form",
+  "source": "create.xyz/flavio",
+  "expect": "log"
+ },
+ {
+  "id": "c034",
+  "prompt": "Weight tracker",
+  "source": "create.xyz/flavio",
+  "expect": "log"
+ },
+ {
+  "id": "c035",
+  "prompt": "Bill tracker",
+  "source": "create.xyz/flavio",
+  "expect": "log"
+ },
+ {
+  "id": "c036",
+  "prompt": "Expenses tracker",
+  "source": "create.xyz/flavio",
+  "expect": "log"
+ },
+ {
+  "id": "c037",
+  "prompt": "Notes app",
+  "source": "create.xyz/flavio",
+  "expect": "log"
+ },
+ {
+  "id": "c038",
+  "prompt": "Personal diary",
+  "source": "create.xyz/flavio",
+  "expect": "log"
+ },
+ {
+  "id": "c039",
+  "prompt": "Bookmarks manager with notes",
+  "source": "create.xyz/flavio",
+  "expect": "log"
+ },
+ {
+  "id": "c040",
+  "prompt": "Book database",
+  "source": "create.xyz/flavio",
+  "expect": "log"
+ },
+ {
+  "id": "c041",
+  "prompt": "Vocabulary list with meanings",
+  "source": "create.xyz/flavio",
+  "expect": "log"
+ },
+ {
+  "id": "c042",
+  "prompt": "Flashcards with front and back",
+  "source": "create.xyz/flavio",
+  "expect": "log"
+ },
+ {
+  "id": "c043",
+  "prompt": "Kanban board with To Do Doing Done",
+  "source": "create.xyz/flavio",
+  "expect": "log"
+ },
+ {
+  "id": "c044",
+  "prompt": "Simple CRM for my freelance clients",
+  "source": "softr/airtable",
+  "expect": "log"
+ },
+ {
+  "id": "c045",
+  "prompt": "Product catalog with prices",
+  "source": "softr/airtable",
+  "expect": "log"
+ },
+ {
+  "id": "c046",
+  "prompt": "Inventory management for my small shop",
+  "source": "softr/airtable",
+  "expect": "log"
+ },
+ {
+  "id": "c047",
+  "prompt": "Project tracker with status and owner",
+  "source": "softr/airtable",
+  "expect": "log"
+ },
+ {
+  "id": "c048",
+  "prompt": "OKR tracker with progress",
+  "source": "softr/airtable",
+  "expect": "log"
+ },
+ {
+  "id": "c049",
+  "prompt": "Issue tracker with status",
+  "source": "softr/airtable",
+  "expect": "log"
+ },
+ {
+  "id": "c050",
+  "prompt": "Content calendar with topics and dates",
+  "source": "softr/airtable",
+  "expect": "log"
+ },
+ {
+  "id": "c051",
+  "prompt": "Sales asset list",
+  "source": "softr/airtable",
+  "expect": "log"
+ },
+ {
+  "id": "c052",
+  "prompt": "Small business accounting with income and expenses",
+  "source": "softr/airtable",
+  "expect": "log"
+ },
+ {
+  "id": "c053",
+  "prompt": "Mood tracker",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c054",
+  "prompt": "Sleep log with hours",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c055",
+  "prompt": "Caffeine tracker",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c056",
+  "prompt": "Job application tracker",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c057",
+  "prompt": "Medication tracker",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c058",
+  "prompt": "Gym attendance tracker",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c059",
+  "prompt": "Running log with distance and time",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c060",
+  "prompt": "Blood pressure log",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c061",
+  "prompt": "Glucose tracker",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c062",
+  "prompt": "Baby feeding and sleep log",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c063",
+  "prompt": "Car maintenance log with mileage and cost",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c064",
+  "prompt": "Fuel log with liters and price",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c065",
+  "prompt": "Shopping list with prices",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c066",
+  "prompt": "Grocery list I can share",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c067",
+  "prompt": "Event guest list with RSVP status",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c068",
+  "prompt": "Debt tracker with amounts owed",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c069",
+  "prompt": "Savings goal tracker",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c070",
+  "prompt": "Who owes me money tracker",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c071",
+  "prompt": "Score keeper for board games",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c072",
+  "prompt": "Gratitude journal",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c073",
+  "prompt": "Wishlist with price and priority",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c074",
+  "prompt": "Gift ideas list with prices",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c075",
+  "prompt": "Pet feeding log",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c076",
+  "prompt": "Plant watering tracker",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c077",
+  "prompt": "Subscription tracker with monthly cost",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c078",
+  "prompt": "Monthly bill tracker with due dates",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c079",
+  "prompt": "Habit tracker with streaks",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c080",
+  "prompt": "Weight loss tracker with weekly average",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c081",
+  "prompt": "Weekly chore chart for the family",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c082",
+  "prompt": "Study planner with subjects and hours",
+  "source": "dev/etsy",
+  "expect": "log"
+ },
+ {
+  "id": "c083",
+  "prompt": "Water intake counter",
+  "source": "tally",
+  "expect": "counter"
+ },
+ {
+  "id": "c084",
+  "prompt": "Tally counter for laps",
+  "source": "tally",
+  "expect": "counter"
+ },
+ {
+  "id": "c085",
+  "prompt": "Click counter",
+  "source": "tally",
+  "expect": "counter"
+ },
+ {
+  "id": "c086",
+  "prompt": "Steps counter",
+  "source": "tally",
+  "expect": "counter"
+ },
+ {
+  "id": "c087",
+  "prompt": "Rep counter for push-ups",
+  "source": "tally",
+  "expect": "counter"
+ },
+ {
+  "id": "c088",
+  "prompt": "Currency Converter",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c089",
+  "prompt": "Unit converter for kilometers and miles",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c090",
+  "prompt": "Temperature converter celsius to fahrenheit",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c091",
+  "prompt": "Tip calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c092",
+  "prompt": "BMI calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c093",
+  "prompt": "Calorie calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c094",
+  "prompt": "BMR calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c095",
+  "prompt": "Percentage calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c096",
+  "prompt": "Discount calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c097",
+  "prompt": "Sales tax calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c098",
+  "prompt": "GST calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c099",
+  "prompt": "Salary calculator from hourly to yearly",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c100",
+  "prompt": "Mortgage calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c101",
+  "prompt": "Loan calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c102",
+  "prompt": "Auto loan calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c103",
+  "prompt": "Compound interest calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c104",
+  "prompt": "Simple interest calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c105",
+  "prompt": "Retirement savings calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c106",
+  "prompt": "Inflation calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c107",
+  "prompt": "Investment return calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c108",
+  "prompt": "Pace calculator for running",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c109",
+  "prompt": "Age calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c110",
+  "prompt": "Days until my birthday",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c111",
+  "prompt": "Due date calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c112",
+  "prompt": "Hours worked calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c113",
+  "prompt": "GPA calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c114",
+  "prompt": "Grade calculator for my final exam",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c115",
+  "prompt": "Concrete volume calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c116",
+  "prompt": "Fraction calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c117",
+  "prompt": "Triangle area calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c118",
+  "prompt": "Debt snowball calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c119",
+  "prompt": "Savings interest calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c120",
+  "prompt": "Annuity calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c121",
+  "prompt": "Ideal weight calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c122",
+  "prompt": "Body fat calculator",
+  "source": "calculator.net",
+  "expect": "calculator"
+ },
+ {
+  "id": "c123",
+  "prompt": "Profit and loss calculator",
+  "source": "tutorials",
+  "expect": "calculator"
+ },
+ {
+  "id": "c124",
+  "prompt": "Break-even calculator",
+  "source": "tutorials",
+  "expect": "calculator"
+ },
+ {
+  "id": "c125",
+  "prompt": "Paint calculator for a room",
+  "source": "tutorials",
+  "expect": "calculator"
+ },
+ {
+  "id": "c126",
+  "prompt": "Recipe scaler to double ingredients",
+  "source": "tutorials",
+  "expect": "calculator"
+ },
+ {
+  "id": "c127",
+  "prompt": "Fuel cost calculator for a trip",
+  "source": "tutorials",
+  "expect": "calculator"
+ },
+ {
+  "id": "c128",
+  "prompt": "Electricity bill cost calculator",
+  "source": "tutorials",
+  "expect": "calculator"
+ },
+ {
+  "id": "c129",
+  "prompt": "Tile calculator for a floor",
+  "source": "tutorials",
+  "expect": "calculator"
+ },
+ {
+  "id": "c130",
+  "prompt": "Pizza size comparison calculator",
+  "source": "tutorials",
+  "expect": "calculator"
+ },
+ {
+  "id": "c131",
+  "prompt": "Countdown in days to New Year",
+  "source": "tutorials",
+  "expect": "calculator"
+ },
+ {
+  "id": "c132",
+  "prompt": "Kilograms to pounds converter",
+  "source": "tutorials",
+  "expect": "calculator"
+ },
+ {
+  "id": "c133",
+  "prompt": "Split the bill and add a tip for 4 people",
+  "source": "split",
+  "expect": [
+   "calculator",
+   "splitter"
+  ]
+ },
+ {
+  "id": "c134",
+  "prompt": "Tip splitter",
+  "source": "split",
+  "expect": [
+   "calculator",
+   "splitter"
+  ]
+ },
+ {
+  "id": "c135",
+  "prompt": "Divide the dinner bill between friends",
+  "source": "split",
+  "expect": [
+   "calculator",
+   "splitter"
+  ]
+ },
+ {
+  "id": "c136",
+  "prompt": "Split a restaurant bill from a receipt photo",
+  "source": "split",
+  "expect": "splitter"
+ },
+ {
+  "id": "c137",
+  "prompt": "Read my receipt and tell me what each person owes",
+  "source": "split",
+  "expect": "splitter"
+ },
+ {
+  "id": "c138",
+  "prompt": "Recipe generator from the ingredients I have",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c139",
+  "prompt": "Workout plan generator for beginners",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c140",
+  "prompt": "Trip itinerary planner for a weekend in Paris",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c141",
+  "prompt": "Gift idea generator",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c142",
+  "prompt": "Summarize my notes",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c143",
+  "prompt": "Text summarizer",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c144",
+  "prompt": "Email rewriter that makes my message polite",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c145",
+  "prompt": "Translate text into Spanish",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c146",
+  "prompt": "Explain this code to me",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c147",
+  "prompt": "Identify a plant from a photo",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c148",
+  "prompt": "Tell me the calories in a meal from a photo",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c149",
+  "prompt": "Study guide generator from my text",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c150",
+  "prompt": "Flashcard generator from a topic",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c151",
+  "prompt": "Caption writer for my photos",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c152",
+  "prompt": "Meal ideas from a photo of my fridge",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c153",
+  "prompt": "Choose a movie for me tonight",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c154",
+  "prompt": "Name ideas for my new puppy",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c155",
+  "prompt": "Language learning buddy",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c156",
+  "prompt": "Cover letter writer",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c157",
+  "prompt": "Poem writer",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c158",
+  "prompt": "Homework helper for math",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c159",
+  "prompt": "Decide what to cook tonight",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c160",
+  "prompt": "Packing list generator for my trip",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c161",
+  "prompt": "Business card scanner that lists the contact details",
+  "source": "ai-ideas",
+  "expect": "ai"
+ },
+ {
+  "id": "c162",
+  "prompt": "Receipt scanner that extracts the items",
+  "source": "ai-ideas",
+  "expect": [
+   "ai",
+   "splitter"
+  ]
+ },
+ {
+  "id": "c163",
+  "prompt": "Random name picker for my class",
+  "source": "ai-ideas",
+  "expect": [
+   "ai",
+   "none"
+  ]
+ },
+ {
+  "id": "c164",
+  "prompt": "Remind me to drink water every two hours",
+  "source": "dev",
+  "expect": "reminder"
+ },
+ {
+  "id": "c165",
+  "prompt": "Medication reminder at 8am and 8pm",
+  "source": "dev",
+  "expect": "reminder"
+ },
+ {
+  "id": "c166",
+  "prompt": "Weekly reminder to water the plants on Sunday",
+  "source": "dev",
+  "expect": "reminder"
+ },
+ {
+  "id": "c167",
+  "prompt": "Remind me to stretch every hour",
+  "source": "dev",
+  "expect": "reminder"
+ },
+ {
+  "id": "c168",
+  "prompt": "Rent payment reminder every month",
+  "source": "dev",
+  "expect": "reminder"
+ },
+ {
+  "id": "c169",
+  "prompt": "Pomodoro timer",
+  "source": "dev",
+  "expect": "timer"
+ },
+ {
+  "id": "c170",
+  "prompt": "Cooking timer",
+  "source": "dev",
+  "expect": "timer"
+ },
+ {
+  "id": "c171",
+  "prompt": "Workout interval timer",
+  "source": "dev",
+  "expect": "timer"
+ },
+ {
+  "id": "c172",
+  "prompt": "Tea timer for three minutes",
+  "source": "dev",
+  "expect": "timer"
+ },
+ {
+  "id": "c173",
+  "prompt": "Meditation timer",
+  "source": "dev",
+  "expect": "timer"
+ },
+ {
+  "id": "c174",
+  "prompt": "Chat with my friends in real time",
+  "source": "gate",
+  "expect": "unsupported"
+ },
+ {
+  "id": "c175",
+  "prompt": "Show live stock prices",
+  "source": "gate",
+  "expect": "unsupported"
+ },
+ {
+  "id": "c176",
+  "prompt": "Sync with my Google calendar",
+  "source": "gate",
+  "expect": "unsupported"
+ },
+ {
+  "id": "c177",
+  "prompt": "Track my run on a map with GPS",
+  "source": "gate",
+  "expect": "unsupported"
+ },
+ {
+  "id": "c178",
+  "prompt": "Make a snake game",
+  "source": "gate",
+  "expect": "unsupported"
+ },
+ {
+  "id": "c179",
+  "prompt": "Voice recorder app",
+  "source": "gate",
+  "expect": "unsupported"
+ },
+ {
+  "id": "c180",
+  "prompt": "Connect to my bank account",
+  "source": "gate",
+  "expect": "unsupported"
+ },
+ {
+  "id": "c181",
+  "prompt": "Multiplayer trivia game",
+  "source": "gate",
+  "expect": "unsupported"
+ },
+ {
+  "id": "c182",
+  "prompt": "Show the weather forecast for my city",
+  "source": "gate",
+  "expect": "unsupported"
+ },
+ {
+  "id": "c183",
+  "prompt": "Record a video diary",
+  "source": "gate",
+  "expect": "unsupported"
+ },
+ {
+  "id": "c184",
+  "prompt": "Tic tac toe",
+  "source": "gate",
+  "expect": "unsupported"
+ },
+ {
+  "id": "c185",
+  "prompt": "Scan QR codes",
+  "source": "gap",
+  "expect": "none"
+ },
+ {
+  "id": "c186",
+  "prompt": "Flashlight",
+  "source": "gap",
+  "expect": "none"
+ },
+ {
+  "id": "c187",
+  "prompt": "Compass",
+  "source": "gap",
+  "expect": "none"
+ },
+ {
+  "id": "c188",
+  "prompt": "Barcode scanner",
+  "source": "gap",
+  "expect": "none"
+ },
+ {
+  "id": "c189",
+  "prompt": "Roll a dice",
+  "source": "gap",
+  "expect": "none"
+ },
+ {
+  "id": "c190",
+  "prompt": "Flip a coin",
+  "source": "gap",
+  "expect": "none"
+ },
+ {
+  "id": "c191",
+  "prompt": "Calendar",
+  "source": "gap",
+  "expect": "none"
+ },
+ {
+  "id": "c192",
+  "prompt": "Gantt chart",
+  "source": "gap",
+  "expect": "none"
+ },
+ {
+  "id": "c193",
+  "prompt": "Family tree",
+  "source": "gap",
+  "expect": "none"
+ },
+ {
+  "id": "c194",
+  "prompt": "Org chart",
+  "source": "gap",
+  "expect": "none"
+ },
+ {
+  "id": "c195",
+  "prompt": "Quiz app with scoring",
+  "source": "gap",
+  "expect": "none"
+ },
+ {
+  "id": "c196",
+  "prompt": "Wheel of fortune",
+  "source": "gap",
+  "expect": "none"
+ },
+ {
+  "id": "c197",
+  "prompt": "Stopwatch",
+  "source": "gap",
+  "expect": "none"
+ },
+ {
+  "id": "c198",
+  "prompt": "Weight loss chart",
+  "source": "gap",
+  "expect": [
+   "log",
+   "none"
+  ]
+ }
+]
