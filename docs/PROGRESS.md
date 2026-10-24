@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M0 — Setup done except T-04 CI; T-14 decisions drafted (ADR-003/005 await human Accept); M1 phone spikes pending |
-| Last updated | 2026-10-24 by Claude Code |
+| Last updated | 2026-10-24 by Claude Code (T-75) |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-75 on-device Gemma 4 E2B (Claude Code, 2026-10-24, human-requested; ADR-022):** Quick 6 run 5 (all 6 rows, ~17 s each) was **not a model result**: every call got HTTP 429 (4 tries with 2+4+8 s backoff, no `Retry-After`). Cause: the OpenRouter daily free quota (50 `:free` requests a day under $10 of credits, resets 00:00 UTC; runs 1–5 plus manual builds all fell inside one UTC day); both free Gemma models also share one upstream (Google AI Studio), so the fallback does not help. Check with `curl -s -H "Authorization: Bearer $KEY" https://openrouter.ai/api/v1/key` (`free_model_daily_requests`). Decision: run Gemma 4 E2B on the phone with Google's LiteRT-LM. **Built:** `modules/litert-lm` (Expo module in Kotlin, `litertlm-android:0.16.1`, GPU then CPU, thinking off, `cancelProcess` on abort, `onPartial` events), `src/ai/providers/litert.native.ts` (+ web stub `litert.ts`, `localModel` download of the 2,588,147,712 B file at a pinned HF revision), `LocalModelCard` in Settings (Android default for fresh installs), Create passes `noPlan` for `local`. **Eval screen** now shows a live status line (`e05 (2/6) · FILL · writing 310 chars … tok/s · 41 s in this call`) and a timestamped log (call start with prompt sizes, first token, provider notes such as `GPU: model load … first token … total …`, retries, per-attempt validator errors, result), also `console.log` for `adb logcat`, and saved as `log` in the results JSON. OpenRouter now reads 429 bodies: the daily quota fails at once with a clear message. **Pinned to 0.16.1** because 0.17+ needs Kotlin 2.4 and this project builds with Kotlin 2.2 (RN 0.88). Changed one existing test on purpose: `settings.test.ts` "old on-device settings fall back to OpenRouter" no longer holds (ADR-022 makes `local` valid again) and now asserts that `local` is kept and unknown providers still fall back. `npm run check` green (33 suites / 642 tests), `expo export -p web` builds, autolinking finds the module. **Not verified:** the Kotlin compiles (no JDK or Android SDK here), GPU vs CPU speed, RAM, JSON quality of E2B without PLAN. **Human next:** `eas build -p android --profile development` (native module, so the old dev build lacks it), install, Settings → On-device → Download, then TESTING §7a (gate: one FILL ≤ 2.5 min). If the build fails, paste the Gradle error; the most likely culprits are the Kotlin metadata version and the exact LiteRT-LM signatures. Ask Codex to review this commit.
+>
 > **Fourth eval fix (Claude Code, 2026-10-24, Quick 6 run 4):** first real builds: e01 valid in 39 s, e09 valid after 1 repair in 36 s, e29 correct refusal. Failures: e05 Nemotron PLAN 183 s still `finish_reason length` (reasoning runaway) → Nemotron dropped, all stages are Gemma (PLAN 26B, FILL/REPAIR/run 31B); e13 plans kept putting objects in `actions[].ops` → PLAN prompt now says ops are name strings and `of` types are string/number/boolean/date (touches Codex-owned `prompts.ts`); e26 upstream 'Provider timed out' with HTTP 200 → provider retries error bodies / 5xx up to 3 times. Run 4 metrics before these fixes: first-fill 1/4, within 2 repairs 2/4, refusals 1/2, median 37.5 s. **Human: rerun Quick 6.**
 >
 > **Third eval fix (Claude Code, 2026-10-24):** with `json_object`, Nemotron answered but `finish_reason: length`, `content: null`, `reasoning_tokens: 1024` of 1024: reasoning ate the PLAN cap; `reasoning.effort: low` is ignored by this model. OpenRouter provider now adds 6144 tokens of headroom to every `max_tokens`. If latency is high, try a non-reasoning PLAN model or lower the headroom. **Human: rerun Quick 6.**
@@ -139,6 +141,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-24 | Claude Code | T-75 | On-device Gemma 4 E2B via LiteRT-LM (Kotlin Expo module, download, Settings card), eval live status + saved log, OpenRouter daily-quota 429 fails fast; 642 tests, web export OK; Kotlin not yet compiled, no device run | see git log |
 | 2026-10-24 | Codex | T-48 code | Optional Qwen3.5-2B Q4_K_M + vision/ONNX, persisted Settings/eval selection, cold-start restoration; 635 tests/export/browser smoke pass; phone acceptance pending | see git log |
 | 2026-10-23 | Claude Code | T-63 | Sloth icon set, PWA manifest, `+html.tsx`, Pages workflow, `baseUrl` `/jackapp`; export verified under subpath; installability on phone pending (AT-13) | see git log |
 | 2026-10-23 | Claude Code | T-10, T-11, T-46 | Ticked at the human's instruction ("everything works fine"); no spike numbers recorded, ADR-003 spike table still empty | see git log |

@@ -167,8 +167,14 @@ These checks establish runner correctness, not real-model quality or phone speed
 
 On the phone: open `jackapp://dev/eval`, choose model and mode, Run, then **Save file** and copy the JSON to `evals/results/`.
 
+## 7a. On-device LiteRT-LM (T-75, ADR-022)
+
+Automated (mocked native module and file system): `litertProvider.test.ts` (exact-size check, plain path + flattened retry + bare base64, timings and partials, one call at a time, abort cancels, download URL / size check / `.part` cleanup, remove), `localModelCard.test.tsx`, `logged.test.ts`, `settings.test.ts` (Android default), `evalScreen.test.tsx` (log lines, `log` in the saved JSON, live status). The Kotlin module is not compiled by `npm run check`.
+
+Human, on the Moto G45 with a development build (`eas build -p android --profile development`; the module is native, so an older dev build will not have it): Settings → On-device → Download (2.6 GB, Wi-Fi) → `jackapp://dev/eval` → chip e01, "Skip plan stage" on → Run. Read the log: `model load` (first call only), `first token` (prompt reading), total, `GPU` or `CPU`, tokens in cache. **Gate: one FILL ≤ 2.5 min; stop and report above 3 min.** Then Create → Fridge Snap (target 1–2 min) → Save → photo → Make list → airplane mode → build again. Then Quick 6 with the switch on and off; save the JSON (it contains the log) to `evals/results/`.
+
 ## 7. OpenRouter and Ollama (T-49, ADR-021)
 
-Automated (mock `fetch`, no network): `openrouterProvider.test.ts` (stage model + fallback, key header, schema, images, 401, 429 retry/abort, network failure), `ollamaProvider.test.ts` (body, bare base64, errors), `settings.test.ts` (old `local` settings fall back), `settingsScreen.test.tsx`.
+Automated (mock `fetch`, no network): `openrouterProvider.test.ts` (stage model + fallback, key header, schema, images, 401, 429 retry/abort, network failure), `ollamaProvider.test.ts` (body, bare base64, errors), `settings.test.ts` (unknown providers fall back; a daily-quota 429 fails at once), `settingsScreen.test.tsx`.
 
 Human, with a key: Settings → paste key → New mini-app → Fridge Snap → time to preview (target under 2 min) → Save → photo → Make list. Then `jackapp://dev/eval` (free tier is about 50 requests a day; a full 30-prompt run needs credits). Ollama: `ollama serve`, set address and model, repeat one build. Eval files from the old on-device runs in `evals/results/` are not comparable for latency.

@@ -48,7 +48,7 @@ A prompt may contain several tasks. Do them in the order given, one commit per t
 2. **Validate every spec** before rendering or saving it: generated, loaded, or imported.
 3. **Respect module boundaries** (`ARCHITECTURE.md` §4): `src/spec` has no React or platform imports; the runtime never imports the generator; catalog components never call AI or storage.
 4. **Platform code goes in `.web.ts` / `.native.ts`** behind one interface.
-5. **No network** except the AI provider the user picked (OpenRouter, or the user's own Ollama address). No telemetry. The only user-set URL is the Ollama address. Never log or commit the API key. (ADR-021)
+5. **No network** except the AI provider the user picked (on-device, OpenRouter, or the user's own Ollama address) and the one-time on-device model download from huggingface.co. No telemetry. The only user-set URL is the Ollama address. Never log or commit the API key. (ADR-021, ADR-022)
 6. **No new dependency** without a `DECISIONS.md` line saying why. Prefer what Expo already ships.
 7. **Contract changes** (`SCHEMA.md`, `COMPONENTS.md`) update code, tests, and docs in the same commit, plus a `DECISIONS.md` entry.
 8. **TypeScript strict.** No `any` except at JSON parse boundaries, where data immediately goes through Zod.

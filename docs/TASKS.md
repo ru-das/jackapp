@@ -97,5 +97,8 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 - [ ] T-92 Tinker fine-tune for spec generation, compared against the eval baseline
 - [ ] T-93 Audio input component (Gemma 4 E2B/E4B audio)
 - [ ] T-94 Spec v0.2: conditions (`when`), nested screens
+- [~] **T-75 (P0, human-requested) On-device Gemma 4 E2B via LiteRT-LM on Android + detailed eval log.** Code and tests done 2026-10-24 (Claude Code): local Expo module `modules/litert-lm` (Kotlin, LiteRT-LM 0.16.1), `litert.native.ts` provider + download, Settings card, Create skips PLAN for `local`, eval screen live status + timestamped log saved in the JSON, OpenRouter daily-quota 429 fails fast. ADR-022. `npm run check` green (33 suites / 642 tests); web export builds.
+  - [ ] **Kotlin module compiles:** `eas build -p android --profile development` (no JDK/Android SDK on the dev laptop, so it was written against the 0.16.1 source and never compiled).
+  - [ ] **Spike gate on the Moto G45:** e01 with "Skip plan stage" on, one FILL ≤ 2.5 min (stop and report above 3 min). Then Fridge Snap in 1–2 min, photo `ai.run`, airplane-mode rebuild, Quick 6 both modes. TESTING §7a.
 - [x] **T-49 (P0, human-requested) OpenRouter default + Ollama; remove on-device inference.** Code done 2026-10-24 (Claude Code): `openrouter.ts` (free model per stage, fallback, 429 retry), `ollama.ts`, Settings (key / address / model), `LLMProvider` slimmed, llama.rn / worker / vendored runtime / spike removed. ADR-021.
   - [ ] **Human acceptance:** real build with a key, time under 2 min; photo `ai.run`; one Ollama build; eval run (needs credits).

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { OPENROUTER_MODELS } from '@/ai/models';
+import { localModel } from '@/ai/providers/litert';
 import { loadSettings, saveSettings, type Settings } from '@/storage/settings';
+import { LocalModelCard } from '@/ui/LocalModelCard';
 import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
 
 const STAGES = [
@@ -28,6 +30,7 @@ export default function SettingsScreen() {
   const card = [styles.card, { backgroundColor: t.surface, borderColor: t.border }];
   const input = [styles.input, { color: t.text, borderColor: t.border, backgroundColor: t.bg }];
   const choices: [Settings['provider'], string][] = [
+    ...(localModel.available ? [['local', 'On-device (Gemma 4 E2B, works offline)'] as [Settings['provider'], string]] : []),
     ['openrouter', 'OpenRouter (free models)'], ['ollama', 'Ollama (your own computer)'],
     ...(__DEV__ ? [['mock', 'Mock (dev, no AI)'] as [Settings['provider'], string]] : []),
   ];
@@ -37,7 +40,9 @@ export default function SettingsScreen() {
       <View style={card}>
         <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>AI</Text>
         <Text style={{ color: t.muted, fontSize: 15 }}>
-          Your request, and any photo you ask it to read, is sent to the AI you pick. Your mini-apps and their data stay on this device.
+          {settings.provider === 'local'
+            ? 'Everything stays on this device.'
+            : 'Your request, and any photo you ask it to read, is sent to the AI you pick. Your mini-apps and their data stay on this device.'}
         </Text>
         {choices.map(([id, label]) => {
           const on = settings.provider === id;
@@ -52,6 +57,8 @@ export default function SettingsScreen() {
           );
         })}
       </View>
+
+      {settings.provider === 'local' ? <LocalModelCard style={card} /> : null}
 
       {settings.provider === 'openrouter' ? (
         <View style={card}>

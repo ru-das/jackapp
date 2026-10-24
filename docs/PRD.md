@@ -22,7 +22,7 @@ General AI chat can answer once, but it doesn't give you a **reusable tool** wit
 JackApp lets a user **describe a mini-app in plain language** and get a working one in about a minute.
 
 - The AI does **not** write code. It assembles a **JSON spec** from a fixed catalog of pre-built, tested components (camera input, checklist, AI step, reminder, stat, and so on). See `SCHEMA.md` and `COMPONENTS.md`.
-- The model is **open-weight (Gemma 4 and others) served free by OpenRouter**, or your own model through Ollama. Mini-apps and their data stay on the device (ADR-021).
+- The model is **Gemma 4 E2B running on the Android phone** (ADR-022), or an open-weight model served free by OpenRouter, or your own model through Ollama. Mini-apps and their data stay on the device (ADR-021).
 - Mini-apps can use the model **at runtime** too (for example, "read this receipt photo"), so open AI is the core of both building and using them.
 
 ## 3. Why open AI matters here (the core of the write-up)

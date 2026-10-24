@@ -11,7 +11,7 @@ JackApp is a single **Expo (React Native + React Native Web)** TypeScript app th
 ```mermaid
 flowchart LR
   U[User prompt] --> G[Generator<br/>plan → fill → repair]
-  G <--> P[LLM Provider<br/>OpenRouter / Ollama / mock]
+  G <--> P[LLM Provider<br/>on-device / OpenRouter / Ollama / mock]
   G --> V[Spec Validator]
   V -->|valid spec| S[(Local storage)]
   S --> R[Runtime<br/>renderer + state + actions]
@@ -32,7 +32,7 @@ flowchart LR
 | Images | `expo-image-picker`, `expo-image-manipulator` | Downscale to ≤ 1024 px JPEG before storing or sending to a model |
 | Notifications | `expo-notifications` (native) | Web: best-effort, only while the tab is open |
 | Tests | `jest-expo`, `@testing-library/react-native` | |
-| Inference | `fetch` to OpenRouter (default, free models) or the user's Ollama server | Same code on web and Android (ADR-021) |
+| Inference | Android: Gemma 4 E2B on the phone via LiteRT-LM (`modules/litert-lm`, default). Web and Android: `fetch` to OpenRouter (free models) or the user's Ollama server | ADR-021, ADR-022 |
 | Inference: tests / agents | `mock` provider | Tests never call OpenRouter or Ollama |
 | Optional renderer lib | Vercel `json-render` | Spike T-13 decides (ADR-005). Our spec stays canonical either way |
 
@@ -73,7 +73,9 @@ jackapp/
     │   ├── providers/
     │   │   ├── mock.ts
     │   │   ├── openrouter.ts      # default; one free model per stage
-    │   │   └── ollama.ts          # user's own server
+    │   │   ├── ollama.ts          # user's own server
+    │   │   ├── litert.native.ts   # on-device Gemma 4 E2B (Android); litert.ts is the web stub
+    │   │   └── logged.ts          # withLog(provider): call events for the eval log
     │   └── generator/
     │       ├── catalogPrompt.ts   # builds the catalog section of prompts from catalog/*/meta.ts
     │       ├── prompts.ts         # system prompts + few-shot examples
@@ -93,14 +95,14 @@ jackapp/
 4. **`src/runtime/` never imports `src/ai/generator/`.** The runtime only knows the `LLMProvider` interface, for `ai.run`.
 5. **Catalog components never call AI or storage directly.** They get props and callbacks from the runtime.
 6. **Platform differences live in `.web.ts` / `.native.ts` files** behind one interface. No `Platform.OS` branching in feature code, except for small UI tweaks.
-7. **No network calls** except the AI provider the user picked in Settings (OpenRouter, or their Ollama address). No analytics, no telemetry. The Ollama address is the only user-set URL.
+7. **No network calls** except the AI provider the user picked in Settings (on-device, OpenRouter, or their Ollama address) and the one-time model download from huggingface.co. No analytics, no telemetry. The Ollama address is the only user-set URL.
 8. **No new dependency** without a line in `DECISIONS.md` saying why.
 
 ## 5. LLM provider interface
 
 ```ts
 export interface LLMProvider {
-  id: 'mock' | 'openrouter' | 'ollama';
+  id: 'mock' | 'openrouter' | 'ollama' | 'local';
   label: string;
   caps: { vision: boolean; jsonSchema: boolean; contextTokens: number };
   isConfigured(): Promise<boolean>;         // key / model name set in Settings
@@ -112,12 +114,15 @@ export interface LLMProvider {
     temperature?: number;
     stage?: 'plan' | 'fill' | 'repair' | 'run'; // OpenRouter picks a model per stage
     signal?: AbortSignal;
+    onPartial?(chars: number): void;        // streaming progress (on-device only)
+    onLog?(message: string): void;          // provider internals for the eval log
   }): Promise<string>;                      // raw text; callers parse and validate
 }
 ```
 
 - **mock**: returns fixtures by keyword. Used by tests, UI work, and agents.
 - **openrouter**: `src/ai/providers/openrouter.ts`. Key from Settings. Model per stage from `src/ai/models.ts` plus named fallbacks (`OPENROUTER_FALLBACKS`) and low reasoning effort. A `jsonSchema` request becomes `response_format: json_object` (PLAN only, ADR-017; strict schemas fail on Nvidia). Retries 429 with backoff. See ADR-021.
+- **local** (Android): `src/ai/providers/litert.native.ts` calls the Expo module `modules/litert-lm` (Kotlin, LiteRT-LM 0.16.1). GPU first, CPU fallback; one conversation per call; `caps.jsonSchema` false; the model file (2.6 GB) is downloaded from huggingface.co at a pinned revision and size-checked (`localModel`). ADR-022.
 - **ollama**: `src/ai/providers/ollama.ts`. `POST <ollamaUrl>/api/chat`, `format` = schema, images as bare base64.
 
 ## 6. Generation pipeline
@@ -175,6 +180,7 @@ Rules:
 | Render + state + persistence | ✅ | ✅ | ✅ |
 | Camera / library | ✅ library + camera via browser | ✅ | ✅ |
 | AI (OpenRouter / Ollama) | ✅ | ✅ | ⏳ |
+| AI (on-device LiteRT-LM) | ❌ | ✅ | ⏳ |
 | Scheduled notifications | ⚠️ only while open | ✅ | ✅ |
 
 ## 10. Performance and size budgets

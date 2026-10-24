@@ -67,6 +67,8 @@ export default function Create() {
       setPhase({ kind: 'working', progress: { stage: 'planning', attempt: 0 } });
       const result = await generate({
         prompt: request, provider, model, signal: controller.signal,
+        // Every call re-reads the ~4K-token catalog prompt, which is the slow part on a phone, so skip the extra PLAN call.
+        noPlan: provider.id === 'local',
         onProgress: (e) => {
           if (live() && (e.stage === 'planning' || e.stage === 'building' || e.stage === 'checking' || e.stage === 'repairing')) {
             setPhase({ kind: 'working', progress: e });
@@ -154,7 +156,7 @@ export default function Create() {
       {phase.kind === 'needsModel' ? (
         <View style={card}>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Set up AI first</Text>
-          <Text style={{ color: t.muted, fontSize: 16 }}>JackApp needs an OpenRouter key (free) or an Ollama model to build mini-apps.</Text>
+          <Text style={{ color: t.muted, fontSize: 16 }}>JackApp needs the on-device model, an OpenRouter key (free) or an Ollama model to build mini-apps.</Text>
           <ActionButton label="Open settings" onPress={() => router.push('/settings')} />
         </View>
       ) : null}

@@ -1,0 +1,20 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'expo.modules.litertlm'
+version = '0.1.0'
+
+android {
+  namespace "expo.modules.litertlm"
+  defaultConfig {
+    versionCode 1
+    versionName "0.1.0"
+  }
+}
+
+dependencies {
+  // Pinned to 0.16.1: 0.17+ is built with Kotlin 2.4, this project compiles with Kotlin 2.2 (RN 0.88) and cannot read that metadata.
+  implementation "com.google.ai.edge.litertlm:litertlm-android:0.16.1"
+}

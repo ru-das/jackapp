@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { z } from 'zod';
 import { DEFAULT_OLLAMA_URL } from '@/ai/models';
 import { readJson, writeJson } from './index';
@@ -6,9 +7,9 @@ export const SETTINGS_KEY = 'jackapp:settings';
 
 const httpUrl = z.string().refine((v) => /^https?:\/\/[^\s/]+/i.test(v));
 
-// Old saved values ('local', model ids) fall back to the defaults.
+// Fresh Android installs start on-device (ADR-022); web has no on-device model. Junk saved values fall back to OpenRouter.
 const SettingsSchema = z.object({
-  provider: z.enum(['openrouter', 'ollama', 'mock']).catch('openrouter'),
+  provider: z.enum(['local', 'openrouter', 'ollama', 'mock']).default(Platform.OS === 'android' ? 'local' : 'openrouter').catch('openrouter'),
   openrouterKey: z.string().catch(''),
   ollamaUrl: httpUrl.catch(DEFAULT_OLLAMA_URL),
   ollamaModel: z.string().catch(''),

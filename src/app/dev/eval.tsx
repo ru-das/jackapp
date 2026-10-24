@@ -3,7 +3,9 @@ import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-nat
 import corpus from '../../../evals/prompts.json';
 import { QUICK_IDS, runEval, type EvalRow } from '@/ai/generator/eval';
 import { getActiveProvider } from '@/ai/provider';
+import { describeEvent, withLog, type CallEvent } from '@/ai/providers/logged';
 import { saveFile, share, toast } from '@/capabilities';
+import { EvalLog, SHOWN_LINES } from '@/ui/EvalLog';
 import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
 
 type Result = Awaited<ReturnType<typeof runEval>>;
@@ -13,11 +15,25 @@ type Phase = 'idle' | 'loading' | 'running' | 'done' | 'needsModel';
 const PROMPTS = corpus as { id: string; prompt: string }[];
 const pct = (r: Ratio) => (r.rate === null ? '—' : `${Math.round(r.rate * 100)}%`);
 const mark = (met: boolean | null) => (met === null ? '—' : met ? '✓' : '✗');
+const stamp = () => new Date().toTimeString().slice(0, 8);
 const rowMark = (row: EvalRow) => {
   const got = row.result.status;
   if (got === 'failed') return '✗';
   return (got === 'unsupported') === (row.expect === 'unsupported') ? '✓' : '⊘';
 };
+
+type Call = { stage: string; since: number; chars: number; firstTokenMs: number; note: string; repairs: number };
+const IDLE: Call = { stage: '', since: 0, chars: 0, firstTokenMs: -1, note: '', repairs: 0 };
+
+function liveStatus(c: Call, id: string, n: number, total: number, now: number) {
+  const where = `${id} (${Math.min(n, total)}/${total})`;
+  if (!c.stage) return `${where} · between calls`;
+  const writing = (now - c.since - c.firstTokenMs) / 1000;
+  const doing = c.chars
+    ? `writing ${c.chars} chars (~${Math.round(c.chars / 4)} tokens${writing > 0 ? `, ~${(c.chars / 4 / writing).toFixed(1)} tok/s` : ''})`
+    : c.note || 'waiting for the first token';
+  return `${where} · ${c.stage.toUpperCase()}${c.repairs ? ` (repair ${c.repairs})` : ''} · ${doing} · ${Math.round((now - c.since) / 1000)} s in this call`;
+}
 
 function Btn({ label, onPress, disabled }: { label: string; onPress: () => void; disabled?: boolean }) {
   const t = useTheme();
@@ -41,13 +57,45 @@ export default function EvalScreen() {
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState('');
   const [elapsed, setElapsed] = useState(0);
+  const [shown, setShown] = useState<string[]>([]);
   const started = useRef(0);
+  const fullLog = useRef<string[]>([]);
+  const order = useRef<string[]>([]);
+  // Callbacks outlive the render that created them, so they count finished prompts here, not in `rows`.
+  const doneCount = useRef(0);
+  // The call in flight, as the provider wrapper reports it; read on each one-second tick.
+  const call = useRef<Call>(IDLE);
+  const [live, setLive] = useState('');
   const busy = phase === 'loading' || phase === 'running';
   const total = only === null ? PROMPTS.length : [only].flat().length;
 
+  const push = (line: string) => {
+    const text = [stamp(), order.current[doneCount.current], line].filter(Boolean).join(' ');
+    fullLog.current.push(text);
+    console.log(`[eval] ${text}`);
+    setShown(fullLog.current.slice(-SHOWN_LINES));
+  };
+  const onEvent = (e: CallEvent) => {
+    const c = call.current;
+    if (e.kind === 'start') Object.assign(c, { stage: e.stage, since: Date.now(), chars: 0, firstTokenMs: -1, note: '', repairs: c.repairs + (e.stage === 'repair' ? 1 : 0) });
+    if (e.kind === 'partial') {
+      c.chars = e.chars;
+      if (c.firstTokenMs >= 0) return;
+      c.firstTokenMs = e.firstTokenMs;
+      return push(`← first token after ${(e.firstTokenMs / 1000).toFixed(1)} s`);
+    }
+    if (e.kind === 'log') c.note = e.message;
+    if (e.kind === 'done' || e.kind === 'error') c.stage = '';
+    push(describeEvent(e));
+  };
+
   useEffect(() => {
     if (phase !== 'running') return;
-    const timer = setInterval(() => setElapsed(Math.round((Date.now() - started.current) / 1000)), 1000);
+    const timer = setInterval(() => {
+      const now = Date.now();
+      setElapsed(Math.round((now - started.current) / 1000));
+      setLive(liveStatus(call.current, order.current[doneCount.current] ?? '', doneCount.current + 1, order.current.length, now));
+    }, 1000);
     return () => clearInterval(timer);
   }, [phase]);
 
@@ -55,37 +103,56 @@ export default function EvalScreen() {
     setError('');
     setRows([]);
     setResult(null);
+    fullLog.current = [];
+    doneCount.current = 0;
+    setShown([]);
+    call.current = { ...IDLE };
+    setLive('');
+    order.current = PROMPTS.filter((p) => only === null || [only].flat().includes(p.id)).map((p) => p.id);
     setPhase('loading');
     try {
-      const { provider, model } = await getActiveProvider();
-      setUsing(`${provider.label}${provider.id === 'ollama' ? `: ${model}` : ''}`);
+      const { provider: base, model } = await getActiveProvider();
+      const provider = withLog(base, onEvent);
+      setUsing(`${base.label}${base.id === 'ollama' ? `: ${model}` : ''}`);
       if (!(await provider.isConfigured())) return setPhase('needsModel');
       started.current = Date.now();
       setElapsed(0);
       setPhase('running');
+      push(`Starting ${order.current.length} prompt(s) on ${base.label} (${model}), plan stage ${noPlan ? 'off' : 'on'}`);
       // shortcut: no cancel, runEval takes no signal; leave the screen or restart the app to stop, add a signal when needed
       const out = await runEval(provider, model, {
-        noPlan, only: only ?? undefined, onResult: (row) => setRows((prev) => [...prev, row]),
+        noPlan, only: only ?? undefined,
+        onResult: (row) => {
+          push(`${rowMark(row)} ${row.result.status} after ${(row.durationMs / 1000).toFixed(1)} s, ${row.result.repairs} repair(s)${row.result.status === 'failed' ? `: ${row.result.message}` : ''}`);
+          for (const d of row.diagnostics) for (const e of d.errors) push(`  ${d.target} attempt ${d.attempt}: ${e.code} ${e.path}: ${e.message}`);
+          const missing = [...row.missingRequirements.components, ...row.missingRequirements.ops];
+          if (missing.length) push(`  missing: ${missing.join(', ')}`);
+          call.current.repairs = 0;
+          doneCount.current++;
+          setRows((prev) => [...prev, row]);
+        },
       });
+      push(`Finished in ${((Date.now() - started.current) / 1000).toFixed(1)} s`);
       setResult(out);
       setPhase('done');
     } catch (e) {
       console.error('eval: run failed', e);
-      setError('The run stopped early. Details are in the console.');
+      push(`✗ run stopped: ${e instanceof Error ? e.message : String(e)}`);
+      setError('The run stopped early. Details are in the log.');
       setPhase('idle');
     }
   };
 
-  const json = result ? JSON.stringify(result, null, 2) : '';
+  const buildJson = () => JSON.stringify({ ...result, log: fullLog.current }, null, 2);
   const fileName = result
     ? `eval-${result.startedAt.replace(/[:.]/g, '-')}-${result.model}-${result.options.noPlan ? 'noplan' : 'plan'}.json`
     : '';
   const onShare = async () => {
-    try { await share(json); } catch (e) { console.error('eval: share failed', e); toast('Could not share. Try Save file.'); }
+    try { await share(buildJson()); } catch (e) { console.error('eval: share failed', e); toast('Could not share. Try Save file.'); }
   };
   const onSave = async () => {
     try {
-      if (await saveFile(fileName, json)) toast(`Saved ${fileName}`);
+      if (await saveFile(fileName, buildJson())) toast(`Saved ${fileName}`);
     } catch (e) {
       console.error('eval: save failed', e);
       toast('Could not save the file.');
@@ -143,6 +210,7 @@ export default function EvalScreen() {
           <Text style={{ color: t.text, fontSize: 16 }}>
             {phase === 'loading' ? 'Starting…' : `${rows.length} / ${total} done${phase === 'running' ? ` · ${elapsed} s` : ''}`}
           </Text>
+          {phase === 'running' && live ? <Text style={{ color: t.muted, fontSize: 14 }}>{live}</Text> : null}
           <View style={[styles.bar, { backgroundColor: t.accentSoft }]}>
             <View style={{ width: `${(rows.length / total) * 100}%`, height: 8, borderRadius: 4, backgroundColor: t.accent }} />
           </View>
@@ -151,6 +219,7 @@ export default function EvalScreen() {
               {rowMark(row)} {row.id} · {row.result.status} · {row.result.repairs} repairs · {(row.durationMs / 1000).toFixed(1)} s
             </Text>
           ))}
+          <EvalLog lines={shown} />
         </View>
       ) : null}
 

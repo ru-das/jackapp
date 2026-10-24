@@ -11,6 +11,7 @@ const REASONING_HEADROOM = 6144;
 const NEEDS_KEY = 'Add your OpenRouter key in Settings first.';
 const BAD_KEY = 'OpenRouter did not accept your key. Check it in Settings.';
 const BUSY = 'The free models are busy. Try again in a minute.';
+const DAILY = "You've used today's free OpenRouter requests. They reset at midnight UTC, or add $10 of credits for 1000 a day.";
 const OFFLINE = "Can't reach OpenRouter. Check your connection.";
 
 type Req = Parameters<LLMProvider['generate']>[0];
@@ -66,17 +67,25 @@ async function generate(req: Req): Promise<string> {
       console.error('[openrouter] request failed', e);
       throw new Error(OFFLINE);
     }
-    if (res.status === 429 && attempt < RETRIES) {
+    if (res.status === 429) {
+      const body: any = await res.json().catch(() => null); // JSON parse boundary
+      const why: string = body?.error?.message ?? 'rate limited';
+      req.onLog?.(`429 ${why}`);
+      // The daily free quota only resets at midnight UTC, so retrying just burns time.
+      if (/per.?day/i.test(why)) throw new Error(DAILY);
+      if (attempt >= RETRIES) throw new Error(BUSY);
       const header = Number(res.headers.get('retry-after'));
-      await sleep(Math.min(MAX_WAIT_MS, header > 0 ? header * 1000 : 2000 * 2 ** attempt), req.signal);
+      const wait = Math.min(MAX_WAIT_MS, header > 0 ? header * 1000 : 2000 * 2 ** attempt);
+      req.onLog?.(`retry ${attempt + 1}/${RETRIES} in ${wait / 1000} s`);
+      await sleep(wait, req.signal);
       continue;
     }
     if (res.status === 401 || res.status === 403) throw new Error(BAD_KEY);
-    if (res.status === 429) throw new Error(BUSY);
     const json: any = await res.json().catch(() => null); // JSON parse boundary
     const text = json?.choices?.[0]?.message?.content;
     // Free upstreams sometimes time out with a 200 and an error body; one quick retry is usually enough.
     if ((res.status >= 500 || (json?.error && typeof text !== 'string')) && attempt < RETRIES) {
+      req.onLog?.(`${res.status} ${json?.error?.message ?? 'upstream error'}, retry ${attempt + 1}/${RETRIES} in ${attempt + 1} s`);
       await sleep(1000 * (attempt + 1), req.signal);
       continue;
     }

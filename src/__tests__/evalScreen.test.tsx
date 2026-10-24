@@ -3,12 +3,17 @@ import EvalScreen from '@/app/dev/eval';
 import { mockProvider } from '@/ai/providers/mock';
 import { saveFile, share } from '@/capabilities';
 
+let mockSlow: ((req: never) => Promise<string>) | null = null;
 jest.mock('@/ai/provider', () => ({
-  getActiveProvider: async () => ({ provider: jest.requireActual('@/ai/providers/mock').mockProvider, model: 'test-model' }),
+  getActiveProvider: async () => {
+    const real = jest.requireActual('@/ai/providers/mock').mockProvider;
+    return { provider: mockSlow ? { ...real, generate: mockSlow } : real, model: 'test-model' };
+  },
 }));
 jest.mock('@/capabilities', () => ({ share: jest.fn(), saveFile: jest.fn(async () => true), toast: jest.fn() }));
 
-afterEach(() => jest.restoreAllMocks());
+beforeEach(() => { jest.spyOn(console, 'log').mockImplementation(() => {}); });
+afterEach(() => { jest.restoreAllMocks(); mockSlow = null; });
 
 test('runs one prompt, shows row + metrics, shares and saves the results JSON', async () => {
   await render(<EvalScreen />);
@@ -22,6 +27,12 @@ test('runs one prompt, shows row + metrics, shares and saves the results JSON', 
   const json = JSON.parse((share as jest.Mock).mock.calls[0][0]);
   expect(json).toMatchObject({ model: 'test-model', options: { noPlan: false, only: 'e01' } });
   expect(json.rows).toHaveLength(1);
+  // The saved JSON carries the run log: every call's start and finish, then the row result.
+  expect(json.log.some((l: string) => /e01 → PLAN: \d+ system chars/.test(l))).toBe(true);
+  expect(json.log.some((l: string) => /e01 → FILL:/.test(l))).toBe(true);
+  expect(json.log.some((l: string) => /e01 ✓ done after/.test(l))).toBe(true);
+  expect(screen.getByLabelText('Run log')).toBeTruthy();
+  expect(screen.getAllByText(/→ PLAN/).length).toBeGreaterThan(0);
 
   await fireEvent.press(screen.getByText('Save file'));
   expect((saveFile as jest.Mock).mock.calls[0][0]).toMatch(/^eval-.*-test-model-plan\.json$/);
@@ -49,4 +60,22 @@ test('Quick chip runs the 6-prompt subset', async () => {
   await fireEvent.press(screen.getByLabelText('Prompt Quick 6'));
   await fireEvent.press(screen.getByText('Run'));
   expect(await screen.findByText(/6 \/ 6 done/)).toBeTruthy();
+});
+
+test('while a call streams, the status line shows the stage, characters and speed', async () => {
+  const real = mockProvider.generate.bind(mockProvider);
+  mockSlow = async (req: Parameters<typeof real>[0]) => {
+    req.onLog?.('GPU: model load 0 ms');
+    req.onPartial?.(80);
+    await new Promise((resolve) => setTimeout(resolve, 1300));
+    return real(req);
+  };
+  await render(<EvalScreen />);
+  await fireEvent.press(screen.getByLabelText('Prompt e01'));
+  await fireEvent(screen.getByLabelText('Skip plan stage'), 'valueChange', true);
+  await fireEvent.press(screen.getByText('Run'));
+  expect(await screen.findByText(/e01 \(1\/1\) · FILL · writing 80 chars \(~20 tokens/, {}, { timeout: 3000 })).toBeTruthy();
+  expect(screen.getByText(/← first token after/)).toBeTruthy();
+  expect(screen.getByText(/GPU: model load 0 ms/)).toBeTruthy();
+  await screen.findByText('Results', {}, { timeout: 3000 });
 });

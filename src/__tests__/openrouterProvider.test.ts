@@ -7,8 +7,8 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 
 const settings = { provider: 'openrouter' as const, openrouterKey: ' sk-or-test ', ollamaUrl: 'http://localhost:11434', ollamaModel: '' };
 const ok = (content: unknown) => ({ ok: true, status: 200, headers: new Headers(), json: async () => ({ choices: [{ message: { content } }] }) });
-const fail = (status: number, headers: Record<string, string> = {}) =>
-  ({ ok: false, status, headers: new Headers(headers), json: async () => ({ error: { message: 'x' } }) });
+const fail = (status: number, headers: Record<string, string> = {}, message = 'x') =>
+  ({ ok: false, status, headers: new Headers(headers), json: async () => ({ error: { message } }) });
 const sent = (fetchMock: jest.Mock, n = 0) => JSON.parse(fetchMock.mock.calls[n][1].body);
 
 let fetchMock: jest.Mock;
@@ -107,4 +107,22 @@ test('a 200 with an upstream error body (timeout) is retried', async () => {
   await jest.advanceTimersByTimeAsync(1000);
   await expect(p).resolves.toBe('{}');
   expect(fetchMock).toHaveBeenCalledTimes(2);
+});
+
+test('the daily free quota fails at once, without retries, and says how to fix it', async () => {
+  fetchMock.mockResolvedValue(fail(429, {}, 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day'));
+  const logs: string[] = [];
+  await expect(openrouterProvider.generate({ system: '', messages: [], onLog: (m) => logs.push(m) })).rejects.toThrow("used today's free OpenRouter requests");
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  expect(logs[0]).toContain('free-models-per-day');
+});
+
+test('retries are reported through onLog with the upstream reason', async () => {
+  jest.useFakeTimers();
+  fetchMock.mockResolvedValueOnce(fail(429, { 'retry-after': '3' }, 'Provider returned error')).mockResolvedValueOnce(ok('{}'));
+  const logs: string[] = [];
+  const p = openrouterProvider.generate({ system: '', messages: [], onLog: (m) => logs.push(m) });
+  await jest.advanceTimersByTimeAsync(3000);
+  await p;
+  expect(logs).toEqual(['429 Provider returned error', 'retry 1/3 in 3 s']);
 });
