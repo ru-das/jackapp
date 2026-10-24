@@ -296,7 +296,7 @@ The eval used to say only that a spec was valid and contained the named componen
 
 ## ADR-034: Hero tools stay honest and correctable (T-100..102)
 Date: 2026-10-25. Status: Accepted.
-Bill Splitter rows carry a `kind` (item, tax, service, tip, subtotal, total); the bill total is items + tax + service, or the printed total if larger, and can be typed. Tip is explicit, equal split only. **Contract:** `Stat` gets an optional `currency` template (3-letter code, bad code falls back to the app default). `navigate` to a screen already in the history returns to it instead of stacking, so a Save button on a second screen leaves Back at the first. Plant Pal and Fridge Snap changes are added to this entry as they land. No new dependency.
+Bill Splitter rows carry a `kind` (item, tax, service, tip, subtotal, total); the bill total is items + tax + service, or the printed total if larger, and can be typed. Tip is explicit, equal split only. **Contract:** `Stat` gets an optional `currency` template (3-letter code, bad code falls back to the app default). `navigate` to a screen already in the history returns to it instead of stacking, so a Save button on a second screen leaves Back at the first. Plant Pal (the `log` recipe's `tap date`): tapping an item opens an item screen with the big "Last watered" stat, a primary "Watered now", Undo (restores the date held before the last change), and a date picker with "Save that day"; the main list says "Tap a plant to log it or fix the date". `describeSpec` reads only the first screen. Fridge Snap changes are added to this entry as they land. No new dependency.
 
 ## ADR-033: The preview describes the built spec and discloses lost intent (T-98)
 Date: 2026-10-25. Status: Accepted.

@@ -22,10 +22,16 @@ export function buildLog(c: LogConfig): Obj {
   const title = c.fields.find((f) => f.type === 'text') ?? c.fields[0];
   const typed = c.fields.filter((f) => f.type !== 'date');
   const draft = (f: LogField) => `new${cap(f.key)}`;
+  const dateTap = c.tap?.kind === 'date' ? c.tap : null;
   const draftDefault = (f: LogField) => f.type === 'choice' ? (f.options ?? [''])[0] : f.type === 'rating' ? 3 : f.type === 'day' ? null : f.type === 'text' || f.type === 'longtext' ? '' : 0;
   const state: Obj = {
     items: { type: 'list', of: { ...Object.fromEntries(c.fields.map((f) => [f.key, stateType[f.type]])), ...(c.checkbox ? { done: 'boolean' } : {}) }, default: [] },
     ...Object.fromEntries(typed.map((f) => [draft(f), { type: stateType[f.type], default: draftDefault(f), persist: false }])),
+    ...(dateTap ? {
+      selIndex: { type: 'number', default: 0, persist: false }, selName: { type: 'string', default: '', persist: false },
+      selWhen: { type: 'date', default: null, persist: false }, prevWhen: { type: 'date', default: null, persist: false },
+      pickDay: { type: 'date', default: null, persist: false },
+    } : {}),
   };
 
   const inputs = typed.map((f) => {
@@ -50,10 +56,10 @@ export function buildLog(c: LogConfig): Obj {
   const subtitle = others.map(part).join(' · ');
   const list = t.add('List', {
     items: 'items', title: `{{$item.${title.key}}}`, ...(subtitle ? { subtitle } : {}),
-    ...(c.checkbox ? { checkField: 'done' } : {}), deletable: true, ...(c.tap ? { onItemPress: 'record' } : {}),
+    ...(c.checkbox ? { checkField: 'done' } : {}), deletable: true, ...(c.tap ? { onItemPress: dateTap ? 'open' : 'record' } : {}),
     ...(c.sort ? { sort: c.sort } : {}), emptyText: `Add your first ${c.noun}`,
   });
-  const listKids = [list];
+  const listKids = dateTap ? [t.add('Text', { value: `Tap a ${c.noun} to log it or fix the date.`, variant: 'muted' }), list] : [list];
   for (const total of c.totals) {
     const field = c.fields.find((f) => f.key === total.field);
     listKids.push(t.add('Stat', {
@@ -67,9 +73,21 @@ export function buildLog(c: LogConfig): Obj {
   const root = t.add('Stack', { gap: 'md' }, [addCard, listCard]);
 
   const dateField = c.fields.find((f) => f.type === 'date');
+  const tapField = dateTap ? c.fields.find((f) => f.key === dateTap.field)! : null;
+  const verb = /^last\s+(\w+)/i.exec(tapField?.label ?? '')?.[1];
+  const nowLabel = verb ? `${cap(verb.toLowerCase())} now` : 'Mark done now';
+  const when = (field: string, value: unknown) => ({ op: 'state.update', path: 'items', index: ref('selIndex'), set: { [field]: value } });
+  const itemScreen = !dateTap ? [] : [{ id: 'item', title: cap(c.noun), root: t.add('Stack', { gap: 'md' }, [t.add('Card', { title: '{{selName}}' }, [
+    t.add('Stat', { label: tapField!.label, value: ref('selWhen'), format: 'ago' }),
+    t.add('Text', { value: '{{selWhen|date}}', variant: 'muted' }),
+    t.add('Button', { label: nowLabel, onPress: 'now', variant: 'primary' }),
+    t.add('Button', { label: 'Undo last change', onPress: 'undo', variant: 'secondary' }),
+    t.add('DateInput', { bind: 'pickDay', label: 'Or pick the day' }),
+    t.add('Button', { label: 'Save that day', onPress: 'saveDay', variant: 'secondary' }),
+  ])]) }];
   const record = c.tap?.kind === 'add'
     ? { [c.tap.field]: { $math: ['+', ref(`$item.${c.tap.field}`), 1] }, ...(dateField ? { [dateField.key]: NOW } : {}) }
-    : c.tap ? { [c.tap.field]: NOW } : undefined;
+    : undefined;
   const actions: Obj = {
     add: { steps: [
       { op: 'state.append', path: 'items', value: {
@@ -77,12 +95,23 @@ export function buildLog(c: LogConfig): Obj {
         ...(c.checkbox ? { done: false } : {}) } },
       ...typed.map((f) => ({ op: 'state.reset', path: draft(f) })),
     ] },
+    ...(dateTap ? {
+      open: { steps: [
+        { op: 'state.set', path: 'selIndex', value: ref('$index') }, { op: 'state.set', path: 'selName', value: ref(`$item.${title.key}`) },
+        { op: 'state.set', path: 'selWhen', value: ref(`$item.${dateTap.field}`) }, { op: 'state.set', path: 'prevWhen', value: ref(`$item.${dateTap.field}`) },
+        { op: 'state.set', path: 'pickDay', value: ref(`$item.${dateTap.field}`) }, { op: 'navigate', screen: 'item' }] },
+      now: { steps: [{ op: 'state.set', path: 'prevWhen', value: ref('selWhen') }, when(dateTap.field, NOW), { op: 'state.set', path: 'selWhen', value: NOW },
+        { op: 'state.set', path: 'pickDay', value: NOW }, { op: 'toast', message: 'Saved' }] },
+      saveDay: { steps: [{ op: 'state.set', path: 'prevWhen', value: ref('selWhen') }, when(dateTap.field, ref('pickDay')),
+        { op: 'state.set', path: 'selWhen', value: ref('pickDay') }, { op: 'toast', message: 'Saved' }] },
+      undo: { steps: [when(dateTap.field, ref('prevWhen')), { op: 'state.set', path: 'selWhen', value: ref('prevWhen') }, { op: 'toast', message: 'Undone' }] },
+    } : {}),
     ...(record ? { record: { steps: [{ op: 'state.update', path: 'items', index: ref('$index'), set: record }] } } : {}),
     ...(c.checkbox ? { clearDone: { steps: [{ op: 'state.remove', path: 'items', where: { field: 'done', equals: true } }] } } : {}),
     ...(c.share ? { share: { steps: [{ op: 'share', text: `${c.name}: {{items|count}} ${c.noun}s` }] } } : {}),
   };
   return assemble({ name: c.name, description: c.description, icon: c.icon }, state, root, t.elements, actions,
-    c.reminder ? [reminderTrigger(c.name, c.reminder)] : []);
+    c.reminder ? [reminderTrigger(c.name, c.reminder)] : [], itemScreen);
 }
 
 const TYPES: [RegExp, FieldType][] = [

@@ -8,7 +8,7 @@ const make = (id: keyof typeof RECIPES, reply: string, request: string, notes: s
 
 test('a log describes its fields, taps and reminder from the spec', () => {
   const spec = make('log', 'field plant text Plant\nfield watered date Watered\ntap date watered\nreminder weekly 0 09:00 Water', 'Plant tracker');
-  expect(describeSpec(spec)).toBe('Keeps a list with Plant and Watered. Tap an item to record the date. You enter Plant. Reminds you every Sunday at 09:00.');
+  expect(describeSpec(spec)).toBe('Keeps a list with Plant and Watered. Tap an item to record or fix the date. You enter Plant. Reminds you every Sunday at 09:00.');
 });
 
 test('a calculator lists its inputs and results', () => {

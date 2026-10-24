@@ -1,5 +1,6 @@
 import { createActionEngine, type ActionServices } from '@/runtime/actions';
 import { SpecSchema } from '@/spec/schema';
+import { buildLog } from '../log';
 import { buildSplitter } from '../splitter';
 
 const settings = { now: new Date('2026-10-22T12:00:00Z'), locale: 'en-US', timeZone: 'UTC', currency: 'USD' };
@@ -59,5 +60,41 @@ describe('splitter', () => {
     store.setState({ people: 3 });
     await engine.run('share');
     expect(services.share).toHaveBeenCalledWith('Bill Splitter: 60.00 + tip 9.00 EUR between 3 people');
+  });
+});
+
+describe('plant log with a date tap', () => {
+  const day = (iso: string) => new Date(iso).toISOString();
+  const make = () => {
+    const f = run(buildLog({
+      name: 'Plant Pal', icon: '🌱', description: 'd', noun: 'plant', checkbox: false, totals: [], tap: { kind: 'date', field: 'lastWatered' },
+      sort: null, share: false, reminder: null,
+      fields: [{ key: 'name', label: 'Plant', type: 'text' }, { key: 'lastWatered', label: 'Last watered', type: 'date' }],
+    }));
+    f.store.setState({ items: [{ name: 'Fern', lastWatered: day('2026-10-01') }, { name: 'Cactus', lastWatered: day('2026-09-01') }] });
+    return f;
+  };
+  const items = (f: ReturnType<typeof make>) => f.store.getState().items as { lastWatered: string }[];
+
+  test('opening a plant shows it; "Watered now" stamps today; Undo restores the old date', async () => {
+    const f = make();
+    await f.engine.run('open', { item: items(f)[1], index: 1 });
+    expect(f.store.getState()).toMatchObject({ selIndex: 1, selName: 'Cactus' });
+    expect(f.services.navigate).toHaveBeenCalledWith('item');
+    await f.engine.run('now');
+    expect(items(f)[1].lastWatered).toBe('2026-10-22T12:00:00.000Z');
+    expect(items(f)[0].lastWatered).toBe(day('2026-10-01'));
+    await f.engine.run('undo');
+    expect(items(f)[1].lastWatered).toBe(day('2026-09-01'));
+  });
+
+  test('an earlier day can be saved, and undone', async () => {
+    const f = make();
+    await f.engine.run('open', { item: items(f)[0], index: 0 });
+    f.store.setState({ pickDay: day('2026-10-15') });
+    await f.engine.run('saveDay');
+    expect(items(f)[0].lastWatered).toBe(day('2026-10-15'));
+    await f.engine.run('undo');
+    expect(items(f)[0].lastWatered).toBe(day('2026-10-01'));
   });
 });

@@ -7,7 +7,9 @@ const join = (items: string[]) => items.length < 2 ? items.join('') : `${items.s
 const strings = (values: unknown[]) => values.filter((v): v is string => typeof v === 'string' && v.length > 0 && !v.includes('{{'));
 
 export function describeSpec(spec: Spec): string {
-  const els = Object.values(spec.elements);
+  // Only the first screen: a second screen is a detail view and would repeat the same labels.
+  const reach = (id: string): string[] => [id, ...(spec.elements[id]?.children ?? []).flatMap(reach)];
+  const els = reach(spec.screens[0].root).map((id) => spec.elements[id]).filter(Boolean);
   const props = (type: string) => els.filter((e) => e.type === type).map((e) => e.props as Record<string, unknown>);
   const steps = Object.values(spec.actions).flatMap((a) => a.steps);
   const out: string[] = [];
@@ -19,8 +21,10 @@ export function describeSpec(spec: Spec): string {
     out.push(`Keeps a list${fields.length ? ` with ${join(fields)}` : ''}.`);
     if (lists.some((l) => l.checkField)) out.push('Tick items off.');
     const tap = lists.find((l) => l.onItemPress)?.onItemPress as string | undefined;
-    const set = tap ? (spec.actions[tap]?.steps.find((s) => s.op === 'state.update') as { set?: Record<string, unknown> } | undefined)?.set : undefined;
-    if (set) out.push(Object.values(set).some((v) => v && typeof v === 'object' && '$math' in v) ? 'Tap an item to add 1.' : 'Tap an item to record the date.');
+    const tapSteps = tap ? spec.actions[tap]?.steps ?? [] : [];
+    const set = (tapSteps.find((s) => s.op === 'state.update') as { set?: Record<string, unknown> } | undefined)?.set;
+    if (tapSteps.some((s) => s.op === 'navigate')) out.push('Tap an item to record or fix the date.');
+    else if (set) out.push(Object.values(set).some((v) => v && typeof v === 'object' && '$math' in v) ? 'Tap an item to add 1.' : 'Tap an item to record the date.');
   }
   const inputs = strings([...props('TextInput'), ...props('NumberInput'), ...props('DateInput'), ...props('Select'), ...props('ImageInput')].map((p) => p.label));
   if (inputs.length) out.push(`You enter ${join(inputs)}.`);
