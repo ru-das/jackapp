@@ -3,7 +3,7 @@ import type { Spec, SpecError } from '@/spec/types';
 import { validate } from '@/spec/validate';
 import { callStage, checkCancellation, fill, type StageRequest } from './fill';
 import { PlanSchema, UnsupportedSchema, type Plan, type TargetStage, type Unsupported } from './outputSchemas';
-import { parseCompact, toCompact } from './compact';
+import { parseCompact, toCompact, toCompactSlice } from './compact';
 import { schemaErrors, validatePlan } from './plan';
 import { repair } from './repair';
 
@@ -78,9 +78,12 @@ export async function generate(options: GenerateOptions): Promise<GenerationResu
       if (repairs >= maxRepairs) return finish({ status: 'failed', repairs, errors,
         message: 'I couldn’t build this mini-app. Try a simpler request.' });
       emit('repairing', repairs + 1, errors);
-      // The model sees the draft with a #id on every component, so its patch can name what to change; broken lines are quoted in the errors. A refusal attempt is shown as written.
-      raw = await repair({ ...options, target, errors, patch: target === 'spec' && draft !== undefined,
-        raw: target !== 'spec' || !draft || /^\s*unsupported\b/m.test(raw) ? raw : toCompact(draft, true) });
+      // A spec repair sees only the lines the errors point at (a small model copies whatever it is shown), components with their #id so a patch can name them; the whole draft is the fallback. A refusal attempt is shown as written.
+      const base = target === 'spec' ? draft : undefined;
+      const refusal = /^\s*unsupported\b/m.test(raw);
+      const lines = base && !refusal ? toCompactSlice(base, errors, raw) : undefined;
+      raw = await repair({ ...options, target, errors, patch: base !== undefined, partial: lines !== undefined,
+        raw: lines ?? (base && !refusal ? toCompact(base, true) : raw) });
       repairs++;
     }
   } catch (error) {

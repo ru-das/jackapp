@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-77 repair slice (Claude Code, 2026-10-24, human-requested):** ADR-026. A spec repair now sees only the lines the errors point at (`toCompactSlice`), components with `#id`, with the full draft as fallback; a patch component line without `#id` is added to the root container instead of failing (the 229 s failed run was a repair that wrote `Image imageInput …` and `screen main="…"`). `npm run check` green. **Not verified on E2B.** **Human next:** Quick 6, GPU on, Skip plan on; if a repair still rewrites the app, read the saved `⎘ output` lines of the REPAIR call.
+>
 > **T-77 PLAN off (Claude Code, 2026-10-24, human-requested):** fourth phone run (GPU, Skip plan OFF): 229 s and failed. The plan anchored FILL on a thin outline, FILL dropped `ai.run` fields and broke a `state.append` value, and the patch repair ignored the `#id` rules. ADR-025: Create always uses `noPlan: true`; the eval switch is on by default (tests that walk the plan pipeline now switch it off); the mock refuses at FILL. `npm run check` green. **Human next:** GPU on, Quick 6 (e01, e05, e09, e13, e26, e29): check e05/e09/e13 generalise and that e26/e29 are still refused. Open: repair still copies whole apps and rejects patches without `#id`; idea is to show the repair only the lines the errors point at.
 >
 > **T-77 third phone run (human, 2026-10-24):** e01, local E2B, **CPU, Skip plan ON**: valid on the first FILL, 0 repairs, **112 s** (first token 55 s of prompt reading, ~57 s writing ~330 tokens). Output is nearly Example 1 (same fridge app), so it does not yet show generalisation. Estimated ~75–80 s on GPU (prompt reading ~3× faster; not measured). **Human next:** GPU on, Skip plan ON, Quick 6 (e01, e05, e09, e13, e26, e29); look at e05/e09/e13 and the two refusals.
@@ -153,6 +155,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-24 | Claude Code | T-77 | Repair shows only the lines the errors point at; patch lines without #id go to the root container; ADR-026. | (this commit) |
 | 2026-10-24 | Claude Code | T-77 | PLAN off by default in Create and the eval screen; mock refuses at FILL; ADR-025. | (this commit) |
 | 2026-10-24 | Claude Code | T-77 | Indented-tree line format, shorthand values, always-patch repair; ADR-024. | (this commit) |
 | 2026-10-24 | Claude Code | T-76 | Line format for all generator output, patch repair, `maxRepairs` 1 on-device, `plainText` flag; ADR-023. | (this commit) |

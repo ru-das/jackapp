@@ -1,6 +1,6 @@
 import { h1, h2, h3 } from '@/spec/fixtures';
 import { validate } from '@/spec/validate';
-import { parseCompact, toCompact, toCompactPlan, toCompactRefusal } from '../compact';
+import { parseCompact, toCompact, toCompactPlan, toCompactRefusal, toCompactSlice } from '../compact';
 import { validatePlan } from '../plan';
 import { h1Plan, unsupportedExample } from '../prompts';
 import { formatValue, parseValue } from '../shorthand';
@@ -150,9 +150,11 @@ describe('patching a draft', () => {
     expect(parse('drop #nope', draft()).errors[0].message).toContain('No component #nope');
   });
 
-  test('a top-level component line needs an existing #id', () => {
-    expect(parse('Text value="x"', draft()).errors[0].message).toContain('start a component line with its #id');
-    expect(parse('Text #ghost value="x"', draft()).errors[0].message).toContain('No component #ghost');
+  test('a top-level component line without #id is added to the first screen root container', () => {
+    const spec = value('Text value="x"\nText #ghost value="y"', draft());
+    expect(spec.elements.root.children).toEqual(['capture', 'listCard', 'text1', 'ghost']);
+    const lone = parse('screen s\n  Text value="a"').draft as Obj;
+    expect(parse('Text value="x"', lone).errors[0].message).toContain('start a component line with its #id');
   });
 
   test('state, action and app lines replace by key or id; the base is never mutated', () => {
@@ -173,5 +175,39 @@ describe('patching a draft', () => {
     const redone = value('screen main title="T"\n  Text value="only"', base);
     expect(Object.keys(redone.elements)).toEqual(['text1']);
     expect(redone.screens[0].root).toBe('text1');
+  });
+});
+
+describe('the repair slice', () => {
+  const draft = () => parse(toCompact(h1, true)).draft as Obj;
+  const err = (code: string, path: string) => ({ code, path, message: 'm', hint: 'h' }) as any;
+
+  test('each error shows only the line it points at, components with their #id', () => {
+    const slice = toCompactSlice(draft(), [
+      err('BAD_PROP', 'elements.makeBtn.props.onPress'), err('SHAPE', 'state.items.default'), err('BAD_ACTION', 'actions.clearDone.steps[1].where'),
+      err('SHAPE', 'screens[0].title'), err('SHAPE', 'meta.name'), err('BAD_PROP', 'elements.makeBtn.props.label'),
+    ], '');
+    expect(slice!.split('\n')).toEqual([
+      'Button #makeBtn label="Make my list" onPress=makeList variant=primary',
+      'state items list name:string qty:string done:boolean',
+      'action clearDone', '- confirm message="Remove items you\'ve bought?"', '- state.remove path=items where=done:true',
+      'screen main title="Fridge Snap"',
+      'app name="Fridge Snap" description="Photo of your fridge → grocery list" icon=🧊',
+    ]);
+  });
+
+  test('an unreadable line is shown as written, with its action line when it is a step', () => {
+    const raw = 'app name=x\naction a\n- toast message=hi\n- state.append path=items value={"a" "b"}';
+    expect(toCompactSlice(draft(), [err('BAD_JSON', 'line 4')], raw)).toBe('action a\n- state.append path=items value={"a" "b"}');
+    expect(toCompactSlice(draft(), [err('BAD_JSON', 'line 1')], raw)).toBe('app name=x');
+  });
+
+  test.each([['TREE', 'elements.root.children'], ['LIMIT_EXCEEDED', 'elements'], ['BAD_VERSION', 'specVersion'], ['SHAPE', ''],
+    ['BAD_PROP', 'elements.ghost.props.x'], ['BAD_JSON', 'line 99']])('%s at "%s" falls back to the full draft', (code, path) => {
+    expect(toCompactSlice(draft(), [err(code, path)], 'one line')).toBeUndefined();
+  });
+
+  test('no errors means no slice', () => {
+    expect(toCompactSlice(draft(), [], '')).toBeUndefined();
   });
 });

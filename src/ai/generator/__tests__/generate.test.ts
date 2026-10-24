@@ -2,7 +2,7 @@ import type { LLMProvider } from '../../provider';
 import { createScriptedMock, mockProvider } from '../../providers/mock';
 import { h1 } from '@/spec/fixtures';
 import { validate } from '@/spec/validate';
-import { parseCompact, toCompact, toCompactPlan, toCompactRefusal } from '../compact';
+import { parseCompact, toCompact, toCompactPlan, toCompactRefusal, toCompactSlice } from '../compact';
 import { generate, type GenerationProgress } from '../generate';
 import { h1Plan } from '../prompts';
 
@@ -63,7 +63,7 @@ test('plan and spec repairs share a budget and preserve complete latest feedback
   const errors = validate(stamped);
   expect(errors.length).toBeGreaterThan(1);
   expect(calls.mock.calls[3][0].messages[0].content).toBe(
-    `Request: ${options.prompt}\nPrevious response:\n${toCompact(compiled, true)}\nErrors:\n${errors.map(feedback).join('\n')}`);
+    `Request: ${options.prompt}\nLines the errors point at (the rest of the app is fine):\n${toCompactSlice(compiled, errors, bad)}\nErrors:\n${errors.map(feedback).join('\n')}`);
   expect(events.filter((e) => e.stage === 'repairing').map((e) => [e.target, e.attempt])).toEqual([['plan', 1], ['spec', 2]]);
 });
 
@@ -211,16 +211,17 @@ test('a spec repair returns only the changed lines and they are merged into the 
   expect(result.spec.elements).toEqual((parseCompact(spec, 'spec').value as { elements: object }).elements);
   const request = calls.mock.calls[1][0];
   expect(request.system).toContain('Return only the lines that change');
-  expect(request.messages[0].content).toContain(`Previous response:\n${toCompact(parseCompact(broken, 'spec').value!, true)}`);
-  expect(request.messages[0].content).toContain('#button1');
+  // Only the broken component is shown, not the whole app.
+  expect(request.messages[0].content).toContain('Lines the errors point at (the rest of the app is fine):\nButton #button1 label="Make my list" onPress=nope variant=primary\nErrors:');
+  expect(request.messages[0].content).not.toContain('Grocery list');
 });
 
-test('a patch with an unreadable line is not applied, and the model sees the draft plus the quoted problem', async () => {
+test('a patch with an unreadable line is not applied, and the model sees that line as written plus the error', async () => {
   const broken = spec.replace('onPress=makeList', 'onPress=nope');
   const fix = 'Button #button1 label="Go" onPress=makeList variant=primary';
   const { options, calls } = setup([broken, 'Button #button1 label={"x":}', fix]);
   expect(await generate({ ...options, noPlan: true })).toMatchObject({ status: 'done', repairs: 2 });
-  expect(calls.mock.calls[2][0].messages[0].content).toContain(`Previous response:\n${toCompact(parseCompact(broken, 'spec').value!, true)}\nErrors:\n- BAD_JSON at line 1: Cannot read the value in label=`);
+  expect(calls.mock.calls[2][0].messages[0].content).toContain('Lines the errors point at (the rest of the app is fine):\nButton #button1 label={"x":}\nErrors:\n- BAD_JSON at line 1: Cannot read the value in label=');
   expect(calls.mock.calls[2][0].system).toContain('Return only the lines that change');
 });
 
@@ -234,4 +235,13 @@ test('maxRepairs caps the repair rounds', async () => {
   const { options, calls } = setup([bad, bad, spec]);
   expect(await generate({ ...options, noPlan: true, maxRepairs: 1 })).toMatchObject({ status: 'failed', repairs: 1 });
   expect(calls).toHaveBeenCalledTimes(2);
+});
+
+test('an error with no single line to point at falls back to the whole draft with ids', async () => {
+  // A TextInput nested under an ImageInput: only Stack and Card take children (TREE), which has no single line to show.
+  const orphan = spec.replace('      TextInput', '        TextInput');
+  const { options, calls } = setup([orphan, spec]);
+  await generate({ ...options, noPlan: true });
+  expect(calls.mock.calls[1][0].messages[0].content).toContain('Previous response:\napp name=');
+  expect(calls.mock.calls[1][0].messages[0].content).toContain('#imageInput1');
 });
