@@ -19,8 +19,8 @@ const FIXTURES = [
 export default function Home() {
   const t = useTheme();
   const router = useRouter();
-  const [apps, setApps] = useState<AppSummary[] | null>(null);
-  const refresh = useCallback(() => { void listApps().then(setApps); }, []);
+  const [apps, setApps] = useState<AppSummary[] | 'error' | null>(null);
+  const refresh = useCallback(() => { void listApps().then(setApps, (e) => { console.error('home: could not list apps', e); setApps('error'); }); }, []);
   useEffect(() => { refresh(); return subscribeApps(refresh); }, [refresh]);
   const duplicate = async (a: AppSummary) => {
     if (!(await duplicateApp(a.id, (n) => `${n.slice(0, 32)} (copy)`))) toast("Couldn't duplicate that one.");
@@ -32,7 +32,11 @@ export default function Home() {
   };
   const remove = async (a: AppSummary) => {
     if (!(await confirm(`Delete “${a.name}” and its data? This can't be undone.`))) return;
-    await deleteApp(a.id);
+    try {
+      await deleteApp(a.id);
+    } catch {
+      toast("Couldn't delete that one. Try again.");
+    }
     refresh();
   };
   const open = async (id: string, spec: unknown) => {
@@ -42,7 +46,12 @@ export default function Home() {
       toast("This template is damaged, so we can't open it.");
       return;
     }
-    await writeJson(specKey(id), spec);
+    try {
+      await writeJson(specKey(id), spec);
+    } catch {
+      toast("Couldn't save. Try again.");
+      return;
+    }
     notifyAppsChanged();
     router.push({ pathname: '/run/[id]', params: { id } });
   };
@@ -55,7 +64,14 @@ export default function Home() {
   return (
     <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={styles.content}>
       <Text accessibilityRole="header" style={[styles.title, { color: t.text }]}>JackApp</Text>
-      {apps?.length === 0 ? (
+      {apps === 'error' ? (
+        <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+          <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Couldn’t load your mini-apps</Text>
+          <Text style={{ color: t.muted, fontSize: 16 }}>They are not lost. Storage did not answer. Try again.</Text>
+          <ActionButton label="Try again" onPress={refresh} />
+        </View>
+      ) : null}
+      {apps !== 'error' && apps?.length === 0 ? (
         <View style={[styles.card, styles.empty, { backgroundColor: t.surface, borderColor: t.border }]}>
           <Text style={styles.icon}>🦥</Text>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>No mini-apps yet</Text>
@@ -64,12 +80,12 @@ export default function Home() {
           </Text>
         </View>
       ) : null}
-      {apps?.map((a) => (
+      {Array.isArray(apps) ? apps.map((a) => (
         <AppRow
           key={a.id} app={a} onOpen={() => router.push({ pathname: '/run/[id]', params: { id: a.id } })}
           onRename={(n) => void rename(a, n)} onDuplicate={() => void duplicate(a)} onDelete={() => void remove(a)}
         />
-      ))}
+      )) : null}
       <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Start from a template</Text>
       {FIXTURES.map(({ id, spec }) => (
         <View key={id} style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>

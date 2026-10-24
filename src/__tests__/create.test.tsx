@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import Create from '@/app/create';
 import { mockProvider } from '@/ai/providers/mock';
@@ -49,4 +50,21 @@ test('AI not set up: friendly card pointing to settings', async () => {
   expect(await screen.findByText('Set up AI first')).toBeTruthy();
   await fireEvent.press(screen.getByText('Open settings'));
   expect(mockPush).toHaveBeenCalledWith('/settings');
+});
+
+test('failed save keeps the preview and says so; retry saves and the app reopens intact', async () => {
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+  await render(<Create />);
+  await fireEvent.press(screen.getByLabelText('Example: Fridge Snap'));
+  await fireEvent.press(screen.getByText('Build'));
+  await screen.findByText(/Preview · 🧊 Fridge Snap/);
+  jest.spyOn(AsyncStorage, 'setItem').mockRejectedValueOnce(new Error('full'));
+  await fireEvent.press(screen.getByText('Save'));
+  expect(await screen.findByText(/Couldn’t save\. Your changes are still open/)).toBeTruthy();
+  expect(mockReplace).not.toHaveBeenCalled();
+  expect(screen.getByText('Save')).toBeTruthy();
+  await fireEvent.press(screen.getByText('Save'));
+  await waitFor(() => expect(mockReplace).toHaveBeenCalledTimes(1));
+  const id = mockReplace.mock.calls[0][0].params.id;
+  expect(((await readJson(specKey(id))) as { meta: { name: string } }).meta.name).toBe('Fridge Snap');
 });

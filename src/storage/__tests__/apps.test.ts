@@ -42,3 +42,23 @@ test('delete removes spec and data', async () => {
   expect(await listApps()).toEqual([]);
   expect(await readJson(dataKey('app-1'))).toBeNull();
 });
+
+test('rename and duplicate report a failed write instead of success', async () => {
+  jest.spyOn(console, 'warn').mockImplementation(() => {});
+  await writeJson(specKey('app-1'), h1);
+  jest.spyOn(AsyncStorage, 'setItem').mockRejectedValueOnce(new Error('full'));
+  expect(await renameApp('app-1', 'Pantry')).toBe(false);
+  jest.spyOn(AsyncStorage, 'setItem').mockRejectedValueOnce(new Error('full'));
+  expect(await duplicateApp('app-1', (n) => n)).toBeNull();
+  expect((await listApps())[0].name).toBe(h1.meta.name);
+  jest.restoreAllMocks();
+});
+
+test('listApps rejects when storage is unavailable, flags only corrupt rows', async () => {
+  jest.spyOn(console, 'warn').mockImplementation(() => {});
+  await AsyncStorage.setItem(specKey('app-1'), '{nope');
+  expect((await listApps())[0].damaged).toBe(true);
+  jest.spyOn(AsyncStorage, 'getAllKeys').mockRejectedValueOnce(new Error('disk'));
+  await expect(listApps()).rejects.toThrow();
+  jest.restoreAllMocks();
+});

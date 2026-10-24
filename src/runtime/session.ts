@@ -11,7 +11,7 @@ type Navigate = RendererHandle['navigate'];
 /** Store + engine + capability services for one open mini-app (run screen and create preview). */
 export function createSession(id: string, spec: Spec, signal?: AbortSignal) {
   let navigate: Navigate | undefined;
-  const store = createStore(id, spec.state);
+  const store = createStore(id, spec.state, () => toast("Couldn't save. Your changes are still open. Try again."));
   const engine = createActionEngine({
     spec, store,
     services: {

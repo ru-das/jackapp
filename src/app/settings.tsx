@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { toast } from '@/capabilities';
 import { OPENROUTER_MODELS } from '@/ai/models';
 import { localModel } from '@/ai/providers/litert';
 import { loadSettings, saveSettings, type Settings } from '@/storage/settings';
@@ -23,7 +24,7 @@ export default function SettingsScreen() {
     if (!settings) return;
     const next = { ...settings, ...patch };
     setSettings(next);
-    await saveSettings(next);
+    await saveSettings(next).catch(() => toast("Couldn't save settings. Try again."));
   };
 
   if (!settings) return <View style={{ flex: 1, backgroundColor: t.bg }}><ActivityIndicator accessibilityLabel="Loading settings" color={t.accent} style={{ marginTop: space.lg * 2 }} /></View>;

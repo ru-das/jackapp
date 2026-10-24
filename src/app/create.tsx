@@ -41,14 +41,21 @@ export default function Create() {
   const run = useRef(0);
   const abort = useRef<AbortController | null>(null);
   const draft = useRef<Draft | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
 
   // An unsaved preview must not leave its data behind.
   const discard = async () => {
     const d = draft.current;
     draft.current = null;
     if (!d) return;
-    await d.session.store.flush();
-    await removeKey(dataKey(d.id));
+    try {
+      await d.session.store.flush().catch(() => {});
+      await removeKey(dataKey(d.id));
+      await removeKey(specKey(d.id)); // a half-saved draft must not linger as an app
+    } catch (e) {
+      console.warn('create: could not clean up the draft', e);
+    }
   };
   useEffect(() => () => { abort.current?.abort(); void discard(); }, []);
   // Loading the on-device model takes ~20 s on a budget phone; do it while the user types the request.
@@ -106,9 +113,21 @@ export default function Create() {
 
   const cancel = () => { run.current++; abort.current?.abort(); setPhase({ kind: 'idle' }); };
   const save = async (d: Draft) => {
+    if (saving) return;
     if (validate(d.spec).length) return toast("This mini-app can't be saved.");
-    await writeJson(specKey(d.id), d.spec);
-    await d.session.store.flush();
+    setSaving(true);
+    setSaveFailed(false);
+    try {
+      await writeJson(specKey(d.id), d.spec);
+      await d.session.store.flush();
+    } catch (e) {
+      // Draft, preview and unsaved data stay as they are so Save can be tried again.
+      console.error('create: save failed', e);
+      setSaveFailed(true);
+      setSaving(false);
+      return;
+    }
+    setSaving(false);
     notifyAppsChanged();
     draft.current = null; // saved: the data now belongs to the mini-app
     router.replace({ pathname: '/run/[id]', params: { id: d.id } });
@@ -127,9 +146,14 @@ export default function Create() {
           <Renderer spec={phase.spec} store={phase.session.store} engine={phase.session.engine}
             onReady={(h) => phase.session.setNavigate(h.navigate)} />
         </View>
+        {saveFailed ? (
+          <Text accessibilityLiveRegion="polite" style={[styles.preview, { color: t.text }]}>
+            Couldn’t save. Your changes are still open. Try again.
+          </Text>
+        ) : null}
         <View style={[styles.bar, { borderColor: t.border, backgroundColor: t.surface }]}>
           <View style={styles.flex}><ActionButton kind="quiet" label="Try again" onPress={() => void build(prompt)} /></View>
-          <View style={styles.flex}><ActionButton label="Save" onPress={() => void save(phase)} /></View>
+          <View style={styles.flex}><ActionButton label={saving ? 'Saving…' : 'Save'} disabled={saving} onPress={() => void save(phase)} /></View>
         </View>
       </View>
     );

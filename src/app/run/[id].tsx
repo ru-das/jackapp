@@ -9,7 +9,7 @@ import type { Store } from '@/runtime/store';
 import { SpecSchema } from '@/spec/schema';
 import type { Spec } from '@/spec/types';
 import { validate } from '@/spec/validate';
-import { readJson, specKey } from '@/storage';
+import { readJson, specKey, StorageError } from '@/storage';
 import { radius, space, useTheme } from '@/ui/theme';
 
 type Loaded = { spec: Spec; store: Store; engine: ReturnType<typeof createActionEngine> };
@@ -26,7 +26,10 @@ export default function Run() {
     const abort = new AbortController();
     let live = true;
     (async () => {
-      const raw = await readJson(specKey(id));
+      const raw = await readJson(specKey(id)).catch((e) => {
+        if (e instanceof StorageError && e.kind === 'unreadable') return {}; // fails validate() below: damaged
+        throw e;
+      });
       if (raw === null) return live && setPhase({ kind: 'error', message: "We couldn't find this mini-app." });
       const errors = validate(raw);
       if (errors.length) {
@@ -43,10 +46,11 @@ export default function Run() {
       if (live) setPhase({ kind: 'ready', spec, store: session.store, engine: session.engine });
     })().catch((e) => {
       console.error(`run/${id}: load failed`, e);
-      if (live) setPhase({ kind: 'error', message: 'Something went wrong opening this mini-app.' });
+      const unavailable = e instanceof StorageError;
+      if (live) setPhase({ kind: 'error', message: unavailable ? "We couldn't reach your saved data, so nothing was opened. Close the app and try again." : 'Something went wrong opening this mini-app.' });
     });
-    const sub = AppState.addEventListener('change', (s) => { if (s !== 'active') void store?.flush(); });
-    return () => { live = false; abort.abort(); sub.remove(); void store?.flush(); };
+    const sub = AppState.addEventListener('change', (s) => { if (s !== 'active') void store?.flush().catch(() => {}); });
+    return () => { live = false; abort.abort(); sub.remove(); void store?.flush().catch(() => {}); };
   }, [id]);
 
   const title = phase.kind === 'ready' ? `${phase.spec.meta.icon ?? ''} ${phase.spec.meta.name}`.trim() : '';

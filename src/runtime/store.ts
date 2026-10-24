@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { dataKey, readJson, writeJson } from '@/storage';
+import { dataKey, readJson, StorageError, writeJson } from '@/storage';
 import type { Spec, StateDecl } from '@/spec/types';
 import { StateDeclSchema } from '@/spec/schema';
 
@@ -19,25 +19,42 @@ function fits(decl: StateDecl, v: unknown): boolean {
   }
 }
 
-export function createStore(appId: string, decls: Spec['state']) {
+export function createStore(appId: string, decls: Spec['state'], onSaveError?: (e: unknown) => void) {
   const defaults = (): State =>
     Object.fromEntries(Object.entries(decls).map(([k, d]) => [k, structuredClone(d.default)]));
   let state = defaults();
   let timer: ReturnType<typeof setTimeout> | undefined;
+  // A failed write stays pending so the next flush or change retries it.
+  let pending = false;
+  let inflight: Promise<void> = Promise.resolve();
   const listeners = new Set<() => void>();
 
-  const save = () => {
+  // Writes run one at a time; a caller waits for every earlier write, then writes if still pending.
+  const save = (): Promise<void> => {
     timer = undefined;
-    const out = Object.fromEntries(Object.entries(state).filter(([k]) => decls[k].persist !== false));
-    return writeJson(dataKey(appId), out);
+    const run = inflight.then(async () => {
+      if (!pending) return;
+      pending = false;
+      const out = Object.fromEntries(Object.entries(state).filter(([k]) => decls[k].persist !== false));
+      try {
+        await writeJson(dataKey(appId), out);
+      } catch (e) {
+        pending = true;
+        onSaveError?.(e);
+        throw e;
+      }
+    });
+    inflight = run.catch(() => {});
+    return run;
   };
 
   return {
     getState: () => state,
     setState(next: State | ((s: State) => State)) {
       state = { ...state, ...(typeof next === 'function' ? next(state) : next) };
+      pending = true;
       clearTimeout(timer);
-      timer = setTimeout(save, SAVE_DELAY_MS);
+      timer = setTimeout(() => { void save().catch(() => {}); }, SAVE_DELAY_MS);
       listeners.forEach((l) => l());
     },
     subscribe(l: () => void) {
@@ -46,7 +63,11 @@ export function createStore(appId: string, decls: Spec['state']) {
     },
     /** Restores persisted keys over the defaults; anything undeclared, persist:false or mistyped is ignored. */
     async load() {
-      const saved = await readJson(dataKey(appId));
+      // Unreadable data keeps defaults; unavailable storage throws so the app is not opened empty and then saved over real data.
+      const saved = await readJson(dataKey(appId)).catch((e) => {
+        if (e instanceof StorageError && e.kind === 'unreadable') return null;
+        throw e;
+      });
       if (typeof saved !== 'object' || saved === null || Array.isArray(saved)) return;
       const restored = Object.entries(saved).filter(
         ([k, v]) => Object.hasOwn(decls, k) && decls[k].persist !== false && fits(decls[k], v),
@@ -54,9 +75,8 @@ export function createStore(appId: string, decls: Spec['state']) {
       state = { ...state, ...Object.fromEntries(restored) };
       listeners.forEach((l) => l());
     },
-    /** Writes any pending change now (call on unmount / app background). */
+    /** Writes any pending change now and waits for a write already running; rejects if the save still fails. */
     flush() {
-      if (timer === undefined) return Promise.resolve();
       clearTimeout(timer);
       return save();
     },

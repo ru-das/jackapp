@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { render, screen } from '@testing-library/react-native';
 
 import Home from '@/app/index';
@@ -24,4 +25,13 @@ test('empty Home invites a first build and offers templates with Remix', async (
     expect(screen.getByText(`Try ${name}`)).toBeTruthy();
     expect(screen.getByText(`Remix ${name}`)).toBeTruthy();
   }
+});
+
+test('storage failure shows a retry card, never the empty state', async () => {
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+  jest.spyOn(AsyncStorage, 'getAllKeys').mockRejectedValueOnce(new Error('disk'));
+  await render(<Home />);
+  expect(await screen.findByText('Couldn’t load your mini-apps')).toBeTruthy();
+  expect(screen.queryByText('No mini-apps yet')).toBeNull();
+  expect(await screen.findByText('Try again')).toBeTruthy();
 });

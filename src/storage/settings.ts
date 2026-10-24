@@ -17,7 +17,7 @@ const SettingsSchema = z.object({
 export type Settings = z.infer<typeof SettingsSchema>;
 
 export async function loadSettings(): Promise<Settings> {
-  const raw = await readJson(SETTINGS_KEY);
+  const raw = await readJson(SETTINGS_KEY).catch(() => null); // settings must never block the app; defaults apply
   return SettingsSchema.parse(typeof raw === 'object' && raw !== null ? raw : {});
 }
 

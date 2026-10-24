@@ -177,6 +177,8 @@ Rules:
 | `jackapp:data:<id>` | persisted state for that mini-app |
 | `jackapp:settings` | model choice (E2B/E4B/Qwen3.5-2B) |
 
+Storage calls reject with `StorageError` on failure. Reads tell apart missing (`null`), `unreadable` (corrupt) and `unavailable` (storage failed); only the first may be shown as an empty app.
+
 ## 9. Platform matrix
 
 | Capability | Web | Android | iOS (later) |

@@ -65,3 +65,56 @@ test('notifies subscribers and supports updater fn', () => {
   s.setState({ name: 'q' });
   expect(fn).toHaveBeenCalledTimes(1);
 });
+
+describe('save failures', () => {
+  beforeEach(() => jest.spyOn(console, 'warn').mockImplementation(() => {}));
+  afterEach(() => jest.restoreAllMocks());
+
+  test('failed write stays pending, flush retries, data survives reopen', async () => {
+    const onError = jest.fn();
+    const s = createStore('a1', decls, onError);
+    s.setState({ name: 'kept' });
+    jest.spyOn(AsyncStorage, 'setItem').mockRejectedValueOnce(new Error('full'));
+    await expect(s.flush()).rejects.toThrow();
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(await stored()).toBeNull();
+    await s.flush();
+    const reopened = createStore('a1', decls);
+    await reopened.load();
+    expect(reopened.getState().name).toBe('kept');
+  });
+
+  test('failed autosave is reported and retried by the next flush', async () => {
+    const onError = jest.fn();
+    const s = createStore('a1', decls, onError);
+    jest.spyOn(AsyncStorage, 'setItem').mockRejectedValueOnce(new Error('full'));
+    s.setState({ name: 'a' });
+    await jest.advanceTimersByTimeAsync(500);
+    expect(onError).toHaveBeenCalledTimes(1);
+    await s.flush();
+    expect((await stored()).name).toBe('a');
+  });
+
+  test('flush waits for a write already in progress', async () => {
+    const s = createStore('a1', decls);
+    let release!: () => void;
+    const real = AsyncStorage.setItem.bind(AsyncStorage);
+    jest.spyOn(AsyncStorage, 'setItem').mockImplementationOnce(
+      (k, v) => new Promise((res) => { release = () => res(real(k, v)); }),
+    );
+    s.setState({ name: 'slow' });
+    await jest.advanceTimersByTimeAsync(500); // autosave now in flight
+    let done = false;
+    const f = s.flush().then(() => { done = true; });
+    await Promise.resolve();
+    expect(done).toBe(false);
+    release();
+    await f;
+    expect((await stored()).name).toBe('slow');
+  });
+
+  test('load rejects when storage is unavailable instead of opening empty', async () => {
+    jest.spyOn(AsyncStorage, 'getItem').mockRejectedValueOnce(new Error('disk'));
+    await expect(createStore('a1', decls).load()).rejects.toThrow();
+  });
+});
