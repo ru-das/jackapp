@@ -25,9 +25,12 @@ export function buildReminder(c: ReminderConfig): Obj {
     c.reminders.map((r, i) => ({ ...reminderTrigger(c.name, r), id: `reminder${i + 1}` })));
 }
 
-export function parseReminder(s: Settings, request: string): ReminderConfig {
+export function parseReminder(s: Settings, request: string, notes: string[] = []): ReminderConfig {
   const name = cleanText(first(s, 'name'), 40, nameFromRequest(request));
-  const reminders = (s.get('reminder') ?? []).map((line) => reminder(line, name)).filter((r): r is Reminder => r !== null).slice(0, 3);
+  const parsed = (s.get('reminder') ?? []).map((line) => ({ line, r: reminder(line, name) }));
+  const reminders = parsed.map((p) => p.r).filter((r): r is Reminder => r !== null).slice(0, 3);
+  for (const p of parsed) if (!p.r) notes.push(`Couldn’t read the reminder “${p.line}”.`);
+  if (parsed.filter((p) => p.r).length > 3) notes.push('Only 3 reminders fit, so the rest were left out.');
   if (!reminders.length) throw new RecipeError('The reminder has no usable schedule.');
   const message = cleanText(first(s, 'message'), 60, reminders[0].body);
   return {
@@ -55,5 +58,5 @@ reminder daily 09:00 Time for a glass of water
 reminder daily 15:00 Another glass of water
 done yes`,
   },
-  make: (s, request) => buildReminder(parseReminder(s, request)),
+  make: (s, request, notes) => buildReminder(parseReminder(s, request, notes)),
 };

@@ -7,6 +7,7 @@ import { RECIPES, type RecipeId } from '@/ai/generator/recipes';
 import { getActiveProvider, getCloudFallback } from '@/ai/provider';
 import { localModel } from '@/ai/providers/litert';
 import { toast } from '@/capabilities';
+import { describeSpec, omissions } from '@/runtime/describe';
 import { Renderer } from '@/runtime/Renderer';
 import { createSession } from '@/runtime/session';
 import type { Spec } from '@/spec/types';
@@ -25,7 +26,7 @@ const EXAMPLES = [
 ];
 
 type Session = ReturnType<typeof createSession>;
-type Draft = { id: string; spec: Spec; session: Session };
+type Draft = { id: string; spec: Spec; session: Session; notes: string[] };
 type Phase =
   | { kind: 'idle' } | { kind: 'loading' } | { kind: 'needsModel' }
   | { kind: 'working'; progress: Pick<GenerationProgress, 'stage' | 'attempt' | 'freeForm'> }
@@ -108,7 +109,9 @@ export default function Create() {
         return setPhase({ kind: 'failed', message: 'I couldn’t build this mini-app. Try a simpler request.' });
       }
       const id = `app-${Date.now()}`;
-      const next = { id, spec: result.spec, session: createSession(id, result.spec, controller.signal) };
+      // What the build could not do: lost settings from the recipe, plus things the request named that the spec lacks.
+      const notes = [...(result.notes ?? []), ...omissions(request, result.spec)];
+      const next = { id, spec: result.spec, session: createSession(id, result.spec, controller.signal), notes };
       draft.current = next;
       setPhase({ kind: 'preview', ...next });
     } catch (error) {
@@ -148,6 +151,14 @@ export default function Create() {
         <Text accessibilityRole="header" style={[styles.preview, { color: t.muted }]}>
           Preview · {phase.spec.meta.icon} {phase.spec.meta.name}
         </Text>
+        <View accessibilityLiveRegion="polite" style={styles.about}>
+          <Text style={{ color: t.text, fontSize: 15 }}>
+            {phase.spec.meta.name} is ready. {describeSpec(phase.spec)}
+          </Text>
+          {phase.notes.length ? (
+            <Text style={{ color: t.muted, fontSize: 15 }}>Not included: {phase.notes.join(' ')}</Text>
+          ) : null}
+        </View>
         <View style={styles.fill}>
           <Renderer spec={phase.spec} store={phase.session.store} engine={phase.session.engine}
             onReady={(h) => phase.session.setNavigate(h.navigate)} />
@@ -168,6 +179,7 @@ export default function Create() {
   return (
     <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Text style={[styles.label, { color: t.text }]}>What should your mini-app do?</Text>
+      <Text style={{ color: t.muted, fontSize: 15 }}>Works best for a tracker, checklist, counter, calculator, timer, reminder, or photo-to-list tool.</Text>
       <TextInput
         accessibilityLabel="Describe your mini-app" multiline editable={!busy} value={prompt} onChangeText={setPrompt}
         maxLength={1000} placeholder="e.g. Track my daily water intake" placeholderTextColor={t.muted}
@@ -246,5 +258,6 @@ const styles = StyleSheet.create({
   card: { padding: space.lg, gap: space.sm, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth },
   h: { fontSize: 19, fontWeight: '600' },
   preview: { fontSize: 14, paddingHorizontal: space.lg, paddingTop: space.sm },
+  about: { paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.sm },
   bar: { flexDirection: 'row', gap: space.sm, padding: space.md, borderTopWidth: StyleSheet.hairlineWidth },
 });

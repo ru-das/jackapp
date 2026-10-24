@@ -11,7 +11,8 @@ import { generateRecipe } from './recipes/generateRecipe';
 import type { RecipeId } from './recipes/types';
 
 export type GenerationResult =
-  | { status: 'done'; spec: Spec; repairs: number }
+  /** `notes`: what the settings asked for that could not be built, shown to the user next to the preview. */
+  | { status: 'done'; spec: Spec; repairs: number; notes?: string[] }
   | { status: 'unsupported'; unsupported: Unsupported; repairs: number }
   /** The wording fits two app types about equally and `askWhenUnsure` is set: the caller asks the user which one. */
   | { status: 'choose'; choices: [RecipeId, RecipeId]; repairs: number }

@@ -9,7 +9,7 @@ export type CalcConfig = { name: string; icon: string; description: string; inpu
 
 const MAX_STEPS = 8;
 
-export function buildCalculator(c: CalcConfig): Obj {
+export function buildCalculator(c: CalcConfig, notes: string[] = []): Obj {
   const names = new Map(c.inputs.map((i) => [i.key.toLowerCase(), { key: i.key, type: i.kind === 'date' ? 'date' as const : 'number' as const }]));
   const taken = new Set(c.inputs.map((i) => i.key));
   const fresh = (stem: string) => { let n = 1; while (taken.has(`${stem}${n}`)) n++; taken.add(`${stem}${n}`); return `${stem}${n}`; };
@@ -19,7 +19,7 @@ export function buildCalculator(c: CalcConfig): Obj {
   let used = 0;
   for (const out of c.outputs) {
     const { value, steps } = compileFormula(parseFormula(out.formula), (n) => names.get(n.toLowerCase()), () => fresh('calc'));
-    if (used + steps.length + 1 > MAX_STEPS) break;
+    if (used + steps.length + 1 > MAX_STEPS) { notes.push(`“${out.label}” was left out: too long to calculate in one go.`); continue; }
     used += steps.length + 1;
     compiled.push({ out, value, steps });
   }
@@ -51,11 +51,12 @@ export function buildCalculator(c: CalcConfig): Obj {
 
 const KINDS = new Set(['number', 'money', 'percent', 'date']);
 
-function parseInputs(lines: string[]): CalcInput[] {
+function parseInputs(lines: string[], notes: string[]): CalcInput[] {
   const out: CalcInput[] = [];
   for (const line of lines) {
     const words = line.replace(/[:=,|]/g, ' ').split(/\s+/).filter(Boolean);
-    if (!words.length || out.length >= 5) continue;
+    if (!words.length) continue;
+    if (out.length >= 5) { notes.push(`Only 5 inputs fit, so “${words[0]}” was left out.`); continue; }
     const kind = words[1] && KINDS.has(words[1].toLowerCase()) ? (words[1].toLowerCase() as CalcInput['kind']) : 'number';
     let rest = words.slice(KINDS.has((words[1] ?? '').toLowerCase()) ? 2 : 1);
     const last = rest[rest.length - 1];
@@ -69,12 +70,13 @@ function parseInputs(lines: string[]): CalcInput[] {
   return out;
 }
 
-function parseOutputs(lines: string[], inputs: CalcInput[]): CalcOutput[] {
+function parseOutputs(lines: string[], inputs: CalcInput[], notes: string[]): CalcOutput[] {
   const names = new Map(inputs.map((i) => [i.key.toLowerCase(), { key: i.key, type: i.kind === 'date' ? 'date' as const : 'number' as const }]));
   const out: CalcOutput[] = [];
   for (const line of lines) {
     const at = line.indexOf('=');
-    if (at < 1 || out.length >= 4) continue;
+    if (at < 1) continue;
+    if (out.length >= 4) { notes.push(`Only 4 results fit, so “${line.slice(0, at).trim()}” was left out.`); continue; }
     const label = cleanText(line.slice(0, at), 30);
     let formula = line.slice(at + 1).trim();
     const as = /\s+as\s+(\w+)\s*$/i.exec(formula);
@@ -86,15 +88,16 @@ function parseOutputs(lines: string[], inputs: CalcInput[]): CalcOutput[] {
       out.push({ label: label || 'Result', formula, format });
     } catch (error) {
       if (!(error instanceof FormulaError)) throw error;
+      notes.push(`Left out “${label || 'a result'}”: couldn’t read its formula.`);
     }
   }
   return out;
 }
 
-export function parseCalculator(s: Settings, request: string): CalcConfig {
-  const inputs = parseInputs(s.get('input') ?? []);
+export function parseCalculator(s: Settings, request: string, notes: string[] = []): CalcConfig {
+  const inputs = parseInputs(s.get('input') ?? [], notes);
   if (!inputs.length) throw new RecipeError('The calculator has no inputs.');
-  const outputs = parseOutputs(s.get('output') ?? [], inputs);
+  const outputs = parseOutputs(s.get('output') ?? [], inputs, notes);
   if (!outputs.length) throw new RecipeError('The calculator has no working formula.');
   const name = cleanText(first(s, 'name'), 40, nameFromRequest(request));
   return { name, icon: icon(first(s, 'icon'), '🧮'), description: cleanText(first(s, 'description'), 140, `${name}: type the numbers, see the result`), inputs, outputs };
@@ -121,5 +124,5 @@ input people number People 2
 output Tip = bill * tip / 100 as money
 output Each person pays = (bill + bill * tip / 100) / people as money`,
   },
-  make: (s, request) => buildCalculator(parseCalculator(s, request)),
+  make: (s, request, notes) => buildCalculator(parseCalculator(s, request, notes), notes),
 };

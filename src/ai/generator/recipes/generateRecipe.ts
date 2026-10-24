@@ -56,7 +56,8 @@ export async function generateRecipe(options: GenerateOptions): Promise<RecipeOu
 
     progress('checking');
     let spec;
-    try { spec = recipe.make(readSettings(reply), options.prompt); }
+    const notes: string[] = [];
+    try { spec = recipe.make(readSettings(reply), options.prompt, notes); }
     catch (error) {
       // The reply cannot make a working app of this type (e.g. no usable formula): let the free-form path try.
       if (error instanceof RecipeError) return { status: 'fallback' };
@@ -71,7 +72,7 @@ export async function generateRecipe(options: GenerateOptions): Promise<RecipeOu
       progress('failed', errors);
       return { status: 'failed', repairs: 0, errors, message: 'I couldn’t build this mini-app. Try a simpler request.' };
     }
-    const result: GenerationResult = { status: 'done', spec: SpecSchema.parse(spec), repairs: 0 };
+    const result: GenerationResult = { status: 'done', spec: SpecSchema.parse(spec), repairs: 0, ...(notes.length ? { notes } : {}) };
     progress('done');
     return result;
   } catch (error) {

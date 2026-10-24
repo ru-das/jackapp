@@ -85,7 +85,7 @@ function parseInputs(lines: string[]): AiInput[] {
   return out;
 }
 
-export function parseAi(s: Settings, request: string): AiConfig {
+export function parseAi(s: Settings, request: string, notes: string[] = []): AiConfig {
   const wantsPhoto = /\b(photo|photograph\w*|picture|pic|snap|camera|scan)\b/i.test(request);
   let inputs = parseInputs(s.get('input') ?? []);
   // Only one photo can go to the model per run.
@@ -98,6 +98,7 @@ export function parseAi(s: Settings, request: string): AiConfig {
   const instruction = cleanText(first(s, 'instruction')?.replace(/[[\]]/g, (c) => (c === '[' ? '\u0001' : '\u0002')), 300)
     .replace(/\u0001(\w+)\u0002/g, '[$1]').replace(/[\u0001\u0002]/g, '')
     || (inputs[0].kind === 'photo' ? 'Describe what you see and list what is useful.' : `Help with this: [${fallbackKey}]`);
+  if (!first(s, 'instruction') || !cleanText(first(s, 'instruction'), 300)) notes.push('No instruction was set, so the AI gets a general one.');
   const name = cleanText(first(s, 'name'), 40, nameFromRequest(request));
   return {
     name, icon: icon(first(s, 'icon'), '✨'), description: cleanText(first(s, 'description'), 140, `${name}: ask the AI`), inputs, instruction, output,
@@ -131,5 +132,5 @@ button Make my list
 history no
 share no`,
   },
-  make: (s, request) => buildAi(parseAi(s, request)),
+  make: (s, request, notes) => buildAi(parseAi(s, request, notes)),
 };

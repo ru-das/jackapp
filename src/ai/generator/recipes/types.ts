@@ -14,5 +14,6 @@ export interface Recipe {
   /** The setting lines the model writes, one per line, with a short hint each. */
   lines: string;
   example: { request: string; reply: string };
-  make(settings: Settings, request: string): Obj;
+  /** `notes` collects what the settings asked for that could not be built; never defaults like an icon or a name. */
+  make(settings: Settings, request: string, notes?: string[]): Obj;
 }

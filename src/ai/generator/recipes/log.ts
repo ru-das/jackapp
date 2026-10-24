@@ -106,11 +106,12 @@ function options(tokens: string[]): { label: string; options: string[] | undefin
   return { label: tokens.slice(0, at).join(' '), options: [...new Set(list)].slice(0, 12) };
 }
 
-function parseFields(lines: string[]): LogField[] {
+function parseFields(lines: string[], notes: string[]): LogField[] {
   const out: LogField[] = [];
   for (const line of lines) {
     const words = line.replace(/[:=]/g, ' ').split(/\s+/).filter(Boolean);
-    if (!words.length || out.length >= 4) continue;
+    if (!words.length) continue;
+    if (out.length >= 4) { notes.push(`Only 4 fields fit, so “${words[0]}” was left out.`); continue; }
     const type = typeOf(words[1]?.toLowerCase());
     const { label: rawLabel, options: choices } = options(words.slice(type ? 2 : 1));
     // A 2B model sometimes repeats the type as the label ("water date date"); show the field name instead.
@@ -128,7 +129,7 @@ const OPS: [RegExp, TotalOp][] = [[/^(sum|total)$/i, 'sum'], [/^(avg|average|mea
 
 const OP_WORD: Record<TotalOp, string> = { sum: 'Total', avg: 'Average', min: 'Lowest', max: 'Highest', count: 'Count' };
 
-function parseTotals(lines: string[], fields: LogField[]): LogTotal[] {
+function parseTotals(lines: string[], fields: LogField[], notes: string[]): LogTotal[] {
   const out: LogTotal[] = [];
   for (const line of lines) {
     const words = line.split(/\s+/).filter(Boolean);
@@ -138,7 +139,7 @@ function parseTotals(lines: string[], fields: LogField[]): LogTotal[] {
     if (op === 'count' || (!op && /^count/i.test(words[0]))) { out.push({ op: 'count', label: cleanText(rest.join(' '), 30) || 'How many' }); continue; }
     const key = identifier(rest[0], '');
     const field = fields.find((f) => f.key === key && numeric(f)) ?? (rest.length || op ? fields.find(numeric) : undefined);
-    if (!field) continue;
+    if (!field) { notes.push(`Couldn’t add the total “${line}”: no number field to add up.`); continue; }
     const label = cleanText((fields.some((f) => f.key === key) ? rest.slice(1) : rest).join(' '), 30);
     const chosen = op ?? 'sum';
     out.push({ op: chosen, field: field.key, label: label || `${OP_WORD[chosen]} ${field.label.toLowerCase()}` });
@@ -160,21 +161,25 @@ function parseTap(value: string | undefined, fields: LogField[]): { tap: LogTap;
   return fields.length < 4 ? { tap: { kind: 'date', field: 'lastDone' }, fields: [...fields, { key: 'lastDone', label: 'Last done', type: 'date' }] } : { tap: null, fields };
 }
 
-export function parseLog(s: Settings, request: string): LogConfig {
+export function parseLog(s: Settings, request: string, notes: string[] = []): LogConfig {
   const name = cleanText(first(s, 'name'), 40, nameFromRequest(request));
   const noun = cleanText(first(s, 'noun') ?? first(s, 'item'), 24, 'item').toLowerCase();
-  let fields = parseFields(s.get('field') ?? []);
+  let fields = parseFields(s.get('field') ?? [], notes);
+  if (!fields.length) notes.push('No fields were set, so each item is just a name.');
   if (!fields.some((f) => f.type === 'text')) fields = [{ key: 'name', label: cap(noun), type: 'text' as FieldType }, ...fields].slice(0, 4);
-  const totals = parseTotals(s.get('total') ?? [], fields);
+  const totals = parseTotals(s.get('total') ?? [], fields, notes);
   const tapped = parseTap(first(s, 'tap'), fields);
   fields = tapped.fields;
+  const asked = first(s, 'reminder');
+  const kept = reminder(asked, name);
+  if (asked && !kept && !/^(none|no|off|false)\b/i.test(asked)) notes.push(`Couldn’t set the reminder “${asked}”.`);
   const sortWords = (first(s, 'sort') ?? '').split(/\s+/).filter(Boolean);
   const sortField = fields.find((f) => f.key === identifier(sortWords[0], ''));
   return {
     name, icon: icon(first(s, 'icon'), '📝'), description: cleanText(first(s, 'description'), 140, `Keep track of your ${noun}s`), noun, fields,
     checkbox: flag(first(s, 'checkbox'), false), totals, tap: tapped.tap,
     sort: sortField ? { field: sortField.key, dir: /^(desc|descending|high|newest|latest)/i.test(sortWords[1] ?? '') ? 'desc' : 'asc' } : null,
-    share: flag(first(s, 'share'), false), reminder: reminder(first(s, 'reminder'), name),
+    share: flag(first(s, 'share'), false), reminder: kept,
   };
 }
 
@@ -208,5 +213,5 @@ sort none
 share no
 reminder none`,
   },
-  make: (s, request) => buildLog(parseLog(s, request)),
+  make: (s, request, notes) => buildLog(parseLog(s, request, notes)),
 };

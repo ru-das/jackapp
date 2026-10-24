@@ -22,22 +22,22 @@ export function buildTimer(c: TimerConfig): Obj {
 }
 
 /** "25", "25 min", "1 hour 30", "90 seconds": the settings reply gives a duration in minutes or seconds. */
-function duration(s: Settings): number {
+function duration(s: Settings, notes: string[]): number {
   const minutes = first(s, 'minutes') ?? first(s, 'minute') ?? first(s, 'duration');
   const seconds = first(s, 'seconds') ?? first(s, 'second');
   const num = (text: string | undefined) => { const m = /\d+(?:\.\d+)?/.exec(text ?? ''); return m ? Number(m[0]) : undefined; };
   const unitIsSeconds = !minutes && seconds !== undefined;
   const value = num(minutes ?? seconds);
-  if (value === undefined) return 5 * 60;
+  if (value === undefined) { notes.push('No length was given, so it counts down 5 minutes.'); return 5 * 60; }
   const fromText = /\bsec/i.test(minutes ?? '') ? value : /\bhour|\bhr/i.test(minutes ?? '') ? value * 3600 : unitIsSeconds ? value : value * 60;
   return Math.min(24 * 3600, Math.max(1, Math.round(fromText)));
 }
 
-export function parseTimer(s: Settings, request: string): TimerConfig {
+export function parseTimer(s: Settings, request: string, notes: string[] = []): TimerConfig {
   const name = cleanText(first(s, 'name'), 40, nameFromRequest(request));
   return {
     name, icon: icon(first(s, 'icon'), '⏱️'), description: cleanText(first(s, 'description'), 140, `${name}: a countdown`),
-    label: cleanText(first(s, 'label'), 30, name), seconds: duration(s), count: flag(first(s, 'count'), true),
+    label: cleanText(first(s, 'label'), 30, name), seconds: duration(s, notes), count: flag(first(s, 'count'), true),
   };
 }
 
@@ -59,5 +59,5 @@ label Focus
 minutes 25
 count yes`,
   },
-  make: (s, request) => buildTimer(parseTimer(s, request)),
+  make: (s, request, notes) => buildTimer(parseTimer(s, request, notes)),
 };
