@@ -1,4 +1,4 @@
-import { OPENROUTER_FALLBACK, OPENROUTER_MODELS } from '@/ai/models';
+import { OPENROUTER_FALLBACKS, OPENROUTER_MODELS } from '@/ai/models';
 import { openrouterProvider } from '@/ai/providers/openrouter';
 import { saveSettings } from '@/storage/settings';
 
@@ -28,7 +28,8 @@ test('sends the stage model with a fallback, the key, and no schema unless given
   expect(url).toBe('https://openrouter.ai/api/v1/chat/completions');
   expect(init.headers.Authorization).toBe('Bearer sk-or-test');
   expect(sent(fetchMock)).toEqual({
-    models: [OPENROUTER_MODELS.repair, OPENROUTER_FALLBACK],
+    models: [OPENROUTER_MODELS.repair, ...OPENROUTER_FALLBACKS],
+    reasoning: { effort: 'low' },
     messages: [{ role: 'system', content: 'S' }, { role: 'user', content: 'hi' }],
     max_tokens: 9, temperature: 0.1,
   });

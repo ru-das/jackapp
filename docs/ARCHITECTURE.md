@@ -117,7 +117,7 @@ export interface LLMProvider {
 ```
 
 - **mock**: returns fixtures by keyword. Used by tests, UI work, and agents.
-- **openrouter**: `src/ai/providers/openrouter.ts`. Key from Settings. Model per stage from `src/ai/models.ts` plus an `openrouter/free` fallback. `jsonSchema` becomes `response_format` (PLAN only, ADR-017). Retries 429 with backoff. See ADR-021.
+- **openrouter**: `src/ai/providers/openrouter.ts`. Key from Settings. Model per stage from `src/ai/models.ts` plus named fallbacks (`OPENROUTER_FALLBACKS`) and low reasoning effort. `jsonSchema` becomes `response_format` (PLAN only, ADR-017). Retries 429 with backoff. See ADR-021.
 - **ollama**: `src/ai/providers/ollama.ts`. `POST <ollamaUrl>/api/chat`, `format` = schema, images as bare base64.
 
 ## 6. Generation pipeline

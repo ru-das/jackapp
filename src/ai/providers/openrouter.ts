@@ -1,5 +1,5 @@
 import { loadSettings } from '@/storage/settings';
-import { OPENROUTER_FALLBACK, OPENROUTER_MODELS } from '../models';
+import { OPENROUTER_FALLBACKS, OPENROUTER_MODELS } from '../models';
 import type { LLMProvider } from '../provider';
 
 const URL = 'https://openrouter.ai/api/v1/chat/completions';
@@ -38,7 +38,9 @@ async function generate(req: Req): Promise<string> {
   if (!openrouterKey.trim()) throw new Error(NEEDS_KEY);
   const primary = OPENROUTER_MODELS[req.stage ?? 'fill'];
   const body = JSON.stringify({
-    models: [primary, OPENROUTER_FALLBACK],
+    models: [primary, ...OPENROUTER_FALLBACKS.filter((m) => m !== primary)],
+    // Reasoning tokens count against max_tokens; unchecked they can use the whole PLAN cap and leave no text.
+    reasoning: { effort: 'low' },
     messages: toMessages(req),
     ...(req.jsonSchema
       ? { response_format: { type: 'json_schema', json_schema: { name: 'out', strict: true, schema: req.jsonSchema } } }
