@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M0 — Setup done except T-04 CI; T-14 decisions drafted (ADR-003/005 await human Accept); M1 phone spikes pending |
-| Last updated | 2026-10-24 by Claude Code (T-78) |
+| Last updated | 2026-10-24 by Claude Code (T-79) |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-79 recipes for the whole head, honest coverage, reminders (Claude Code, 2026-10-25, human-requested; new `src/ai/generator/recipes/*`, `src/capabilities/notifications*`, `src/catalog/{DateInput,Timer}`, edits to Codex-owned `src/spec/*`, `generate.ts`, `eval.ts`):** after "Currency Converter" was refused, the research and the work are in ADR-028/029/030. **Do first on the phone: build a new development build** (`eas build -p android --profile development`): `expo-notifications` is a native dependency, so without it the app will not start on Android. Then (JS reload) Create with GPU on: try "Currency Converter", "Tip Calculator", "Mortgage Calculator", "Age calculator", "Pomodoro", "Mood journal", "Remind me to drink water every 2 hours", "Recipe generator from my ingredients", "Workout log", and something odd to see the fallback notice. **Numbers (keywords + gate only, no model):** dev set 193/198 = 97.5% (0 wrong, 5 unsure), hold-out 79/86 = 91.9% (1 wrong, 6 unsure), 0 buildable prompts refused; the T-78 matcher scored 49.0% on the dev set. These do **not** measure E2B: the classifier, the settings lines and free-form fallback quality are unverified on the real model. **Honest limits:** the hold-out set was read once and some gate vocabulary was added after; known gaps are charts, random/dice, calendar grids, quiz logic, per-day resets, photos in logs, monthly reminders, background timer notification. **Also found and fixed:** Stat `number`/`percent` rendered blank (counters were affected). Not done: an eval-screen Coverage run (the coverage sets run in Jest only). Ask Codex to review the spec/contract changes (`$math`).
+>
 > **T-78 first phone run (human, 2026-10-24, CPU, Skip plan on, Recipes on, Quick 6):** **4/4 buildable valid, 2/2 refusals correct, 0 repairs, whole run 63 s** (was 1,015 s); builds 9–24 s (median 15 s, first includes 7.6 s model load), refusals 0.0 s. Prompts were 600–1,200 chars (was 8,400), replies 90–205 chars. Quirks seen and fixed: E2B wrote `field water date date` (label became "date": a label that is just a type word now falls back to the field name), copied `share yes` from the splitter example (example is now `share no`), and `tap nope` was read as "no" (word boundary). Still to judge by eye: do the apps look right? **Human next:** All 30, then 5 prompts of your own in Create.
 >
 > **T-78 recipes (Claude Code, 2026-10-24, human-requested; new `src/ai/generator/recipes/`, edits to Codex-owned `generate.ts`, `eval.ts`, plus `create.tsx`, `dev/eval.tsx`, `providers/mock.ts`):** Quick 6 on E2B showed it only builds apps close to its examples (2/4 valid, 0/2 refusals, repairs 0 for 4). ADR-027: for provider `local` the model no longer writes an app; code refuses unsupported ideas instantly, a keyword matcher picks one of four ready-made app types, one ~300-token call returns a few setting lines, and code builds a spec that is valid by construction (255 setting combinations validated). No repair stage. Cloud keeps the free-form path. Eval screen has a **Recipes** switch (on, local only). Tests: corpus 25/25 matched and 5/5 refused (tuned with the corpus in view; one rule fixed after the first run), 17/17 independent phrasings, 9/9 independent refusals with 9/9 near-misses not refused; `npm run check` green (37 suites / 1,050 tests). **Not verified on the phone.** **Human next:** reload Metro; `jackapp://dev/eval` → local, GPU, Skip plan on, Recipes on, Quick 6 then All 30; then try 5 prompts of your own in Create and look at the apps. Expect ~20–35 s per build and instant refusals. Ask Codex to review this commit.
@@ -159,6 +161,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-79 | Seven recipes, classifier, cloud/free-form fallback, $math pow/min/max/days, Stat fix, DateInput, Timer, notifications (T-52), coverage sets (49.0% → 97.5% dev, 91.9% hold-out); ADR-028/029/030. | (this commit) |
 | 2026-10-24 | Claude Code | T-78 | Recipes for the on-device model: refusal gate, matcher, four validated builders, `generate({recipes})`; ADR-027. | (this commit) |
 | 2026-10-24 | Claude Code | T-77 | Repair shows only the lines the errors point at; patch lines without #id go to the root container; ADR-026. | (this commit) |
 | 2026-10-24 | Claude Code | T-77 | PLAN off by default in Create and the eval screen; mock refuses at FILL; ADR-025. | (this commit) |

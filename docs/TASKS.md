@@ -63,10 +63,10 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 - [x] **T-50 (P0) Home**: my mini-apps (open, rename, duplicate, delete) + template gallery (H1–H3) with "Remix" (prefilled edit prompt).
   - Done 2026-10-23 (Claude Code): `src/storage/apps.ts` + `src/ui/AppRow.tsx`; "Try" saves a template as the user's own copy; "Remix" opens Create with a prefilled prompt. Duplicate copies the spec only (fresh data). Mock/jest-tested; not yet checked on a device.
 - [ ] **T-51 (P1) Edit-by-chat** keeping compatible state. → AT-08
-- [ ] **T-52 (P1) Triggers**: schedule/cancel native local notifications; web best-effort; tap opens the mini-app. → AT-09
+- [x] **T-52 (P1) Triggers** (code and tests 2026-10-25, ADR-030; not yet run on a device): schedule/cancel native local notifications; web best-effort; tap opens the mini-app. → AT-09
 - [ ] **T-53 (P1) Export/import** spec JSON (share sheet / file). → AT-11
 - [ ] **T-54 (P1) Offline polish**: model ready indicator, clear errors when the provider is unavailable. → AT-10
-- [ ] **T-55 (P1) P1 components**: DateInput, Timer, Chart.
+- [~] **T-55 (P1) P1 components**: DateInput and Timer done (ADR-030); Chart open.
 
 ## M6 — Quality & builds (Sat)
 
@@ -97,6 +97,7 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 - [ ] T-92 Tinker fine-tune for spec generation, compared against the eval baseline
 - [ ] T-93 Audio input component (Gemma 4 E2B/E4B audio)
 - [ ] T-94 Spec v0.2: conditions (`when`), nested screens
+- [~] **T-79 (P0, human-requested) Recipes for the head of the distribution, honest coverage, no dead-end refusals, reminders.** Code and tests done 2026-10-25 (Claude Code), ADR-028/029/030: seven recipes, classifier, cloud/free-form fallback, `$math` pow/min/max/days, Stat number/percent fix, DateInput, Timer, `expo-notifications` triggers (T-52) and the `reminder` recipe, coverage sets and guards. `npm run check` green (47 suites / 2,483 tests). **Open:** build a new dev build (native dependency), phone run of Quick 6 / the human's own prompts / a reminder / a timer; classifier and settings quality on E2B are unmeasured; Chart, random, calendar grids remain gaps.
 - [~] **T-78 (P0, human-requested) Recipes for the on-device model.** Code and tests done 2026-10-24 (Claude Code), ADR-027: four validated app builders (`log`, `counter`, `splitter`, `ai-list`), tolerant settings parser, refusal gate, keyword matcher, `generate({ recipes })`, eval-screen switch. `npm run check` green (37 suites / 1,050 tests). **Open:** phone run (Quick 6, then all 30, then 5 prompts of your own); EmbeddingGemma 2 for matching if the keywords miss real wording.
 - [~] **T-77 (P0, human-requested) Indented-tree line format, shorthand values, always-patch repair.** Code and tests done 2026-10-24 (Claude Code), ADR-024, after the first phone run of T-76 showed E2B garbling `el id Type … > children`. `npm run check` green. **Open:** phone run of e01 (Skip plan on) — success is a valid FILL or one short patch, total well under 3 min.
 - [~] **T-76 (P0, human-requested) Line format + patch repair + 1 repair on-device.** Code and tests done 2026-10-24 (Claude Code, edited Codex-owned generator files at the human's request): ADR-023. `compact.ts`, patch repair, `maxRepairs`, `plainText`, mock and prompts moved to the line format; `parse.ts` removed. `npm run check` green. **Open:** phone run of e01 (Skip plan on, TESTING §7a) to compare FILL time with 511 s and to see whether E2B follows the format; tune the prompt example if not.
