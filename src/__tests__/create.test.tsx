@@ -113,3 +113,22 @@ test('a built preview asks before it is thrown away; Save does not ask', async (
   expect(mockDisable).toHaveBeenCalledTimes(1);
   expect(mockDisable.mock.invocationCallOrder[0]).toBeLessThan(mockReplace.mock.invocationCallOrder[0]);
 });
+
+test('leaving mid-build asks too, in words about stopping the build', async () => {
+  process.env.EXPO_PUBLIC_MOCK_DELAY_MS = '150';
+  try {
+    await render(<Create />);
+    await fireEvent.press(screen.getByLabelText('Example: Plant Pal'));
+    await fireEvent.press(screen.getByText('Build'));
+    expect(mockGuard.prevent).toBe(true); // building, nothing to preview yet
+
+    const repeat = jest.fn();
+    mockConfirm.mockResolvedValueOnce(true);
+    mockGuard.ask({ repeat });
+    await waitFor(() => expect(repeat).toHaveBeenCalledTimes(1));
+    expect(mockConfirm.mock.calls[0][1]).toMatchObject({ title: 'Stop building?', confirmLabel: 'Stop building', destructive: true });
+    await screen.findByText(/Preview · /); // let the build settle before the test ends
+  } finally {
+    delete process.env.EXPO_PUBLIC_MOCK_DELAY_MS;
+  }
+});

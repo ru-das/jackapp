@@ -9,6 +9,7 @@ import { Card } from '@/ui/Card';
 import { space, type, useTheme } from '@/ui/theme';
 
 const gb = (bytes: number) => (bytes / 1e9).toFixed(1);
+const percent = ({ loaded, total }: { loaded: number; total: number }) => Math.min(100, Math.round((loaded / total) * 100));
 
 export function LocalModelCard() {
   const t = useTheme();
@@ -74,9 +75,13 @@ export function LocalModelCard() {
         {LITERT_MODEL.label}, {gb(LITERT_MODEL.size)} GB. Runs on this phone, so it works offline and has no request limit. Download it once over Wi-Fi.
       </Text>
       {progress ? (
-        <View accessibilityRole="progressbar" accessibilityLabel="Downloading model" style={{ gap: space.sm }}>
-          <View style={{ height: 8, borderRadius: 4, backgroundColor: t.accentSoft }}>
-            <View style={{ height: 8, borderRadius: 4, backgroundColor: t.accent, width: `${Math.min(100, (progress.loaded / progress.total) * 100)}%` }} />
+        <View style={{ gap: space.sm }}>
+          <View
+            accessible accessibilityRole="progressbar" accessibilityLabel="Downloading model"
+            accessibilityValue={{ min: 0, max: 100, now: percent(progress), text: `${gb(progress.loaded)} of ${gb(progress.total)} GB` }}
+            style={{ height: 8, borderRadius: 4, backgroundColor: t.accentSoft }}
+          >
+            <View style={{ height: 8, borderRadius: 4, backgroundColor: t.accent, width: `${percent(progress)}%` }} />
           </View>
           <Text style={{ color: t.muted, fontSize: type.meta }}>{gb(progress.loaded)} of {gb(progress.total)} GB</Text>
           {button('Cancel download', () => abort?.abort(), true)}

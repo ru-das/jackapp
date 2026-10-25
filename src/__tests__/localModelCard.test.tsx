@@ -20,6 +20,16 @@ test('offers the download, shows progress, then shows Downloaded with a delete b
   expect(await screen.findByLabelText('Download (2.6 GB)')).toBeTruthy();
 });
 
+test('the progress bar tells a screen reader how far the download is', async () => {
+  model.isDownloaded.mockResolvedValue(false);
+  model.download.mockImplementation((onProgress) => { onProgress({ loaded: 1_294_073_856, total: 2_588_147_712 }); return new Promise(() => {}); });
+  await render(<LocalModelCard />);
+  await fireEvent.press(await screen.findByLabelText('Download (2.6 GB)'));
+  const bar = await screen.findByRole('progressbar');
+  expect(bar.props.accessibilityValue).toEqual({ min: 0, max: 100, now: 50, text: '1.3 of 2.6 GB' });
+  expect(screen.getByLabelText('Cancel download')).toBeTruthy(); // the button is not swallowed by the bar
+});
+
 test('a failed download shows the friendly error and keeps the button', async () => {
   jest.spyOn(console, 'error').mockImplementation(() => {});
   model.isDownloaded.mockResolvedValue(false);

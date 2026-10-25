@@ -166,10 +166,12 @@ export default function Create() {
 
   const busy = phase.kind === 'loading' || phase.kind === 'working';
 
-  // A build can take minutes on the phone, and leaving the preview deletes it (see `discard`): ask before a stray Back does that.
-  const disablePrevention = usePreventRemove(phase.kind === 'preview', ({ repeat }) => {
-    void confirm('It hasn’t been saved. You can describe it again to build a new one.',
-      { title: 'Discard this mini-app?', confirmLabel: 'Discard', destructive: true }).then((ok) => { if (ok) repeat(); });
+  // A build can take minutes on the phone, and leaving the preview deletes it (see `discard`) while leaving mid-build aborts it: ask before a stray Back does either.
+  const disablePrevention = usePreventRemove(busy || phase.kind === 'preview', ({ repeat }) => {
+    const [message, options] = phase.kind === 'preview'
+      ? ['It hasn’t been saved. You can describe it again to build a new one.', { title: 'Discard this mini-app?', confirmLabel: 'Discard' }] as const
+      : ['It isn’t ready yet. Leaving now cancels it, and you would start again.', { title: 'Stop building?', confirmLabel: 'Stop building' }] as const;
+    void confirm(message, { ...options, destructive: true }).then((ok) => { if (ok) repeat(); });
   });
 
   if (phase.kind === 'preview') {

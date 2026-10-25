@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M7 — Ship: features done and device-tested; cleaning and polishing; T-70..74 (log, video, README, DEV post, publish) open |
-| Last updated | 2026-10-25 by Claude Code (T-128) |
+| Last updated | 2026-10-25 by Claude Code (T-129) |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-129 harden, third audit (Claude Code, 2026-10-25, human-requested; no Codex-owned files touched):** (1) `LocalModelCard`: the 8 px bar is now the progressbar (`accessible`, label, `accessibilityValue` min 0 / max 100 / now / "1.3 of 2.6 GB"); before, the role sat on a container with the Cancel button inside. (2) `create.tsx`: the leave guard covers `loading` and `working` too ("Stop building?" / **Stop building**), next to the preview's "Discard this mini-app?". (3) `ReminderStatus`: live region removed; `useAnnounce` speaks a problem when the app opens, any later change, and the "Test reminder arrives at …" or failure note; opening an app whose reminders work is quiet; the decorative bell is not read. `useAnnounce(text, { onMount })` in `src/ui/announce.ts`. `npm run check` green (new `reminderStatus.test.tsx`, model-card and Create tests). **Not tried on a device.** **Human next (TalkBack on):** start the model download and focus the bar (it says a percentage and GB); press the system Back while a build is running (dialog; Cancel keeps building); open an app with reminders after turning notifications off in system settings (spoken), turn them on and come back (spoken), tap "Send a test in 2 minutes" (spoken). **Still open from audit 3:** date field keyboard and the notification colour/icon (`adapt`, needs a rebuild), ripple and overflow-menu modality (`polish`).
+>
 > **T-128 audit polish (Claude Code, 2026-10-25, human-requested; closes the re-audit; no Codex-owned files touched):** `inverse(theme)` in `src/ui/theme.ts` is the snackbar surface for `Toaster` and `UndoBar` (the Undo bar was a cream card with a 1.2:1 hairline over cream content); text and the Undo action are at least 4.5:1 in both themes (`theme.test.ts`). Settings: unselected provider rows and currency chips use `outline`, grouped as radiogroups. `Timer` digits and `Stat` values `maxFontSizeMultiplier={1.5}` (`fontScale.test.tsx`). `npm run check` green; detector clean. **Not tried on a device.** **Human next (Android):** remove a list row in light and dark mode: the Undo bar is a dark (light in dark mode) pill with a readable green Undo; Settings: unselected AI rows and currency chips have a visible edge; set system font size to the largest and open a timer and a stat card: the digits stop growing and still fit. **Re-audit items all handled except the unverified-on-device ones (the AT-16 list).**
 >
 > **T-127 adapt: status bar and portrait lock (Claude Code, 2026-10-25, human-requested after the second audit; no Codex-owned files touched):** ADR-046. `statusBarStyle` on the root `Stack` (`dark` icons on the light theme, `light` on the dark one; the library's Android default is white icons, which would vanish on the cream background); `layout.test.tsx` checks both. Portrait lock **kept** for phones (landscape would leave the Create preview about 100 dp); the app targets Android 16, which ignores the lock on 600 dp+ screens, so I read every screen for wide windows: all are one centred column of at most 640 dp; only the toast pill was uncapped (now 608). `npm run check` green. **Not tried on a device.** **Human next:** (1) light mode: clock and battery in the status bar are dark on Home, Create, Settings; dark mode: they are light; switch system theme while the app is open. (2) If you have a tablet or foldable (or the Android 16 large-screen emulator): rotate it; Home, a mini-app and the Create preview should be a centred column, no stretched controls. If the status bar icons look right already, nothing else to do. **Not done:** navigation bar icon colour (system decides), list-detail or two-pane layouts for tablets.
@@ -239,6 +241,7 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-129 | Harden: download progress value, guard the running build, announce reminder status. | see git |
 | 2026-10-25 | Claude Code | T-128 | Audit polish: shared inverse snackbar surface (toast, Undo bar), outline + radiogroups in Settings, font-scale caps on Timer/Stat. | see git |
 | 2026-10-25 | Claude Code | T-127 | Adapt: status bar icons follow the theme; portrait lock kept (large screens checked); toast width capped; ADR-046. | see git |
 | 2026-10-25 | Claude Code | T-126 | Leave guards: confirm before discarding an unsaved Create preview or edited Customize settings (usePreventRemove). | see git |
