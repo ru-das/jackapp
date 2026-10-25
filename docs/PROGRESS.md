@@ -191,6 +191,7 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 | 2026-10-25 | Web checks: T-113 service worker offline reopen, T-111 Tab order and 200% zoom, AT-13 PWA install | Passed (human-reported, no per-step detail) |
 | 2026-10-25 | Device matrix | Phone: Moto G45, Android 15, 8 GB RAM (filled in TESTING §4) |
 | 2026-10-25 | OpenRouter-offline and Ollama-unreachable message rows (AT-10) | Dropped by the human: OpenRouter and Ollama will not be used in future, so not tested |
+| 2026-10-25 | AT-12 / T-62 network-log acceptance | Waived by the human ("Drop them"). No network log was captured, so "model-source-only traffic" is unverified by a log. T-62 ticked |
 
 ---
 
