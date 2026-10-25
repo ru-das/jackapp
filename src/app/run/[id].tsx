@@ -15,6 +15,8 @@ import { readJson, specKey, StorageError } from '@/storage';
 import { subscribeApps } from '@/storage/apps';
 import { loadSettings } from '@/storage/settings';
 import { ActionButton } from '@/ui/ActionButton';
+import { MoreIcon } from '@/ui/MoreIcon';
+import { OverflowMenu } from '@/ui/OverflowMenu';
 import { ReminderStatus } from '@/ui/ReminderStatus';
 import { UndoBar } from '@/ui/UndoBar';
 import { Card } from '@/ui/Card';
@@ -28,6 +30,7 @@ export default function Run() {
   const t = useTheme();
   const [phase, setPhase] = useState<Phase>({ kind: 'loading' });
   const [reminders, setReminders] = useState<SyncResult>();
+  const [menu, setMenu] = useState(false);
   const navigateRef = useRef<RendererHandle['navigate']>(undefined);
   const router = useRouter();
   // Customize saves a rebuilt spec while this screen is still mounted underneath; reload it.
@@ -73,21 +76,24 @@ export default function Run() {
   const title = phase.kind === 'ready' ? `${phase.spec.meta.icon ?? ''} ${phase.spec.meta.name}`.trim() : 'Mini-app';
   return (
     <View style={[styles.fill, { backgroundColor: t.bg }]}>
+      {/* One header button, so a long mini-app name keeps the room; Customize and Export are occasional. */}
       <Stack.Screen options={{ title, headerRight: phase.kind === 'ready' ? () => (
-        <View style={styles.row}>
-        {phase.spec.meta.recipe ? (
-          <Pressable accessibilityRole="button" accessibilityLabel="Customize this mini-app" style={(st) => [styles.export, pressed(st)]}
-            onPress={() => void phase.store.flush().catch(() => {}).then(() => router.push({ pathname: '/edit/[id]', params: { id } }))}>
-            <Text style={{ color: t.accent, fontSize: type.body }}>Customize</Text>
-          </Pressable>) : null}
-        <Pressable accessibilityRole="button" accessibilityLabel="Export data as CSV" onPress={() => void share(toCsv(phase.spec, phase.store.getState())).catch(() => toast("Couldn’t export."))} style={(st) => [styles.export, pressed(st)]}>
-          <Text style={{ color: t.accent, fontSize: type.body }}>Export</Text>
-        </Pressable>
-        </View>) : undefined }} />
+        <Pressable accessibilityRole="button" accessibilityLabel="More actions" accessibilityState={{ expanded: menu }} onPress={() => setMenu(!menu)} style={(st) => [styles.more, pressed(st)]}>
+          <MoreIcon />
+        </Pressable>) : undefined }} />
       {phase.kind === 'loading' ? <ActivityIndicator accessibilityLabel="Opening mini-app" color={t.accent} style={styles.spin} /> : null}
       {phase.kind === 'ready' && reminders ? <ReminderStatus appId={id} result={reminders} /> : null}
       {phase.kind === 'ready' ? <Renderer spec={phase.spec} store={phase.store} engine={phase.engine} onReady={(h) => { navigateRef.current = h.navigate; }} /> : null}
       {phase.kind === 'ready' ? <UndoBar store={phase.store} /> : null}
+      {phase.kind === 'ready' && menu ? (
+        <OverflowMenu onClose={() => setMenu(false)} items={[
+          ...(phase.spec.meta.recipe ? [{
+            label: 'Customize',
+            onPress: () => void phase.store.flush().catch(() => {}).then(() => router.push({ pathname: '/edit/[id]', params: { id } })),
+          }] : []),
+          { label: 'Export data', onPress: () => void share(toCsv(phase.spec, phase.store.getState())).catch(() => toast("Couldn’t export.")) },
+        ]} />
+      ) : null}
       {phase.kind === 'error' ? (
         <Card style={styles.card}>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Can’t open this one</Text>
@@ -101,8 +107,7 @@ export default function Run() {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  row: { flexDirection: 'row' },
-  export: { minHeight: MIN_TARGET, minWidth: MIN_TARGET, paddingHorizontal: space.sm, justifyContent: 'center' },
+  more: { minHeight: MIN_TARGET, minWidth: MIN_TARGET, alignItems: 'center', justifyContent: 'center' },
   spin: { marginTop: space.lg * 2 },
   card: { margin: space.lg, width: 'auto', maxWidth: 640, alignSelf: 'center' },
   h: { fontSize: type.h, fontWeight: '600' },

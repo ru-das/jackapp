@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Card } from './Card';
 import type { AppSummary } from '@/storage/apps';
 import { ActionButton } from './ActionButton';
+import { MoreIcon } from './MoreIcon';
 import { MIN_TARGET, pressed, radius, space, type, useTheme } from './theme';
 
 type Props = {
@@ -31,9 +32,7 @@ export function AppRow({ app, onOpen, onRename, onDuplicate, onDelete }: Props) 
             accessibilityRole="button" accessibilityLabel={`More actions for ${app.name}`} accessibilityState={{ expanded: more }}
             onPress={() => setMore(!more)} style={(st) => [styles.more, pressed(st)]}
           >
-            <View style={styles.dots} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
-              {[0, 1, 2].map((i) => <View key={i} style={[styles.dot, { backgroundColor: t.muted }]} />)}
-            </View>
+            <MoreIcon />
           </Pressable>
         </View>
       ) : (
@@ -62,8 +61,6 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center' },
   title: { flex: 1, minHeight: MIN_TARGET, flexDirection: 'row', alignItems: 'center', gap: space.md },
   more: { minWidth: MIN_TARGET, minHeight: MIN_TARGET, alignItems: 'center', justifyContent: 'center' },
-  dots: { gap: 4 },
-  dot: { width: 4, height: 4, borderRadius: 2 },
   icon: { fontSize: 28 },
   name: { flex: 1, fontSize: type.h, fontWeight: '600' },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
