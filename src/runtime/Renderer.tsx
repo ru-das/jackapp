@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { BackHandler, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { PhotoError, pickImage, toast } from '@/capabilities';
 import { Button } from '@/catalog/Button/Button';
 import { Card } from '@/catalog/Card/Card';
@@ -168,6 +168,12 @@ export function Renderer({ spec, store, engine, onReady }: RendererProps) {
     if (spec.screens.some((s) => s.id === to)) setHistory((h) => (h.includes(to) ? h.slice(0, h.lastIndexOf(to) + 1) : [...h, to]));
   }, [spec]);
   useEffect(() => onReady?.({ navigate }), [onReady, navigate]);
+  // System Back steps back through the mini-app's own screens before it leaves the route.
+  useEffect(() => {
+    if (history.length < 2) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => { setHistory((h) => h.slice(0, -1)); return true; });
+    return () => sub.remove();
+  }, [history.length]);
 
   const base = useMemo<ValueContext>(() => ({
     state, now: new Date(), locale: LOCALE.locale, timeZone: LOCALE.timeZone, currency: preferredCurrency(),

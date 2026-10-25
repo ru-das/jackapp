@@ -18,7 +18,7 @@ Value = see `SCHEMA.md` §4. Template = string with `{{…}}`. StateKey = declar
 | `variant` (Button) | `primary` · `secondary` · `danger` |
 | Text `variant` | `title` · `heading` · `body` · `caption` · `muted` |
 
-Theme: light and dark follow the system. Minimum touch target 44 × 44. Every input has a visible label (accessibility).
+Theme: light and dark follow the system. Minimum touch target 48 × 48 (ADR-042). Every input has a visible label (accessibility).
 
 ---
 

@@ -137,7 +137,7 @@ The latest `evals/results/*.json` meets the targets in §2, or the gap is explai
 The docs-sync test compares registry names bidirectionally with P0 headings until T-55 adds P1 components (ADR-014).
 
 ### AT-16 Accessibility basics (W + A)
-Every input has a label read by TalkBack or the browser's screen reader. Touch targets ≥ 44 px. Layout survives 130% font scale. Contrast is OK in light and dark.
+Every input has a label read by TalkBack or the browser's screen reader. Touch targets ≥ 48 px. Layout survives 130% font scale. Contrast is OK in light and dark.
 
 ## 4. Device matrix (fill in)
 

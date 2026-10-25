@@ -10,6 +10,7 @@ import type { Spec } from '@/spec/types';
 import { dataKey, readJson, specKey, writeJson } from '@/storage';
 import { duplicateApp, loadValid, notifyAppsChanged } from '@/storage/apps';
 import { ActionButton } from '@/ui/ActionButton';
+import { useInsets } from '@/ui/insets';
 import { MIN_TARGET, radius, space, type, useTheme } from '@/ui/theme';
 
 const keysOf = (text: string) => [...readSettings(text).keys()];
@@ -28,6 +29,7 @@ const labelOf = (k: string) => LABELS[k] ?? k;
 export default function Customize() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const t = useTheme();
+  const { bottom } = useInsets();
   const router = useRouter();
   const [spec, setSpec] = useState<Spec | null | undefined>(undefined);
   const [values, setValues] = useState<Record<string, string>>({});
@@ -86,7 +88,7 @@ export default function Customize() {
   };
 
   return (
-    <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={styles.pad} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={[styles.pad, { paddingBottom: space.lg + bottom }]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: `Customize ${spec.meta.name}` }} />
       <Text style={{ color: t.muted, fontSize: type.body }}>Change the settings this mini-app was built from. Your saved data stays unless a change would hide it; you’ll be asked first.</Text>
       {keys.map((k) => (

@@ -1,7 +1,6 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { RECIPES } from '@/ai/generator/recipes';
 import { readSettings } from '@/ai/generator/recipes/settings';
 import { h1, h2, h3 } from '@/spec/fixtures';
@@ -12,6 +11,7 @@ import { deleteApp, duplicateApp, listApps, newAppId, notifyAppsChanged, subscri
 import { ActionButton } from '@/ui/ActionButton';
 import { AppRow } from '@/ui/AppRow';
 import { Card } from '@/ui/Card';
+import { useInsets } from '@/ui/insets';
 import { SettingsIcon } from '@/ui/SettingsIcon';
 import { MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/theme';
 
@@ -49,7 +49,7 @@ output Each person pays = (bill + bill * tip / 100) / people as money`), 'Tip Ca
 export default function Home() {
   const t = useTheme();
   const router = useRouter();
-  const top = useContext(SafeAreaInsetsContext)?.top ?? 0; // the header is hidden, so Home clears the status bar itself
+  const { top, bottom } = useInsets(); // the header is hidden, so Home clears the status bar itself
   const [apps, setApps] = useState<AppSummary[] | 'error' | null>(null);
   const refresh = useCallback(() => { void listApps().then(setApps, (e) => { console.error('home: could not list apps', e); setApps('error'); }); }, []);
   useEffect(() => { refresh(); return subscribeApps(refresh); }, [refresh]);
@@ -93,7 +93,7 @@ export default function Home() {
     params: { prompt: `Like “${spec.meta.name}” (${spec.meta.description}), but ` },
   });
   return (
-    <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={[styles.content, { paddingTop: top + space.md }]}>
+    <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={[styles.content, { paddingTop: top + space.md, paddingBottom: bottom + space.lg }]}>
       <View style={styles.head}>
         <Text accessibilityRole="header" style={[styles.title, { color: t.text }]}>JackApp</Text>
         <Pressable accessibilityRole="button" accessibilityLabel="Settings" onPress={() => router.push('/settings')} style={(st) => [styles.gear, pressed(st)]}>

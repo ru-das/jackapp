@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { BackHandler } from 'react-native';
 import { h1 } from '@/spec/fixtures';
 import { SpecSchema } from '@/spec/schema';
 import type { Spec } from '@/spec/types';
@@ -83,6 +84,24 @@ test('navigate switches screens and Back returns', async () => {
   expect(screen.getByText('Second screen')).toBeTruthy();
   await fireEvent.press(screen.getByLabelText('Back'));
   expect(screen.getByText('Grocery list')).toBeTruthy();
+});
+
+test('system Back steps back one mini-app screen, then is left to the router', async () => {
+  const two = structuredClone(h1) as Record<string, any>;
+  two.screens.push({ id: 'second', title: 'Second', root: 'only' });
+  two.elements.only = { type: 'Text', props: { value: 'Second screen' } };
+  type BackHandlerFn = Parameters<typeof BackHandler.addEventListener>[1];
+  const handlers: BackHandlerFn[] = [];
+  const add = jest.spyOn(BackHandler, 'addEventListener').mockImplementation((_, h) => { handlers.push(h); return { remove: () => { handlers.splice(handlers.indexOf(h), 1); } }; });
+  const f = mount(two);
+  await render(f.ui);
+  expect(handlers).toHaveLength(0); // one screen: Back is left to the router
+  await act(async () => { f.handle().navigate('second'); });
+  expect(handlers).toHaveLength(1);
+  await act(async () => { expect(handlers[0]({} as never)).toBe(true); });
+  expect(screen.getByText('Grocery list')).toBeTruthy();
+  expect(handlers).toHaveLength(0);
+  add.mockRestore();
 });
 
 const statApp = (format: string) => ({

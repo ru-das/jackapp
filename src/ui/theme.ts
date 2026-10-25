@@ -14,7 +14,7 @@ export const palettes = { light, dark };
 export type Palette = typeof light;
 export const space = { none: 0, xs: 4, sm: 8, md: 16, lg: 24 } as const;
 export const radius = { card: 20, control: 14, pill: 999 } as const;
-export const MIN_TARGET = 44;
+export const MIN_TARGET = 48; // Material minimum; 44 is the iOS value
 // Role sizes for the app's own screens. Catalog Text variants keep their own scale (it is part of what a spec can ask for).
 export const type = { title: 34, h: 19, body: 16, hint: 15, meta: 14 } as const;
 /** Dim a Pressable while it is held, so every tap target answers the finger. */

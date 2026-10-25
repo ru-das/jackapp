@@ -17,6 +17,7 @@ import { notifyAppsChanged } from '@/storage/apps';
 import { ActionButton } from '@/ui/ActionButton';
 import { Card } from '@/ui/Card';
 import { GenerationStages } from '@/ui/GenerationStages';
+import { useInsets } from '@/ui/insets';
 import { MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/theme';
 import { UnsupportedCard } from '@/ui/UnsupportedCard';
 
@@ -40,6 +41,7 @@ type Phase =
 
 export default function Create() {
   const t = useTheme();
+  const { bottom } = useInsets();
   const router = useRouter();
   const params = useLocalSearchParams<{ prompt?: string }>();
   const [prompt, setPrompt] = useState(params.prompt ?? '');
@@ -185,7 +187,7 @@ export default function Create() {
             Couldn’t save. Your changes are still open. Try again.
           </Text>
         ) : null}
-        <View style={[styles.barWrap, { borderColor: t.border, backgroundColor: t.surface }]}>
+        <View style={[styles.barWrap, { borderColor: t.border, backgroundColor: t.surface, paddingBottom: bottom }]}>
           <View style={styles.barInner}>
             <View style={styles.flex}><ActionButton kind="quiet" label="Build again" onPress={() => void build(prompt)} /></View>
             <View style={styles.flex}><ActionButton label={saving ? 'Saving…' : 'Save'} disabled={saving} onPress={() => void save(phase)} /></View>
@@ -196,7 +198,7 @@ export default function Create() {
   }
 
   return (
-    <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={[styles.content, { paddingBottom: space.lg + bottom }]} keyboardShouldPersistTaps="handled">
       <Text style={[styles.label, { color: t.text }]}>What should your mini-app do?</Text>
       <Text style={{ color: t.muted, fontSize: type.hint }}>Works best for a tracker, checklist, counter, calculator, timer, reminder, or photo-to-list tool.</Text>
       <TextInput

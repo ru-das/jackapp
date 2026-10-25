@@ -6,6 +6,7 @@ import { localModel } from '@/ai/providers/litert';
 import { CURRENCIES } from '@/ai/generator/recipes/splitter';
 import { loadSettings, saveSettings, type Settings } from '@/storage/settings';
 import { Card } from '@/ui/Card';
+import { useInsets } from '@/ui/insets';
 import { LocalModelCard } from '@/ui/LocalModelCard';
 import { MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/theme';
 
@@ -17,6 +18,7 @@ const STAGES = [
 
 export default function SettingsScreen() {
   const t = useTheme();
+  const { bottom } = useInsets();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [details, setDetails] = useState(false);
 
@@ -38,7 +40,7 @@ export default function SettingsScreen() {
   ];
 
   return (
-    <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={styles.content}>
+    <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={[styles.content, { paddingBottom: space.lg + bottom }]} keyboardShouldPersistTaps="handled">
       <Card>
         <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>AI</Text>
         <Text style={{ color: t.muted, fontSize: type.hint }}>
