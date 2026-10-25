@@ -90,7 +90,7 @@ export function buildLog(c: LogConfig): Obj {
     : undefined;
   const actions: Obj = {
     add: { steps: [
-      { op: 'state.append', path: 'items', value: {
+      { op: 'state.append', path: 'items', ...(title.type === 'text' ? { required: [title.key] } : {}), value: {
         ...Object.fromEntries(c.fields.map((f) => [f.key, f.type === 'date' ? NOW : ref(draft(f))])),
         ...(c.checkbox ? { done: false } : {}) } },
       ...typed.map((f) => ({ op: 'state.reset', path: draft(f) })),

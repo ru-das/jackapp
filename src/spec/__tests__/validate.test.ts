@@ -313,3 +313,11 @@ describe('DateInput and Timer', () => {
     expectError(app({ t: { type: 'Timer', props: { seconds: 5, label: 'Tea', onDone: 'nope' } } }), 'MISSING_REF', 'elements.t.props.onDone');
   });
 });
+
+test('required on append must name a text field of the list item', () => {
+  const state = { items: h1.state.items };
+  const req = (required: string[]) => withSteps([{ op: 'state.append', path: 'items', required, value: { name: 'Milk', qty: '1', done: false } }], state);
+  expect(validate(req(['name']))).toEqual([]);
+  expectError(req(['absent']), 'BAD_VALUE', 'actions.test.steps[0].required');
+  expectError(req(['done']), 'BAD_ACTION', 'actions.test.steps[0].required');
+});

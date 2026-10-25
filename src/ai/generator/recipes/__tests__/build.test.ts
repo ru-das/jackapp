@@ -48,6 +48,12 @@ describe('log recipe builds a valid spec for every combination', () => {
   test.each(cases)('%s', (_, config) => check(buildLog(config)));
 });
 
+test('the log add action requires the title text', () => {
+  const spec = buildLog({ name: 'Spend', icon: '💸', description: 'd', noun: 'expense', fields: [f('name', 'text'), f('amount', 'money')],
+    checkbox: false, totals: [], tap: null, sort: null, share: false, reminder: null }) as { actions: { add: { steps: { required?: string[] }[] } } };
+  expect(spec.actions.add.steps[0].required).toEqual(['name']);
+});
+
 test.each([1, 5, 100])('counter step %i', (step) => {
   const spec = buildCounter({ name: 'Water', icon: '💧', description: 'd', noun: 'glasses', step });
   check(spec);

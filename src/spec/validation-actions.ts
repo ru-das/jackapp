@@ -96,7 +96,14 @@ function actionStep(ctx: ValidationContext, step: ActionStep, base: string, item
     if (['state.append', 'state.update', 'state.remove'].includes(step.op)) {
       if (decl && decl.type !== 'list') expectType(ctx, decl, { type: 'list' }, `${base}.path`);
       if (decl?.type === 'list') {
-        if (step.op === 'state.append') patch(ctx, step.value, decl.of, `${base}.value`, true, item);
+        if (step.op === 'state.append') {
+          patch(ctx, step.value, decl.of, `${base}.value`, true, item);
+          for (const key of step.required ?? []) {
+            if (field(ctx, decl.of, key, `${base}.required`)?.type !== 'string' && own(decl.of, key)) {
+              ctx.add('BAD_ACTION', `${base}.required`, `Required field ${key} is not text.`, 'Only text fields can be required.');
+            }
+          }
+        }
         if (step.op === 'state.update') patch(ctx, step.set, decl.of, `${base}.set`, false, item);
         if (step.op === 'state.remove' && step.where) where(ctx, step.where, decl.of, `${base}.where`);
       }

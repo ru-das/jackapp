@@ -134,7 +134,7 @@ Templates render **plain text only**. Write `\{{` for a literal `{{`.
 | `op` | Fields | Behavior |
 |---|---|---|
 | `state.set` | `path`, `value: Value` | Set a state key |
-| `state.append` | `path` (list), `value: { field: Value }` | Push an item |
+| `state.append` | `path` (list), `value: { field: Value }`, optional `required: [field]` | Push an item. Each `required` field must be a text field of the item and non-blank after trimming, else the step stops with "Fill in the <field> first." and nothing is saved |
 | `state.update` | `path` (list), `index: Value`, `set: { field: Value }` | Patch one item |
 | `state.remove` | `path` (list), `index: Value` **or** `where: { field, equals }` | Remove item(s) |
 | `state.toggle` | `path` (boolean) | Flip a boolean |

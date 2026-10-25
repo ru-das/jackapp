@@ -300,3 +300,14 @@ test.each<ActionStep>([
   gate.resolve(); await pending;
   expect(f.store.getState().flag).toBe(true);
 });
+
+test('append with a required field refuses blank text, keeps the rest, and accepts real text', async () => {
+  const add = (name: string) => ({ op: 'state.append', path: 'items', required: ['name'], value: { name, price: 1, done: false, date: { $now: true } } });
+  const blank = setup([add('   ')]);
+  await blank.engine.run('run');
+  expect(blank.store.getState().items).toEqual([row]);
+  expect(blank.services.toast).toHaveBeenCalledWith('Fill in the name first.');
+  const ok = setup([add('Tea')]);
+  await ok.engine.run('run');
+  expect(ok.store.getState().items).toHaveLength(2);
+});

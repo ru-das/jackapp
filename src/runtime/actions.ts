@@ -66,7 +66,13 @@ export function createActionEngine({ spec, store, services, getValueContext }: A
     let candidate: unknown;
     switch (step.op) {
       case 'state.set': candidate = value(step.value); break;
-      case 'state.append': candidate = [...list(), fields(step.value)]; break;
+      case 'state.append': {
+        const item = fields(step.value);
+        for (const key of step.required ?? []) {
+          if (typeof item[key] !== 'string' || item[key].trim() === '') throw new FriendlyError(`Fill in the ${key} first.`);
+        }
+        candidate = [...list(), item]; break;
+      }
       case 'state.update': {
         const rows = list();
         const at = index(step.index, rows.length);

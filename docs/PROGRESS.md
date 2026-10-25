@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-104..106 data entry (Claude Code, 2026-10-25, human-requested; T-106 edits Codex-owned `src/spec/{schema,validation-actions}.ts`, `runtime/actions.ts`, `recipes/log.ts`; ask Codex to review the `required` contract):** ADR-036. Number field keeps typed text, commits valid numbers, explains invalid ones. Settings → Money picks the currency (no locale guessing). `state.append` `required` stops blank names. `npm run check` green (53 suites / 2,588 tests). **Not tried on a device.** **Human next:** clear and retype an amount (`12.`, `-3`), blur on `abc`; Add an expense with a blank name; Settings → INR, reopen an app. Limits: `state.update` edits unchecked; per-app currency only on the splitter.
+>
 > **T-103 uncertain AI output (Claude Code, 2026-10-25, human-requested; edits Codex-owned `src/spec/*`, `runtime/actions.ts`, `recipes/{splitter,ai}.ts`; ask Codex to review the `flag` contract):** ADR-035. `ai.run`: fields not in `defaults` are essential; blank/missing/wrong type = unreadable; rows with nothing readable are dropped; new `flag` field marks partly read rows ("Couldn't read the price"); empty result throws a `FriendlyError` toast and leaves the old list. Splitter shows ⚠ on flagged lines (new `List.flagField`), "Lines to check", and keeps them out of the total until fixed. `npm run check` green (51 suites / 2,580 tests). **Not tried on a device.** **Human next:** read a blurry receipt, see ⚠ lines and the count, fix one, re-read with a blank photo (old lines must stay). Limits: unknown `kind` values are not flagged; no add-a-line action.
 >
 > **T-102 Fridge Snap (Claude Code, 2026-10-25, human-requested; edits Codex-owned `recipes/ai.ts`, `src/spec/{schema,validation-actions}.ts`, `runtime/actions.ts`; ask Codex to review the `state.diff` contract):** ADR-034. Photo → editable "what I can see" → editable usual items → shopping list of usual items not seen (+ note that a photo does not prove absence). `output compare`; fridge/pantry photo requests use it even if the model said checklist. **Not tried on a device.** **Human next:** build Fridge Snap, snap a fridge, delete a wrong item, add one, edit the usual list, Make shopping list. Limit: text match only ("yogurt" vs "yoghurt" misses).
@@ -179,6 +181,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-106 | `state.append` `required` text fields; log Add refuses a blank title. | see git |
 | 2026-10-25 | Claude Code | T-105 | Currency setting (Settings → Money) replaces fixed USD in Renderer and session. | see git |
 | 2026-10-25 | Claude Code | T-104 | Number field keeps draft text, commits valid numbers, explains invalid ones. | see git |
 | 2026-10-25 | Claude Code | T-103 | `ai.run` flags unreadable essential fields instead of defaulting; empty read keeps old list with a specific toast; splitter shows ⚠ lines. | see git |

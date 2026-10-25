@@ -87,7 +87,7 @@ export const ElementSchema = z.strictObject({
 const valueMap = z.record(IdentifierSchema, ValueSchema);
 export const ActionStepSchema = z.discriminatedUnion('op', [
   z.strictObject({ op: z.literal('state.set'), path: IdentifierSchema, value: ValueSchema }),
-  z.strictObject({ op: z.literal('state.append'), path: IdentifierSchema, value: valueMap }),
+  z.strictObject({ op: z.literal('state.append'), path: IdentifierSchema, value: valueMap, required: z.array(IdentifierSchema).max(8).optional() }),
   z.strictObject({ op: z.literal('state.update'), path: IdentifierSchema, index: ValueSchema, set: valueMap }),
   z.strictObject({ op: z.literal('state.remove'), path: IdentifierSchema, index: ValueSchema.optional(), where: WhereSchema.optional() })
     .refine((step) => (step.index !== undefined) !== (step.where !== undefined), 'Provide exactly one of index or where'),
