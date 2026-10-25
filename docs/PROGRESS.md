@@ -172,6 +172,16 @@
 
 > **T-11 phone steps:** `npx expo start --web --tunnel` (WebGPU needs HTTPS), open `/dev/spike` in Chrome on the phone, Download+load, Run 5, Photo; record in Spike results + ADR-003. Not verified: Gemma 4 class names in transformers 4.3.1 against the live model (only checked the export exists), model size vs phone RAM.
 
+## Device test log (human, Android)
+
+Results the human reports during the on-device pass (list in TESTING.md AT-10 and §7a). Newest last.
+
+| Date | Test | Result |
+|---|---|---|
+| 2026-10-25 | Model download (T-112): resume after force-stop, Cancel, airplane mode, space message, Load now | Passed (human-reported) |
+
+---
+
 ## Open questions (human to answer)
 
 1. ~~**Hardware**~~ Answered: laptop has 4 GB RAM, no model runs on it (ADR-012).
