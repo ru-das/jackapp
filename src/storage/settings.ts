@@ -7,10 +7,10 @@ export const SETTINGS_KEY = 'jackapp:settings';
 
 const httpUrl = z.string().refine((v) => /^https?:\/\/[^\s/]+/i.test(v));
 
-// Fresh Android installs start on-device (ADR-022); web has no on-device model. Junk saved values fall back to OpenRouter.
+// Fresh Android installs start on-device (ADR-022); web has no on-device model, so it starts on Ollama. Junk saved values (and a saved 'openrouter', removed in ADR-049) fall back to the same default.
+const DEFAULT_PROVIDER = Platform.OS === 'android' ? 'local' : 'ollama';
 const SettingsSchema = z.object({
-  provider: z.enum(['local', 'openrouter', 'ollama', 'mock']).default(Platform.OS === 'android' ? 'local' : 'openrouter').catch('openrouter'),
-  openrouterKey: z.string().catch(''),
+  provider: z.enum(['local', 'ollama', 'mock']).default(DEFAULT_PROVIDER).catch(DEFAULT_PROVIDER),
   ollamaUrl: httpUrl.catch(DEFAULT_OLLAMA_URL),
   ollamaModel: z.string().catch(''),
   // An explicit choice, never guessed from the interface language.

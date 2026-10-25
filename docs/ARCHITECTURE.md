@@ -11,7 +11,7 @@ JackApp is a single **Expo (React Native + React Native Web)** TypeScript app th
 ```mermaid
 flowchart LR
   U[User prompt] --> G[Generator<br/>plan → fill → repair]
-  G <--> P[LLM Provider<br/>on-device / OpenRouter / Ollama / mock]
+  G <--> P[LLM Provider<br/>on-device / Ollama / mock]
   G --> V[Spec Validator]
   V -->|valid spec| S[(Local storage)]
   S --> R[Runtime<br/>renderer + state + actions]
@@ -32,8 +32,8 @@ flowchart LR
 | Images | `expo-image-picker`, `expo-image-manipulator` | Downscale to ≤ 1024 px JPEG before storing or sending to a model |
 | Notifications | `expo-notifications` (native) | Web: best-effort, only while the tab is open |
 | Tests | `jest-expo`, `@testing-library/react-native` | |
-| Inference | Android: Gemma 4 E2B on the phone via LiteRT-LM (`modules/litert-lm`, default). Web and Android: `fetch` to OpenRouter (free models) or the user's Ollama server | ADR-021, ADR-022 |
-| Inference: tests / agents | `mock` provider | Tests never call OpenRouter or Ollama |
+| Inference | Android: Gemma 4 E2B on the phone via LiteRT-LM (`modules/litert-lm`, default). Web and Android: `fetch` to the user's Ollama server | ADR-021, ADR-022 |
+| Inference: tests / agents | `mock` provider | Tests never call Ollama |
 | Optional renderer lib | Vercel `json-render` | Spike T-13 decides (ADR-005). Our spec stays canonical either way |
 
 ## 3. Directory layout
@@ -52,7 +52,7 @@ jackapp/
     │   ├── create.tsx         # Prompt → generate → preview → save
     │   ├── run/[id].tsx       # Run a mini-app
     │   ├── edit/[id].tsx      # Edit-by-chat
-    │   ├── settings.tsx       # AI choice: OpenRouter key / Ollama address + model
+    │   ├── settings.tsx       # AI choice: on-device / Ollama address + model
     │   └── dev/               # hidden dev screens, run on the phone
     │       └── eval.tsx       # runs generator/eval.ts with the chosen provider, shares results JSON
     ├── spec/                  # THE CONTRACT. No React imports here.
@@ -72,7 +72,6 @@ jackapp/
     │   ├── provider.ts        # LLMProvider interface + registry
     │   ├── providers/
     │   │   ├── mock.ts
-    │   │   ├── openrouter.ts      # default; one free model per stage
     │   │   ├── ollama.ts          # user's own server
     │   │   ├── litert.native.ts   # on-device Gemma 4 E2B (Android); litert.ts is the web stub
     │   │   └── logged.ts          # withLog(provider): call events for the eval log
@@ -95,14 +94,14 @@ jackapp/
 4. **`src/runtime/` never imports `src/ai/generator/`.** The runtime only knows the `LLMProvider` interface, for `ai.run`.
 5. **Catalog components never call AI or storage directly.** They get props and callbacks from the runtime.
 6. **Platform differences live in `.web.ts` / `.native.ts` files** behind one interface. No `Platform.OS` branching in feature code, except for small UI tweaks.
-7. **No network calls** except the AI provider the user picked in Settings (on-device, OpenRouter, or their Ollama address) and the one-time model download from huggingface.co. No analytics, no telemetry. The Ollama address is the only user-set URL.
+7. **No network calls** except the AI provider the user picked in Settings (on-device, or their Ollama address) and the one-time model download from huggingface.co. No analytics, no telemetry. The Ollama address is the only user-set URL.
 8. **No new dependency** without a line in `DECISIONS.md` saying why.
 
 ## 5. LLM provider interface
 
 ```ts
 export interface LLMProvider {
-  id: 'mock' | 'openrouter' | 'ollama' | 'local';
+  id: 'mock' | 'ollama' | 'local';
   label: string;
   caps: { vision: boolean; jsonSchema: boolean; contextTokens: number };
   isConfigured(): Promise<boolean>;         // key / model name set in Settings
@@ -112,7 +111,7 @@ export interface LLMProvider {
     jsonSchema?: object;                    // used when caps.jsonSchema is true
     maxTokens?: number;
     temperature?: number;
-    stage?: 'plan' | 'fill' | 'repair' | 'run'; // OpenRouter picks a model per stage
+    stage?: 'plan' | 'fill' | 'repair' | 'run';
     signal?: AbortSignal;
     onPartial?(chars: number): void;        // streaming progress (on-device only)
     onLog?(message: string): void;          // provider internals for the eval log
@@ -121,7 +120,6 @@ export interface LLMProvider {
 ```
 
 - **mock**: returns fixtures by keyword. Used by tests, UI work, and agents.
-- **openrouter**: `src/ai/providers/openrouter.ts`. Key from Settings. Model per stage from `src/ai/models.ts` plus named fallbacks (`OPENROUTER_FALLBACKS`) and low reasoning effort. A `jsonSchema` request becomes `response_format: json_object` (PLAN only, ADR-017; strict schemas fail on Nvidia). Retries 429 with backoff. See ADR-021.
 - **local** (Android): `src/ai/providers/litert.native.ts` calls the Expo module `modules/litert-lm` (Kotlin, LiteRT-LM 0.16.1). GPU first, CPU fallback; one conversation per call; `caps.jsonSchema` false; the model file (2.6 GB) is downloaded from huggingface.co at a pinned revision and size-checked (`localModel`). ADR-022.
 - **ollama**: `src/ai/providers/ollama.ts`. `POST <ollamaUrl>/api/chat`, `format` = schema, images as bare base64.
 
@@ -185,7 +183,7 @@ Storage calls reject with `StorageError` on failure. Reads tell apart missing (`
 |---|---|---|---|
 | Render + state + persistence | ✅ | ✅ | ✅ |
 | Camera / library | ✅ library + camera via browser | ✅ | ✅ |
-| AI (OpenRouter / Ollama) | ✅ | ✅ | ⏳ |
+| AI (Ollama) | ✅ | ✅ | ⏳ |
 | AI (on-device LiteRT-LM) | ❌ | ✅ | ⏳ |
 | Scheduled notifications | ⚠️ only while open | ✅ | ✅ |
 
@@ -201,7 +199,7 @@ Storage calls reject with `StorageError` on failure. Reads tell apart missing (`
 - Specs are imported only after validation. Bad imports are rejected with readable errors.
 - Template rendering produces **plain text** only. No HTML, no markdown links that open URLs.
 - No URL fields anywhere. The only external traffic is to the AI provider chosen in Settings; it receives the request text and any photo `ai.run` reads, never saved apps or other data.
-- No secrets in the repo. The OpenRouter key lives in on-device storage only and is never logged.
+- No secrets in the repo, and no API keys anywhere in the app (ADR-049).
 
 ### Trust boundaries (T-62, updated by ADR-021)
 

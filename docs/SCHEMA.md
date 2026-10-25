@@ -19,7 +19,7 @@ This is **the** contract between the model, the validator, the runtime, and stor
     "description": "Photo of fridge → grocery list",  // ≤ 140 chars
     "icon": "🧊",                      // a single emoji
     "sourcePrompt": "…",              // set by the generator, not the model
-    "generatedBy": { "provider": "openrouter", "model": "google/gemma-4-31b-it:free" } // set by the generator
+    "generatedBy": { "provider": "local", "model": "gemma-4-E2B-it.litertlm" } // set by the generator; "openrouter" stays valid so apps built before ADR-049 still load
     "recipe": { "id": "counter", "version": 1, "settings": "name Water\nstep 2" } // optional; set by recipe builds, edited by Customize (ADR-039)
   },
   "state":    { /* key → StateDecl */ },

@@ -39,8 +39,7 @@ export function GenerationStages({ progress }: { progress: Pick<GenerationProgre
       {progress.freeForm ? (
         <Text accessibilityLiveRegion="polite" style={{ color: t.muted, fontSize: type.meta }}>
           {(progress.freeFormReason === 'unusable' ? 'This doesn’t fit one of the ready-made kinds of mini-app, so ' : 'No ready-made kind of mini-app fits this one, so ')
-            + (progress.freeForm === 'cloud' ? 'the cloud AI is building it.'
-              : 'the AI is building it from scratch. That can take a few minutes and may not work.')}
+            + 'the AI is building it from scratch. That can take a few minutes and may not work.'}
         </Text>
       ) : null}
     </View>

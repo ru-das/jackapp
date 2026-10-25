@@ -3,7 +3,6 @@ import type { Spec, SpecError } from '@/spec/types';
 import { validate } from '@/spec/validate';
 import { callStage, checkCancellation, fill, type StageRequest } from './fill';
 import { ProviderError } from '../errors';
-import type { LLMProvider } from '../provider';
 import { PlanSchema, UnsupportedSchema, type Plan, type TargetStage, type Unsupported } from './outputSchemas';
 import { parseCompact, toCompact, toCompactSlice } from './compact';
 import { schemaErrors, validatePlan } from './plan';
@@ -21,8 +20,8 @@ export type GenerationResult =
 export type GenerationProgress = {
   stage: 'planning' | 'building' | 'checking' | 'repairing' | GenerationResult['status'];
   target: TargetStage; attempt: number; errors?: SpecError[];
-  /** Set when no ready-made app type fit and the request is being built freely, by the cloud model or on this device (slower, less reliable). */
-  freeForm?: 'cloud' | 'device';
+  /** Set when no ready-made app type fit and the request is being built freely (slower, less reliable). */
+  freeForm?: boolean;
   /** Why: no ready-made type fits, or one fits but the model's reply could not make a working app of it. */
   freeFormReason?: 'none' | 'unusable';
 };
@@ -36,8 +35,6 @@ export type GenerateOptions = StageRequest & {
   recipe?: RecipeId;
   /** Return `choose` instead of calling the classifier when two app types score too close to call. */
   askWhenUnsure?: boolean;
-  /** Where free-form generation goes when no ready-made type fits (the cloud model, when the user set a key). Without it the same provider tries. */
-  fallback?: { provider: LLMProvider; model: string };
   onProgress?: (event: GenerationProgress) => void;
 };
 
@@ -45,10 +42,8 @@ export async function generate(options: GenerateOptions): Promise<GenerationResu
   if (options.recipes || options.recipe) {
     const outcome = await generateRecipe(options);
     if (outcome.status !== 'fallback') return outcome;
-    const { fallback, ...rest } = options;
-    const via = fallback ? 'cloud' : 'device';
-    return generate({ ...rest, ...(fallback ?? {}), recipes: false, noPlan: true,
-      onProgress: (event) => options.onProgress?.({ ...event, freeForm: via, freeFormReason: outcome.reason }) });
+    return generate({ ...options, recipes: false, noPlan: true,
+      onProgress: (event) => options.onProgress?.({ ...event, freeForm: true, freeFormReason: outcome.reason }) });
   }
   let repairs = 0;
   let target: TargetStage = options.noPlan ? 'spec' : 'plan';

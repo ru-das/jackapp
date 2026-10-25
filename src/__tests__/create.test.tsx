@@ -26,7 +26,7 @@ beforeEach(async () => {
   mockPush.mockClear();
   mockDisable.mockClear();
   mockConfirm.mockReset();
-  await saveSettings({ provider: 'mock', openrouterKey: '', ollamaUrl: 'http://localhost:11434', ollamaModel: '', currency: 'USD' });
+  await saveSettings({ provider: 'mock', ollamaUrl: 'http://localhost:11434', ollamaModel: '', currency: 'USD' });
   jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 afterEach(() => jest.restoreAllMocks());

@@ -222,8 +222,8 @@ Capabilities are device features the runtime exposes. Components and ops declare
 
 | Capability | Used by | Web | Android | Permission prompt |
 |---|---|---|---|---|
-| `ai.text` | `ai.run` | OpenRouter / Ollama | on-device (LiteRT-LM), OpenRouter or Ollama | none |
-| `ai.vision` | `ai.run` with `image` | OpenRouter / Ollama | on-device (LiteRT-LM), OpenRouter or Ollama | none |
+| `ai.text` | `ai.run` | Ollama | on-device (LiteRT-LM) or Ollama | none |
+| `ai.vision` | `ai.run` with `image` | Ollama | on-device (LiteRT-LM) or Ollama | none |
 | `camera` | ImageInput | ✅ | ✅ | first use |
 | `photoLibrary` | ImageInput | ✅ (file picker) | ✅ | first use |
 | `storage` | all state | ✅ | ✅ | none |

@@ -1,14 +1,13 @@
 import { mockProvider } from './providers/mock';
 import { localProvider } from './providers/litert';
 import { ollamaProvider } from './providers/ollama';
-import { openrouterProvider } from './providers/openrouter';
-import { LITERT_MODEL, OPENROUTER_MODELS } from './models';
+import { LITERT_MODEL } from './models';
 import { loadSettings } from '@/storage/settings';
 
 export type Stage = 'plan' | 'fill' | 'repair' | 'run';
 
 export interface LLMProvider {
-  id: 'mock' | 'openrouter' | 'ollama' | 'local';
+  id: 'mock' | 'ollama' | 'local';
   label: string;
   caps: { vision: boolean; jsonSchema: boolean; contextTokens: number };
   /** False until Settings has what the provider needs (API key, model name, downloaded model). */
@@ -21,7 +20,7 @@ export interface LLMProvider {
     plainText?: boolean;
     maxTokens?: number;
     temperature?: number;
-    /** Lets OpenRouter pick a different model per step; other providers ignore it. */
+    /** Which step of generation this call is; providers may use it to pick settings. */
     stage?: Stage;
     signal?: AbortSignal;
     /** Streaming progress: characters produced so far. Only the on-device provider reports it. */
@@ -59,7 +58,7 @@ export interface LocalModel {
 }
 
 export function getProvider(id: LLMProvider['id']): LLMProvider {
-  return id === 'mock' ? mockProvider : id === 'ollama' ? ollamaProvider : id === 'local' ? localProvider : openrouterProvider;
+  return id === 'mock' ? mockProvider : id === 'local' ? localProvider : ollamaProvider;
 }
 
 /** The provider chosen in Settings, plus the model name recorded in `meta.generatedBy`. */
@@ -68,12 +67,6 @@ export async function getActiveProvider() {
   const provider = getProvider(settings.provider);
   const model = provider.id === 'ollama' ? settings.ollamaModel
     : provider.id === 'mock' ? 'mock'
-    : provider.id === 'local' ? LITERT_MODEL.file
-    : OPENROUTER_MODELS.fill;
+    : LITERT_MODEL.file;
   return { provider, model };
-}
-
-/** The cloud model, when the user has set an OpenRouter key: where on-device generation sends requests no ready-made app type fits. */
-export async function getCloudFallback() {
-  return (await openrouterProvider.isConfigured()) ? { provider: openrouterProvider, model: OPENROUTER_MODELS.fill } : undefined;
 }

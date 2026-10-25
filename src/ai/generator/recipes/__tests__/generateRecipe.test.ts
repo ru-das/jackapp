@@ -45,19 +45,8 @@ test('a request nothing fits is classified as none and goes to free-form generat
   expect(calls).toHaveBeenCalledTimes(2);
   expect(calls.mock.calls[0][0]).toMatchObject({ maxTokens: 8, temperature: 0, plainText: true });
   expect(calls.mock.calls[0][0].system).toContain('Pick the app type');
-  expect(events.some((e) => e.freeForm === 'device')).toBe(true);
-  expect(events.filter((e) => e.freeForm).every((e) => e.freeForm === 'device')).toBe(true);
-});
-
-test('with a cloud fallback the free-form call goes to the cloud provider and nothing else is stamped with the local one', async () => {
-  const local = createScriptedMock(['none']);
-  const cloud = createScriptedMock([freeForm]);
-  Object.assign(cloud, { id: 'openrouter' });
-  const events: GenerationProgress[] = [];
-  const result = await generate({ prompt: 'I want an app', provider: local, model: 'local-model', recipes: true, fallback: { provider: cloud, model: 'cloud-model' },
-    onProgress: (e) => events.push(e) });
-  expect(result).toMatchObject({ status: 'done', spec: { meta: { generatedBy: { provider: 'openrouter', model: 'cloud-model' } } } });
-  expect(events.some((e) => e.freeForm === 'cloud')).toBe(true);
+  expect(events.some((e) => e.freeForm === true)).toBe(true);
+  expect(events.filter((e) => e.freeForm).every((e) => e.freeForm === true)).toBe(true);
 });
 
 test('unsure wording is decided by one tiny classification call, then the settings call', async () => {
@@ -80,7 +69,7 @@ test('a reply that cannot make the app (calculator without a formula) falls back
   const { run, calls, events } = setup(['name Tip Calculator', freeForm]);
   expect((await run('Tip calculator')).status).toBe('done');
   expect(calls).toHaveBeenCalledTimes(2);
-  expect(events.some((e) => e.freeForm === 'device')).toBe(true);
+  expect(events.some((e) => e.freeForm === true)).toBe(true);
   expect(events.filter((e) => e.freeForm).every((e) => e.freeFormReason === 'unusable')).toBe(true);
 });
 
@@ -140,8 +129,8 @@ test('a provider error is a friendly failure; cancellation is reported as cancel
 });
 
 test('a provider error with a user-ready message reaches the user instead of the generic one', async () => {
-  const failed = await setup([new ProviderError('Add your OpenRouter key in Settings first.')]).run('Keep a list of my books');
-  expect(failed).toMatchObject({ status: 'failed', message: 'Add your OpenRouter key in Settings first.' });
+  const failed = await setup([new ProviderError('Pick an AI in Settings first.')]).run('Keep a list of my books');
+  expect(failed).toMatchObject({ status: 'failed', message: 'Pick an AI in Settings first.' });
 });
 
 // What a model would have to say for each corpus prompt to meet its mustUse / mustOps. Prompts not listed work with an empty reply.

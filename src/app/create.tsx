@@ -5,7 +5,7 @@ import { Tap } from '@/ui/Tap';
 import { generate, type GenerationProgress } from '@/ai/generator/generate';
 import type { Unsupported } from '@/ai/generator/outputSchemas';
 import { RECIPES, type RecipeId } from '@/ai/generator/recipes';
-import { getActiveProvider, getCloudFallback } from '@/ai/provider';
+import { getActiveProvider } from '@/ai/provider';
 import { localModel } from '@/ai/providers/litert';
 import { confirm, toast } from '@/capabilities';
 import { describeSpec, omissions } from '@/runtime/describe';
@@ -30,7 +30,7 @@ const EXAMPLES = [
 ];
 
 const SAVE_FAILED = 'Couldn’t save. Your changes are still open. Try again.';
-const PROVIDER_NAMES = { local: 'On-device', openrouter: 'OpenRouter', ollama: 'Ollama', mock: 'Mock' } as const;
+const PROVIDER_NAMES = { local: 'On-device', ollama: 'Ollama', mock: 'Mock' } as const;
 
 type Session = ReturnType<typeof createSession>;
 type Draft = { id: string; spec: Spec; session: Session; notes: string[] };
@@ -109,8 +109,8 @@ export default function Create() {
         // PLAN costs a whole extra call and made E2B's FILL worse on the phone (ADR-025); FILL can refuse by itself.
         noPlan: true,
         // On-device a repair costs minutes, and a third full rewrite rarely succeeds on E2B.
-        // Ready-made app types first; a request none of them fits goes to the cloud model when a key is set (ADR-028).
-        ...(provider.id === 'local' ? { maxRepairs: 1, recipes: true, askWhenUnsure: true, fallback: await getCloudFallback() } : {}),
+        // Ready-made app types first; a request none of them fits is built freely by the same model (ADR-028, ADR-049).
+        ...(provider.id === 'local' ? { maxRepairs: 1, recipes: true, askWhenUnsure: true } : {}),
         ...(recipe ? { recipe } : {}),
         onProgress: (e) => {
           if (live() && (e.stage === 'planning' || e.stage === 'building' || e.stage === 'checking' || e.stage === 'repairing')) {
@@ -254,7 +254,7 @@ export default function Create() {
       {phase.kind === 'needsModel' ? (
         <Card>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Set up AI first</Text>
-          <Text style={{ color: t.muted, fontSize: type.body }}>JackApp needs the on-device model, an OpenRouter key (free) or an Ollama model to build mini-apps.</Text>
+          <Text style={{ color: t.muted, fontSize: type.body }}>JackApp needs the on-device model or an Ollama model to build mini-apps.</Text>
           <ActionButton label="Open settings" onPress={() => router.push('/settings')} />
         </Card>
       ) : null}

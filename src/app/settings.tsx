@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Tap } from '@/ui/Tap';
 import { toast } from '@/capabilities';
-import { OPENROUTER_MODELS } from '@/ai/models';
 import { localModel } from '@/ai/providers/litert';
 import { CURRENCIES } from '@/ai/generator/recipes/splitter';
 import { loadSettings, saveSettings, type Settings } from '@/storage/settings';
@@ -11,17 +10,10 @@ import { useInsets } from '@/ui/insets';
 import { LocalModelCard } from '@/ui/LocalModelCard';
 import { MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/theme';
 
-const STAGES = [
-  ['Building', OPENROUTER_MODELS.fill],
-  ['Fixing mistakes', OPENROUTER_MODELS.repair],
-  ['Reading photos', OPENROUTER_MODELS.run],
-] as const;
-
 export default function SettingsScreen() {
   const t = useTheme();
   const { bottom } = useInsets();
   const [settings, setSettings] = useState<Settings | null>(null);
-  const [details, setDetails] = useState(false);
 
   useEffect(() => { void loadSettings().then(setSettings); }, []);
 
@@ -36,7 +28,7 @@ export default function SettingsScreen() {
   const input = [styles.input, { color: t.text, borderColor: t.outline, backgroundColor: t.bg }];
   const choices: [Settings['provider'], string][] = [
     ...(localModel.available ? [['local', 'On-device (works offline)'] as [Settings['provider'], string]] : []),
-    ['openrouter', 'OpenRouter (free models)'], ['ollama', 'Ollama (your own computer)'],
+    ['ollama', 'Ollama (your own computer)'],
     ...(__DEV__ ? [['mock', 'Mock (dev, no AI)'] as [Settings['provider'], string]] : []),
   ];
 
@@ -86,25 +78,6 @@ export default function SettingsScreen() {
 
       {settings.provider === 'local' ? <LocalModelCard /> : null}
 
-      {settings.provider === 'openrouter' ? (
-        <Card>
-          <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>OpenRouter</Text>
-          <Text style={{ color: t.muted, fontSize: type.hint }}>Get a free key at openrouter.ai/keys. It is kept on this device only.</Text>
-          <Text style={{ color: t.text, fontSize: type.body }}>API key</Text>
-          <TextInput
-            accessibilityLabel="OpenRouter API key" style={input} value={settings.openrouterKey}
-            onChangeText={(v) => void update({ openrouterKey: v })}
-            secureTextEntry autoCapitalize="none" autoCorrect={false} placeholder="sk-or-…" placeholderTextColor={t.muted}
-          />
-          <Tap accessibilityRole="button" accessibilityLabel="Model details" accessibilityState={{ expanded: details }} onPress={() => setDetails(!details)} style={(st) => [styles.toggle, pressed(st)]}>
-            <Text style={{ color: t.text, fontSize: type.hint }}>{details ? '▾' : '▸'} Model details</Text>
-          </Tap>
-          {details ? STAGES.map(([stage, id]) => (
-            <Text key={stage} style={{ color: t.muted, fontSize: type.meta }}>{stage}: {id}</Text>
-          )) : null}
-        </Card>
-      ) : null}
-
       {settings.provider === 'ollama' ? (
         <Card>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Ollama</Text>
@@ -135,6 +108,5 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   chip: { minHeight: MIN_TARGET, minWidth: MIN_TARGET + 12, paddingHorizontal: space.md, borderRadius: radius.control, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   name: { fontSize: type.body, fontWeight: '600' },
-  toggle: { minHeight: MIN_TARGET, justifyContent: 'center' },
   input: { minHeight: MIN_TARGET, borderWidth: 1, borderRadius: radius.control, paddingHorizontal: space.md, fontSize: type.body },
 });

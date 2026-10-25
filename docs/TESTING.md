@@ -93,7 +93,7 @@ Given a mini-app with data, when the app is reloaded or killed and reopened, the
 - A mock that is always bad → `failed` after 2 repairs, with a friendly UI message.
 - A plan with `unsupported` → the unsupported UI shows `reason` and `suggestion`.
 
-### AT-07 Real generation (W + A, with an OpenRouter key)
+### AT-07 Real generation (W + A, with the on-device model or Ollama)
 Given each hero prompt from `PRD.md` §6, when generated, then a valid spec previews within 90 s and the mini-app works end to end: the photo goes through `ai.run` into the list, Plant Pal's trigger is saved, and Bill Splitter's Stat shows a correct split.
 
 ### AT-08 Edit-by-chat (W)
@@ -111,7 +111,6 @@ Each offline promise, and how to verify it. Airplane mode on unless noted.
 | Build with the Android model | Works after the download, with no network. | Download and Load now online, go offline, Create, Build. |
 | Photo action, locally | Works offline with the installed model. | Offline, run a photo mini-app (Fridge Snap) with the on-device provider. |
 | Open the website offline | App assets stay available after closing the browser. | Visit the hosted URL once online; confirm DevTools → Application → Service Workers shows it running; close the browser, go offline, reopen `/jackapp/` and a `/jackapp/run/<id>` deep link; saved apps render with their data. After a new deploy, one online visit picks up the new version. |
-| Use OpenRouter | Needs connectivity. | Offline, Build: the existing "can't reach the AI service" message, no crash. |
 | Use Ollama | Needs the configured host. | Host unreachable, Build: "Can't reach Ollama at …". |
 
 Download resilience (Android, T-112): start the model download, force-stop at ~30%, reopen: Settings shows "Paused at …" and Resume continues from there; Cancel keeps the progress; airplane mode mid-download shows where it stopped; a nearly full phone shows the space message before downloading.
@@ -122,7 +121,7 @@ Exported JSON re-imports as an identical spec. A tampered file (unknown componen
 ### AT-12 Security (auto + review)
 - `grep -rnE "eval\(|new Function|dangerouslySetInnerHTML|WebView" src/` returns nothing (except the test itself).
 - A spec with `"<b>hi</b><script>"` in a Text value renders literally.
-- Only the chosen AI provider (OpenRouter, or the user's Ollama address) appears as an external request during a full session; app assets load from the app origin. There are no URL fields in Settings.
+- Only the chosen AI provider (the user's Ollama address) appears as an external request during a full session; app assets load from the app origin. There are no URL fields in Settings.
 - `security.test.ts` tests actual renderer text preservation (including event-handler strings), rejects forbidden components/actions/props, malformed JSON, remote images and semantic reference failures; invalid fixture saves/stored specs never reach navigation/session creation; restored remote images reach neither image display component. Non-image restoration behavior remains unchanged.
 - Run `npm test -- --runInBand --roots src --watchman=false --runTestsByPath src/__tests__/security.test.ts`, the exact grep above, then `npm run check -- -- --runInBand --roots src --watchman=false`. On the 4 GB laptop a cold first renderer mount can exceed Jest's 5 s default; focused runs may append `--testTimeout=15000` (assertions unchanged).
 - **Pending acceptance (stale wording from T-62, now about the AI provider):** capture a full web and Android session network log (download, generate, photo `ai.run`, save/reopen, offline reload); verify only model-source traffic externally and no user data uploads, plus WebGPU/WASM local asset compatibility and signed download/cache behavior. Record device/browser/results in PROGRESS. T-62/AT-12 remain incomplete until this is done. Import/edit UI remains outside T-62; T-53/T-51 must validate before saving/rendering when implemented.
@@ -159,7 +158,7 @@ Android pass (ADR-042..045, not yet seen on a device): Save / Build again, the t
 
 ## 6. Eval scoring conventions (T-60)
 
-Run `runEval(provider, model, { noPlan?, only?, onResult? }` (`only`: one id or a list; `QUICK_IDS` = e01, e05, e09, e13, e26, e29, about 18 requests, fits the OpenRouter free daily limit; the eval screen's **Quick 6** chip uses it)` after loading the
+Run `runEval(provider, model, { noPlan?, only?, onResult? }` (`only`: one id or a list; `QUICK_IDS` = e01, e05, e09, e13, e26, e29, about 18 requests; the eval screen's **Quick 6** chip uses it)` after loading the
 provider. Corpus order is stable (`e01`–`e30`): 10 hero variants, 15 everyday
 chores, 5 unsupported requests. Capture both default and `noPlan: true` runs on
 the phone; no real model runs on the dev laptop.
@@ -202,8 +201,8 @@ Human, on the Moto G45 with a development build (`eas build -p android --profile
 
 **A/B on the phone** (eval screen → On-device options; run e01 with "Skip plan stage" on each time; the first call of a configuration also pays the model load, so run it twice and read the second): (1) defaults (GPU, speculative off); (2) speculative decoding on, to compare the `tok/s` in the status line and `total` in the log; (3) GPU off (CPU). The constrained-JSON switch is gone: generator output is plain lines since ADR-023 (T-76), and it only ever applied to `ai.run`. Record load / first token / total / backend per run in PROGRESS → Spike results. If a switch makes the engine fail, the log says so (or the backend shown is not the one asked for).
 
-## 7. OpenRouter and Ollama (T-49, ADR-021)
+## 7. Ollama (T-49, ADR-021; OpenRouter removed in ADR-049)
 
-Automated (mock `fetch`, no network): `openrouterProvider.test.ts` (stage model + fallback, key header, schema, images, 401, 429 retry/abort, network failure), `ollamaProvider.test.ts` (body, bare base64, errors), `settings.test.ts` (unknown providers fall back; a daily-quota 429 fails at once), `settingsScreen.test.tsx`.
+Automated (mock `fetch`, no network): `ollamaProvider.test.ts` (body, bare base64, errors), `settings.test.ts` (unknown providers, and a saved `openrouter`, fall back to the default), `settingsScreen.test.tsx`.
 
-Human, with a key: Settings → paste key → New mini-app → Fridge Snap → time to preview (target under 2 min) → Save → photo → Make list. Then `jackapp://dev/eval` (free tier is about 50 requests a day; a full 30-prompt run needs credits). Ollama: `ollama serve`, set address and model, repeat one build. Eval files from the old on-device runs in `evals/results/` are not comparable for latency.
+Human: `ollama serve`, set address and model in Settings → New mini-app → Fridge Snap → time to preview → Save → photo → Make list. Then `jackapp://dev/eval`. Eval files from the old on-device runs in `evals/results/` are not comparable for latency.

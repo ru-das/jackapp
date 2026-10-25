@@ -87,7 +87,7 @@ function score(rows: EvalRow[], single: boolean) {
 }
 
 /** `only` is one id or a list (e.g. QUICK_IDS); any subset is a partial run. The caller selects and loads the provider. This runner only performs inference. */
-/** One of each kind: fridge, plant, bill, expenses, plus two refusals. Fits the OpenRouter free daily limit. */
+/** One of each kind: fridge, plant, bill, expenses, plus two refusals. */
 export const QUICK_IDS = ['e01', 'e05', 'e09', 'e13', 'e26', 'e29'] as const;
 
 export async function runEval(provider: LLMProvider, model: string, options: EvalOptions = {}) {

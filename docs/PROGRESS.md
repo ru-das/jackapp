@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M7 — Ship: features done and device-tested; cleaning and polishing; T-70..74 (log, video, README, DEV post, publish) open |
-| Last updated | 2026-10-25 by Claude Code (T-131) |
+| Last updated | 2026-10-25 by Claude Code (T-132) |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-132 OpenRouter removed (Claude Code, 2026-10-25, human-requested; edited Codex-owned `src/ai/generator/generate.ts` and its tests, ask Codex to review):** ADR-049. `openrouter.ts`, `OPENROUTER_MODELS`, the key field, the Settings card and `getCloudFallback` are gone; `generate()` has no `fallback` option and `freeForm` is now a boolean (free-form runs on the same provider). Settings provider is `local | ollama | mock`; default is `local` on Android and `ollama` on web; a saved `openrouter` falls back to that default. `'openrouter'` stays in the `generatedBy` enum so old saved apps load. `npm run check` green (68 suites / 2,701 tests). **Next:** T-133 (Appearance), T-134 (icons, fonts).
+>
 > **T-131 polish, third audit (Claude Code, 2026-10-25, human-requested; no Codex-owned files touched):** ADR-048. `src/ui/Tap.tsx` replaces `Pressable` in 16 files (ripple on Android via `android_ripple`, `pressed()` dims only on iOS and web); the menu backdrop stays `Pressable`. In `run/[id].tsx` the content sits in a wrapper hidden from accessibility while the menu is open. New `tap.test.tsx`, `runMenu.test.tsx`; AGENTS.md §5 has the `Tap` rule. `npm run check` green; detector clean. **Not tried on a device.** **Human next (Android):** press any button, row, chip, Select option, stepper: a ripple, no dimming; look at rounded buttons and the pill chips (the ripple should stay inside the corners; if it shows square corners, say so and I will round the ripple with `overflow: 'hidden'`); open the run menu with TalkBack: swiping goes header button, Close menu, Customize, Export data, and does not reach the mini-app; Close menu brings it back. **Audit 3 is fully handled in code; the device checks in AT-16 are what is left.**
 >
 > **T-130 adapt, third audit (Claude Code, 2026-10-25, human-requested; no Codex-owned files touched):** ADR-047. (1) `DateInput`: `number-pad` plus `formatDay()` (digits in, hyphens added; `formatDay` tests, a typing test). (2) `app.json` `expo-notifications`: `icon` `./assets/notification-icon.png` (new, 3 KB, white silhouette of the card from the monochrome launcher icon) and `color` `#2B7364` instead of the pale `#CFE8C8`; `appConfig.test.ts` keeps the colour equal to the light accent and checks the icon is a 96 x 96 RGBA PNG. `npm run check` green. **Native config: the phone needs a fresh Android build to show the icon and colour. Not tried on a device.** **Human next:** build, open an app with a reminder, "Send a test in 2 minutes" and look at the notification shade (small icon is a white card, tinted green in the header, not a grey blob; light and dark shade); Customize or run a log with a date field on Android: the keypad is digits only, typing 20261025 shows 2026-10-25, Today still works. **Still open from audit 3:** ripple on press, overflow-menu modality for TalkBack (`polish`).
@@ -245,6 +247,7 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-132 | Removed OpenRouter: provider, models, key setting, cloud fallback, docs; old saved apps still load. ADR-049. | see git |
 | 2026-10-25 | Claude Code | T-131 | Polish: `Tap` (Android ripple, dim elsewhere) for every tap target; run menu hides the content behind it from TalkBack; ADR-048. | see git |
 | 2026-10-25 | Claude Code | T-130 | Adapt: digits keypad + auto hyphens for dates; own notification icon and accent colour (needs a new build); ADR-047. | see git |
 | 2026-10-25 | Claude Code | T-129 | Harden: download progress value, guard the running build, announce reminder status. | see git |

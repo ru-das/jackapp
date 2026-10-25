@@ -22,7 +22,7 @@ General AI chat can answer once, but it doesn't give you a **reusable tool** wit
 JackApp lets a user **describe a mini-app in plain language** and get a working one in about a minute.
 
 - The AI does **not** write code. It assembles a **JSON spec** from a fixed catalog of pre-built, tested components (camera input, checklist, AI step, reminder, stat, and so on). See `SCHEMA.md` and `COMPONENTS.md`.
-- The model is **Gemma 4 E2B running on the Android phone** (ADR-022), or an open-weight model served free by OpenRouter, or your own model through Ollama. Mini-apps and their data stay on the device (ADR-021).
+- The model is **Gemma 4 E2B running on the Android phone** (ADR-022), or your own model through Ollama. Mini-apps and their data stay on the device (ADR-021).
 - Mini-apps can use the model **at runtime** too (for example, "read this receipt photo"), so open AI is the core of both building and using them.
 
 ## 3. Why open AI matters here (the core of the write-up)
@@ -30,7 +30,7 @@ JackApp lets a user **describe a mini-app in plain language** and get a working 
 | Concern | Closed API approach | JackApp (open, local) |
 |---|---|---|
 | Privacy | Fridge photos, receipts, habits go to a vendor | Data never leaves the device |
-| Cost | Every generation and every run costs tokens | Free OpenRouter models, or your own Ollama; generate 100 apps or 1 |
+| Cost | Every generation and every run costs tokens | The on-device model, or your own Ollama; generate 100 apps or 1 |
 | Offline | Breaks without internet | Saved apps run offline (web after one online visit, via a service worker); generating needs internet, a reachable Ollama, or the downloaded Android model |
 | Control | Vendor decides model, limits, policies | Swap models, constrain output to our schema, fine-tune later |
 | Longevity | API deprecations break your tools | Your mini-apps keep working on your device |
@@ -84,7 +84,7 @@ A fourth, the **graceful refusal**, is also part of the demo: "Build me a physic
 - US-09. As a user, I can rename, duplicate, delete, export (JSON), and import mini-apps.
 
 ### Control
-- US-10. As a user, I can paste a free OpenRouter key, or point the app at my own Ollama server, in Settings.
+- US-10. As a user, I can point the app at my own Ollama server, in Settings.
 - US-11. As a user, I see a friendly message when the AI is not set up or the free models are busy.
 
 ## 8. Feature list and priority
@@ -94,7 +94,7 @@ A fourth, the **graceful refusal**, is also part of the demo: "Build me a physic
 | F-01 | Spec validator, renderer, state store, action engine | P0 |
 | F-02 | P0 component catalog (see `COMPONENTS.md`) | P0 |
 | F-03 | Provider abstraction + mock provider | P0 |
-| F-04 | OpenRouter provider (free model per step) | P0 |
+| F-04 | ~~OpenRouter provider~~ removed (ADR-049) | — |
 | F-05 | Ollama provider (user's own server) | P0 |
 | F-06 | Two-stage generation with repair loop | P0 |
 | F-07 | Graceful "unsupported" responses | P0 |
