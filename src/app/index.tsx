@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useContext, useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { RECIPES } from '@/ai/generator/recipes';
 import { readSettings } from '@/ai/generator/recipes/settings';
 import { h1, h2, h3 } from '@/spec/fixtures';
@@ -10,7 +11,9 @@ import { specKey, writeJson } from '@/storage';
 import { deleteApp, duplicateApp, listApps, newAppId, notifyAppsChanged, subscribeApps, renameApp, type AppSummary } from '@/storage/apps';
 import { ActionButton } from '@/ui/ActionButton';
 import { AppRow } from '@/ui/AppRow';
-import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
+import { Card } from '@/ui/Card';
+import { SettingsIcon } from '@/ui/SettingsIcon';
+import { MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/theme';
 
 // Photo templates call the AI when used; Plant Pal never does.
 const FIXTURES = [
@@ -46,6 +49,7 @@ output Each person pays = (bill + bill * tip / 100) / people as money`), 'Tip Ca
 export default function Home() {
   const t = useTheme();
   const router = useRouter();
+  const top = useContext(SafeAreaInsetsContext)?.top ?? 0; // the header is hidden, so Home clears the status bar itself
   const [apps, setApps] = useState<AppSummary[] | 'error' | null>(null);
   const refresh = useCallback(() => { void listApps().then(setApps, (e) => { console.error('home: could not list apps', e); setApps('error'); }); }, []);
   useEffect(() => { refresh(); return subscribeApps(refresh); }, [refresh]);
@@ -89,9 +93,14 @@ export default function Home() {
     params: { prompt: `Like “${spec.meta.name}” (${spec.meta.description}), but ` },
   });
   return (
-    <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={styles.content}>
-      <Text accessibilityRole="header" style={[styles.title, { color: t.text }]}>JackApp</Text>
-      <Text style={{ color: t.muted, fontSize: 16 }}>
+    <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={[styles.content, { paddingTop: top + space.md }]}>
+      <View style={styles.head}>
+        <Text accessibilityRole="header" style={[styles.title, { color: t.text }]}>JackApp</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Settings" onPress={() => router.push('/settings')} style={(st) => [styles.gear, pressed(st)]}>
+          <SettingsIcon />
+        </Pressable>
+      </View>
+      <Text style={{ color: t.muted, fontSize: type.body }}>
         Describe a small mini-app and it gets built. Or try a ready-made one: it works right away, no AI needed.
       </Text>
       <ActionButton label="New mini-app" onPress={() => router.push('/create')} />
@@ -103,21 +112,22 @@ export default function Home() {
           </View>
         ))}
       </View>
+      {apps === null ? <ActivityIndicator accessibilityLabel="Loading your mini-apps" color={t.accent} /> : null}
       {apps === 'error' ? (
-        <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+        <Card>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Couldn’t load your mini-apps</Text>
-          <Text style={{ color: t.muted, fontSize: 16 }}>They are not lost. Storage did not answer. Try again.</Text>
+          <Text style={{ color: t.muted, fontSize: type.body }}>They are not lost. Storage did not answer. Try again.</Text>
           <ActionButton label="Try again" onPress={refresh} />
-        </View>
+        </Card>
       ) : null}
       {apps !== 'error' && apps?.length === 0 ? (
-        <View style={[styles.card, styles.empty, { backgroundColor: t.surface, borderColor: t.border }]}>
+        <Card style={styles.empty}>
           <Text style={styles.icon}>🦥</Text>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>No mini-apps yet</Text>
-          <Text style={{ color: t.muted, fontSize: 16, textAlign: 'center' }}>
+          <Text style={{ color: t.muted, fontSize: type.body, textAlign: 'center' }}>
             Describe a small mini-app and it gets built on your device.
           </Text>
-        </View>
+        </Card>
       ) : null}
       {Array.isArray(apps) ? apps.map((a) => (
         <AppRow
@@ -127,24 +137,23 @@ export default function Home() {
       )) : null}
       <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Examples to try</Text>
       {FIXTURES.map(({ id, spec, tag }) => (
-        <View key={id} style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+        <Card key={id}>
           <View style={styles.tpl}>
             <Text style={styles.icon}>{spec.meta.icon}</Text>
             <View style={styles.flex}>
               <Text style={[styles.name, { color: t.text }]}>{spec.meta.name}</Text>
-              <Text style={{ color: t.muted, fontSize: 14 }}>{spec.meta.description}</Text>
-              <Text style={{ color: t.muted, fontSize: 14 }}>{tag}</Text>
+              <Text style={{ color: t.muted, fontSize: type.meta }}>{spec.meta.description}</Text>
+              <Text style={{ color: t.muted, fontSize: type.meta }}>{tag}</Text>
             </View>
           </View>
           <View style={styles.tpl}>
             <View style={styles.flex}><ActionButton label={`Try ${spec.meta.name}`} onPress={() => void tryTemplate(spec)} /></View>
             <View style={styles.flex}><ActionButton kind="quiet" label={`Make similar to ${spec.meta.name}`} onPress={() => remix(spec)} /></View>
           </View>
-        </View>
+        </Card>
       ))}
-      <ActionButton kind="quiet" label="Settings" onPress={() => router.push('/settings')} />
       {__DEV__ ? (
-        <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+        <Card>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Dev: load a fixture</Text>
           <Pressable
             accessibilityRole="button" onPress={() => router.push('/dev/eval')}
@@ -160,11 +169,11 @@ export default function Home() {
               <Text style={styles.icon}>{spec.meta.icon}</Text>
               <View style={styles.flex}>
                 <Text style={[styles.name, { color: t.text }]}>{spec.meta.name}</Text>
-                <Text style={{ color: t.muted, fontSize: 14 }}>{spec.meta.description}</Text>
+                <Text style={{ color: t.muted, fontSize: type.meta }}>{spec.meta.description}</Text>
               </View>
             </Pressable>
           ))}
-        </View>
+        </Card>
       ) : null}
     </ScrollView>
   );
@@ -172,13 +181,14 @@ export default function Home() {
 
 const styles = StyleSheet.create({
   content: { padding: space.lg, gap: space.md, maxWidth: 640, width: '100%', alignSelf: 'center' },
-  title: { fontSize: 34, fontWeight: '700' },
+  head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  title: { fontSize: type.title, fontWeight: '700' },
+  gear: { minWidth: MIN_TARGET, minHeight: MIN_TARGET, alignItems: 'center', justifyContent: 'center' },
   empty: { alignItems: 'center' },
-  card: { padding: space.lg, gap: space.sm, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth },
-  h: { fontSize: 19, fontWeight: '600', marginBottom: space.sm },
+  h: { fontSize: type.h, fontWeight: '600', marginBottom: space.sm },
   row: { minHeight: MIN_TARGET + 12, flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.control },
   icon: { fontSize: 28 },
   tpl: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   flex: { flex: 1 },
-  name: { fontSize: 16, fontWeight: '600' },
+  name: { fontSize: type.body, fontWeight: '600' },
 });

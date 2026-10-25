@@ -1,5 +1,5 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
+import { MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
 import type { ImageInputProps } from './props';
 
 interface Props {
@@ -11,7 +11,7 @@ export function ImageInput({ label, value, source, onPick }: Props) {
   const t = useTheme();
   const btn = (text: string, s: 'camera' | 'library') => (
     <Pressable key={s} accessibilityRole="button" accessibilityLabel={`${text}: ${label}`} onPress={() => onPick(s)}
-      style={[styles.btn, { backgroundColor: t.accentSoft }]}>
+      style={(st) => [styles.btn, { backgroundColor: t.accentSoft }, pressed(st)]}>
       <Text style={{ color: t.accent, fontWeight: '600', fontSize: 15 }}>{text}</Text>
     </Pressable>
   );
@@ -29,7 +29,7 @@ export function ImageInput({ label, value, source, onPick }: Props) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 8 },
+  wrap: { gap: space.sm },
   label: { fontSize: 14, fontWeight: '500' },
   thumb: { width: '100%', aspectRatio: 4 / 3, borderRadius: radius.control },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },

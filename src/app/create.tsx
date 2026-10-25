@@ -15,8 +15,9 @@ import { validate } from '@/spec/validate';
 import { dataKey, removeKey, specKey, writeJson } from '@/storage';
 import { notifyAppsChanged } from '@/storage/apps';
 import { ActionButton } from '@/ui/ActionButton';
+import { Card } from '@/ui/Card';
 import { GenerationStages } from '@/ui/GenerationStages';
-import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
+import { MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/theme';
 import { UnsupportedCard } from '@/ui/UnsupportedCard';
 
 const EXAMPLES = [
@@ -158,34 +159,37 @@ export default function Create() {
   };
 
   const busy = phase.kind === 'loading' || phase.kind === 'working';
-  const card = [styles.card, { backgroundColor: t.surface, borderColor: t.border }];
 
   if (phase.kind === 'preview') {
     return (
       <View style={[styles.fill, { backgroundColor: t.bg }]}>
+        <View style={styles.column}>
         <Text accessibilityRole="header" style={[styles.preview, { color: t.muted }]}>
           Preview · {phase.spec.meta.icon} {phase.spec.meta.name}
         </Text>
         <View accessibilityLiveRegion="polite" style={styles.about}>
-          <Text style={{ color: t.text, fontSize: 15 }}>
+          <Text style={{ color: t.text, fontSize: type.hint }}>
             {phase.spec.meta.name} is ready. {describeSpec(phase.spec)}
           </Text>
           {phase.notes.length ? (
-            <Text style={{ color: t.muted, fontSize: 15 }}>Not included: {phase.notes.join(' ')}</Text>
+            <Text style={{ color: t.muted, fontSize: type.hint }}>Not included: {phase.notes.join(' ')}</Text>
           ) : null}
+        </View>
         </View>
         <View style={styles.fill}>
           <Renderer spec={phase.spec} store={phase.session.store} engine={phase.session.engine}
             onReady={(h) => phase.session.setNavigate(h.navigate)} />
         </View>
         {saveFailed ? (
-          <Text accessibilityLiveRegion="polite" style={[styles.preview, { color: t.text }]}>
+          <Text accessibilityLiveRegion="polite" style={[styles.preview, styles.column, { color: t.text }]}>
             Couldn’t save. Your changes are still open. Try again.
           </Text>
         ) : null}
-        <View style={[styles.bar, { borderColor: t.border, backgroundColor: t.surface }]}>
-          <View style={styles.flex}><ActionButton kind="quiet" label="Build again" onPress={() => void build(prompt)} /></View>
-          <View style={styles.flex}><ActionButton label={saving ? 'Saving…' : 'Save'} disabled={saving} onPress={() => void save(phase)} /></View>
+        <View style={[styles.barWrap, { borderColor: t.border, backgroundColor: t.surface }]}>
+          <View style={styles.barInner}>
+            <View style={styles.flex}><ActionButton kind="quiet" label="Build again" onPress={() => void build(prompt)} /></View>
+            <View style={styles.flex}><ActionButton label={saving ? 'Saving…' : 'Save'} disabled={saving} onPress={() => void save(phase)} /></View>
+          </View>
         </View>
       </View>
     );
@@ -194,7 +198,7 @@ export default function Create() {
   return (
     <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Text style={[styles.label, { color: t.text }]}>What should your mini-app do?</Text>
-      <Text style={{ color: t.muted, fontSize: 15 }}>Works best for a tracker, checklist, counter, calculator, timer, reminder, or photo-to-list tool.</Text>
+      <Text style={{ color: t.muted, fontSize: type.hint }}>Works best for a tracker, checklist, counter, calculator, timer, reminder, or photo-to-list tool.</Text>
       <TextInput
         accessibilityLabel="Describe your mini-app" multiline editable={!busy} value={prompt} onChangeText={setPrompt}
         maxLength={1000} placeholder="e.g. Track my daily water intake" placeholderTextColor={t.muted}
@@ -203,23 +207,23 @@ export default function Create() {
       <View style={styles.chips}>
         {EXAMPLES.map((e) => (
           <Pressable key={e.label} accessibilityRole="button" accessibilityLabel={`Example: ${e.label}`} disabled={busy}
-            onPress={() => setPrompt(e.prompt)} style={[styles.chip, { backgroundColor: t.accentSoft }]}>
-            <Text style={{ color: t.text, fontSize: 15 }}>{e.label}</Text>
+            onPress={() => setPrompt(e.prompt)} style={(st) => [styles.chip, { backgroundColor: t.accentSoft }, pressed(st)]}>
+            <Text style={{ color: t.text, fontSize: type.hint }}>{e.label}</Text>
           </Pressable>
         ))}
       </View>
-      <Text style={{ color: t.muted, fontSize: 15 }}>Or pick a type of tool:</Text>
+      <Text style={{ color: t.muted, fontSize: type.hint }}>Or pick a kind of mini-app:</Text>
       <View style={styles.chips}>
         {(Object.keys(RECIPES) as RecipeId[]).map((id) => (
-          <Pressable key={id} accessibilityRole="button" accessibilityLabel={`Tool type: ${RECIPES[id].title}`} accessibilityState={{ selected: picked === id }} disabled={busy}
+          <Pressable key={id} accessibilityRole="button" accessibilityLabel={`Kind: ${RECIPES[id].title}`} accessibilityState={{ selected: picked === id }} disabled={busy}
             onPress={() => setPicked(picked === id ? undefined : id)}
-            style={[styles.chip, { backgroundColor: picked === id ? t.accent : t.accentSoft }]}>
-            <Text style={{ color: picked === id ? t.accentText : t.text, fontSize: 15 }}>{RECIPES[id].title}</Text>
+            style={(st) => [styles.chip, { backgroundColor: picked === id ? t.accent : t.accentSoft }, pressed(st)]}>
+            <Text style={{ color: picked === id ? t.accentText : t.text, fontSize: type.hint }}>{RECIPES[id].title}</Text>
           </Pressable>
         ))}
       </View>
       {ready ? (
-        <Text accessibilityLiveRegion="polite" style={{ color: t.muted, fontSize: 15 }}>
+        <Text accessibilityLiveRegion="polite" style={{ color: t.muted, fontSize: type.hint }}>
           AI: {ready.name} · {ready.ok ? 'ready' : 'not set up yet'}
         </Text>
       ) : null}
@@ -230,34 +234,34 @@ export default function Create() {
       {phase.kind === 'loading' ? (
         <View accessibilityLiveRegion="polite" style={styles.wait}>
           <ActivityIndicator color={t.accent} />
-          <Text style={{ color: t.muted, fontSize: 16 }}>Getting started…</Text>
+          <Text style={{ color: t.muted, fontSize: type.body }}>Getting started…</Text>
         </View>
       ) : null}
       {phase.kind === 'working' ? <GenerationStages progress={phase.progress} /> : null}
       {phase.kind === 'needsModel' ? (
-        <View style={card}>
+        <Card>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Set up AI first</Text>
-          <Text style={{ color: t.muted, fontSize: 16 }}>JackApp needs the on-device model, an OpenRouter key (free) or an Ollama model to build mini-apps.</Text>
+          <Text style={{ color: t.muted, fontSize: type.body }}>JackApp needs the on-device model, an OpenRouter key (free) or an Ollama model to build mini-apps.</Text>
           <ActionButton label="Open settings" onPress={() => router.push('/settings')} />
-        </View>
+        </Card>
       ) : null}
       {phase.kind === 'failed' ? (
-        <View style={card}>
+        <Card>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>That didn’t work</Text>
-          <Text style={{ color: t.muted, fontSize: 16 }}>{phase.message}</Text>
+          <Text style={{ color: t.muted, fontSize: type.body }}>{phase.message}</Text>
           <ActionButton label="Try again" onPress={() => void build(prompt)} />
-        </View>
+        </Card>
       ) : null}
       {phase.kind === 'choose' ? (
-        <View style={card}>
+        <Card>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>
             {RECIPES[phase.choices[0]].title} or {RECIPES[phase.choices[1]].title}?
           </Text>
-          <Text style={{ color: t.muted, fontSize: 16 }}>Your request could be either. Pick the one you want.</Text>
+          <Text style={{ color: t.muted, fontSize: type.body }}>Your request could be either. Pick the one you want.</Text>
           {phase.choices.map((id) => (
             <ActionButton key={id} label={RECIPES[id].title} onPress={() => { setPicked(id); void build(prompt, id); }} />
           ))}
-        </View>
+        </Card>
       ) : null}
       {phase.kind === 'unsupported' ? (
         <UnsupportedCard unsupported={phase.unsupported}
@@ -271,14 +275,15 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   flex: { flex: 1 },
   content: { padding: space.lg, gap: space.md, maxWidth: 640, width: '100%', alignSelf: 'center' },
-  label: { fontSize: 18, fontWeight: '600' },
-  input: { minHeight: 110, padding: space.md, borderRadius: radius.control, borderWidth: 1, fontSize: 16, textAlignVertical: 'top' },
+  label: { fontSize: type.h, fontWeight: '600' },
+  input: { minHeight: 110, padding: space.md, borderRadius: radius.control, borderWidth: 1, fontSize: type.body, textAlignVertical: 'top' },
   wait: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   chip: { minHeight: MIN_TARGET, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill },
-  card: { padding: space.lg, gap: space.sm, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth },
-  h: { fontSize: 19, fontWeight: '600' },
-  preview: { fontSize: 14, paddingHorizontal: space.lg, paddingTop: space.sm },
+  h: { fontSize: type.h, fontWeight: '600' },
+  column: { width: '100%', maxWidth: 640, alignSelf: 'center' },
+  preview: { fontSize: type.meta, paddingHorizontal: space.lg, paddingTop: space.sm },
   about: { paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.sm },
-  bar: { flexDirection: 'row', gap: space.sm, padding: space.md, borderTopWidth: StyleSheet.hairlineWidth },
+  barWrap: { borderTopWidth: StyleSheet.hairlineWidth },
+  barInner: { flexDirection: 'row', gap: space.sm, padding: space.md, width: '100%', maxWidth: 640, alignSelf: 'center' },
 });

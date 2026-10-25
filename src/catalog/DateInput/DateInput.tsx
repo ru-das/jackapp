@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput as RNTextInput, View } from 'react-native';
-import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
+import { MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
 
 interface Props { label: string; value: string | null; onChange(value: string | null): void; today?: () => string }
 
@@ -34,7 +34,7 @@ export function DateInput({ label, value, onChange, today = () => new Date().toI
           style={[styles.input, { color: t.text, backgroundColor: t.bg, borderColor: bad ? t.danger : t.border }]}
         />
         <Pressable accessibilityRole="button" accessibilityLabel={`Today: ${label}`} onPress={() => { setDraft(null); onChange(today()); }}
-          style={[styles.today, { backgroundColor: t.accentSoft }]}>
+          style={(st) => [styles.today, { backgroundColor: t.accentSoft }, pressed(st)]}>
           <Text style={{ color: t.accent, fontSize: 16, fontWeight: '600' }}>Today</Text>
         </Pressable>
       </View>
@@ -44,7 +44,7 @@ export function DateInput({ label, value, onChange, today = () => new Date().toI
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 6 },
+  wrap: { gap: space.xs },
   label: { fontSize: 14, fontWeight: '500' },
   row: { flexDirection: 'row', gap: space.sm, alignItems: 'center' },
   input: { flex: 1, minHeight: MIN_TARGET, borderRadius: radius.control, borderWidth: 1, paddingHorizontal: space.md, fontSize: 16 },

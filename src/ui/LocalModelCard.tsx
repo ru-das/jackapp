@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { LITERT_MODEL } from '@/ai/models';
 import { localModel } from '@/ai/providers/litert';
 import { confirm } from '@/capabilities';
-import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
+import { ActionButton } from '@/ui/ActionButton';
+import { Card } from '@/ui/Card';
+import { space, type, useTheme } from '@/ui/theme';
 
 const gb = (bytes: number) => (bytes / 1e9).toFixed(1);
 
-export function LocalModelCard({ style }: { style: object }) {
+export function LocalModelCard() {
   const t = useTheme();
   const [downloaded, setDownloaded] = useState<boolean | null>(null);
   const [progress, setProgress] = useState<{ loaded: number; total: number } | null>(null);
@@ -60,31 +62,26 @@ export function LocalModelCard({ style }: { style: object }) {
   };
 
   const button = (label: string, onPress: () => void, danger = false) => (
-    <Pressable
-      accessibilityRole="button" accessibilityLabel={label} onPress={onPress}
-      style={{ minHeight: MIN_TARGET, justifyContent: 'center', alignItems: 'center', borderRadius: radius.control, paddingHorizontal: space.md, backgroundColor: danger ? 'transparent' : t.accent, borderWidth: danger ? 1 : 0, borderColor: t.danger }}
-    >
-      <Text style={{ color: danger ? t.danger : t.accentText, fontSize: 16, fontWeight: '600' }}>{label}</Text>
-    </Pressable>
+    <ActionButton label={label} accessibilityLabel={label} onPress={onPress} kind={danger ? 'danger' : 'primary'} />
   );
 
   return (
-    <View style={style}>
-      <Text accessibilityRole="header" style={{ color: t.text, fontSize: 19, fontWeight: '600' }}>On-device model</Text>
-      <Text style={{ color: t.muted, fontSize: 15 }}>
+    <Card>
+      <Text accessibilityRole="header" style={{ color: t.text, fontSize: type.h, fontWeight: '600' }}>On-device model</Text>
+      <Text style={{ color: t.muted, fontSize: type.hint }}>
         {LITERT_MODEL.label}, {gb(LITERT_MODEL.size)} GB. Runs on this phone, so it works offline and has no request limit. Download it once over Wi-Fi.
       </Text>
       {progress ? (
-        <View accessibilityRole="progressbar" accessibilityLabel="Downloading model">
+        <View accessibilityRole="progressbar" accessibilityLabel="Downloading model" style={{ gap: space.sm }}>
           <View style={{ height: 8, borderRadius: 4, backgroundColor: t.accentSoft }}>
             <View style={{ height: 8, borderRadius: 4, backgroundColor: t.accent, width: `${Math.min(100, (progress.loaded / progress.total) * 100)}%` }} />
           </View>
-          <Text style={{ color: t.muted, fontSize: 14 }}>{gb(progress.loaded)} of {gb(progress.total)} GB</Text>
+          <Text style={{ color: t.muted, fontSize: type.meta }}>{gb(progress.loaded)} of {gb(progress.total)} GB</Text>
           {button('Cancel download', () => abort?.abort(), true)}
         </View>
       ) : downloaded ? (
         <>
-          <Text style={{ color: t.text, fontSize: 16 }}>
+          <Text style={{ color: t.text, fontSize: type.body }}>
             {loaded ? 'Downloaded and loaded. Ready offline.' : 'Downloaded. It loads into memory on your first build (10 to 20 seconds).'}
           </Text>
           {loaded ? null : button(loading ? 'Loading…' : 'Load now', () => void (loading || load()))}
@@ -92,12 +89,13 @@ export function LocalModelCard({ style }: { style: object }) {
         </>
       ) : downloaded === false && partial > 0 ? (
         <>
-          <Text style={{ color: t.text, fontSize: 16 }}>Paused at {gb(partial)} of {gb(LITERT_MODEL.size)} GB.</Text>
+          <Text style={{ color: t.text, fontSize: type.body }}>Paused at {gb(partial)} of {gb(LITERT_MODEL.size)} GB.</Text>
           {button('Resume download', () => void download())}
           {button('Delete model', () => void remove(), true)}
         </>
       ) : downloaded === false ? button(`Download (${gb(LITERT_MODEL.size)} GB)`, () => void download()) : null}
-      {error ? <Text accessibilityRole="alert" style={{ color: t.danger, fontSize: 15 }}>{error}</Text> : null}
-    </View>
+      {downloaded === null ? <Text style={{ color: t.muted, fontSize: type.hint }}>Checking for the model…</Text> : null}
+      {error ? <Text accessibilityRole="alert" style={{ color: t.danger, fontSize: type.hint }}>{error}</Text> : null}
+    </Card>
   );
 }

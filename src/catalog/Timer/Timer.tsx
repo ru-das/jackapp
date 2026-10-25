@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
+import { MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
 
 interface Props { label: string; seconds: number; onDone?(): void }
 
@@ -50,7 +50,7 @@ function Action({ name, label, primary, onPress }: { name: string; label: string
   const t = useTheme();
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={`${name} ${label}`} onPress={onPress}
-      style={[styles.btn, { backgroundColor: primary ? t.accent : 'transparent', borderColor: t.accent }]}>
+      style={(st) => [styles.btn, { backgroundColor: primary ? t.accent : 'transparent', borderColor: t.accent }, pressed(st)]}>
       <Text style={{ color: primary ? t.accentText : t.accent, fontSize: 16, fontWeight: '600' }}>{name}</Text>
     </Pressable>
   );

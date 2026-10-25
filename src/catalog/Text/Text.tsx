@@ -4,7 +4,7 @@ import type { TextProps } from './props';
 
 const VARIANT: Record<TextProps['variant'], TextStyle> = {
   title: { fontSize: 30, fontWeight: '700', lineHeight: 38 },
-  heading: { fontSize: 20, fontWeight: '600', lineHeight: 28 },
+  heading: { fontSize: 19, fontWeight: '600', lineHeight: 28 },
   body: { fontSize: 16, lineHeight: 24 },
   caption: { fontSize: 13, lineHeight: 18 },
   muted: { fontSize: 15, lineHeight: 22 },

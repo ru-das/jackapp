@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import type { GenerationProgress } from '@/ai/generator/generate';
-import { space, useTheme } from './theme';
+import { space, type, useTheme } from './theme';
 
 const STAGES = [['building', 'Building'], ['checking', 'Checking']] as const;
 
@@ -28,16 +28,16 @@ export function GenerationStages({ progress }: { progress: Pick<GenerationProgre
       <View style={styles.row}>
         <ActivityIndicator color={t.accent} />
         {steps.map((s, i) => (
-          <Text key={s.id} style={{ fontSize: 16, color: i === current ? t.accent : i < current ? t.text : t.muted, fontWeight: i === current ? '700' : '400' }}>
+          <Text key={s.id} style={{ fontSize: type.body, color: i === current ? t.accent : i < current ? t.text : t.muted, fontWeight: i === current ? '700' : '400' }}>
             {i > 0 ? '→ ' : ''}{s.label}
           </Text>
         ))}
       </View>
-      <Text style={{ color: t.muted, fontSize: 14 }}>
+      <Text style={{ color: t.muted, fontSize: type.meta }}>
         {elapsed} s · Usually under half a minute. The first build after opening the app takes longer.
       </Text>
       {progress.freeForm ? (
-        <Text accessibilityLiveRegion="polite" style={{ color: t.muted, fontSize: 14 }}>
+        <Text accessibilityLiveRegion="polite" style={{ color: t.muted, fontSize: type.meta }}>
           {(progress.freeFormReason === 'unusable' ? 'I could not fit this into one of my ready-made app types, so ' : 'None of my ready-made app types fits this one, so ')
             + (progress.freeForm === 'cloud' ? 'the cloud model is building it.'
               : 'I am building it from scratch. That can take a few minutes and may not work.')}

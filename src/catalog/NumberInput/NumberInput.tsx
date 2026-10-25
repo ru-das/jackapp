@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
+import { MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
 import type { NumberInputProps } from './props';
 
 interface Props extends Pick<NumberInputProps, 'label' | 'min' | 'max' | 'step' | 'mode'> {
@@ -40,7 +40,7 @@ function NumberField({ label, min, max, value, onChange }: Pick<Props, 'label' |
     setError(`${r.error}. Kept ${value}.`);
   };
   return (
-    <View style={{ gap: 4 }}>
+    <View style={{ gap: space.xs }}>
       <TextInput
         accessibilityLabel={label} keyboardType={min !== undefined && min >= 0 ? 'decimal-pad' : 'default'} value={text} onChangeText={type} onBlur={leave}
         style={[styles.field, { color: t.text, backgroundColor: t.bg, borderColor: error ? t.danger : t.border }]}
@@ -59,12 +59,12 @@ export function NumberInput({ label, min, max, step, mode, value, onChange }: Pr
   const stepper = (
     <View style={styles.row}>
       <Pressable accessibilityRole="button" accessibilityLabel={`Decrease ${label}`} onPress={() => set(value - step)}
-        style={[styles.round, { backgroundColor: t.accentSoft }]}>
+        style={(st) => [styles.round, { backgroundColor: t.accentSoft }, pressed(st)]}>
         <Text maxFontSizeMultiplier={1.5} style={[styles.sign, { color: t.accent }]}>−</Text>
       </Pressable>
       <Text accessibilityLabel={`${label}: ${value}`} style={[styles.value, { color: t.text }]}>{value}</Text>
       <Pressable accessibilityRole="button" accessibilityLabel={`Increase ${label}`} onPress={() => set(value + step)}
-        style={[styles.round, { backgroundColor: t.accentSoft }]}>
+        style={(st) => [styles.round, { backgroundColor: t.accentSoft }, pressed(st)]}>
         <Text maxFontSizeMultiplier={1.5} style={[styles.sign, { color: t.accent }]}>+</Text>
       </Pressable>
     </View>
@@ -88,7 +88,7 @@ export function NumberInput({ label, min, max, step, mode, value, onChange }: Pr
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 6 },
+  wrap: { gap: space.xs },
   label: { fontSize: 14, fontWeight: '500' },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   round: { width: MIN_TARGET + 4, height: MIN_TARGET + 4, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },

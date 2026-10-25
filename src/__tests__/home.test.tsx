@@ -55,3 +55,11 @@ test.each(['Checklist', 'Tip Calculator'])('ready-made %s saves a valid app and 
   await waitFor(() => expect(mockPush).toHaveBeenCalledWith({ pathname: '/run/[id]', params: { id: expect.any(String) } }));
   expect((await listApps()).some((a) => a.name === label)).toBe(true);
 });
+
+test('Settings is an icon button in the header row, found by its label', async () => {
+  mockPush.mockClear();
+  await render(<Home />);
+  await fireEvent.press(screen.getByRole('button', { name: 'Settings' }));
+  expect(mockPush).toHaveBeenCalledWith('/settings');
+  expect(screen.queryByText('Settings')).toBeNull();
+});

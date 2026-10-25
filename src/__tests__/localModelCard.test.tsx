@@ -12,7 +12,7 @@ const model = localModel as jest.Mocked<typeof localModel>;
 test('offers the download, shows progress, then shows Downloaded with a delete button', async () => {
   model.isDownloaded.mockResolvedValue(false);
   model.download.mockImplementation(async (onProgress) => { onProgress({ loaded: 1_294_073_856, total: 2_588_147_712 }); });
-  await render(<LocalModelCard style={{}} />);
+  await render(<LocalModelCard />);
   await fireEvent.press(await screen.findByLabelText('Download (2.6 GB)'));
   expect(await screen.findByText(/^Downloaded\. It loads into memory/)).toBeTruthy();
   await fireEvent.press(screen.getByLabelText('Delete model'));
@@ -24,7 +24,7 @@ test('a failed download shows the friendly error and keeps the button', async ()
   jest.spyOn(console, 'error').mockImplementation(() => {});
   model.isDownloaded.mockResolvedValue(false);
   model.download.mockRejectedValue(new Error('The download did not finish. Check your connection and try again.'));
-  await render(<LocalModelCard style={{}} />);
+  await render(<LocalModelCard />);
   await fireEvent.press(await screen.findByLabelText('Download (2.6 GB)'));
   expect(await screen.findByText(/did not finish/)).toBeTruthy();
   expect(screen.getByLabelText('Download (2.6 GB)')).toBeTruthy();
@@ -34,7 +34,7 @@ test('an interrupted download shows Paused with Resume and Delete', async () => 
   model.isDownloaded.mockResolvedValue(false);
   model.partialBytes.mockResolvedValue(1_200_000_000);
   model.download.mockResolvedValue(undefined);
-  await render(<LocalModelCard style={{}} />);
+  await render(<LocalModelCard />);
   expect(await screen.findByText('Paused at 1.2 of 2.6 GB.')).toBeTruthy();
   expect(screen.getByLabelText('Delete model')).toBeTruthy();
   await fireEvent.press(screen.getByLabelText('Resume download'));
@@ -48,7 +48,7 @@ test('cancel aborts the download and returns to Paused without an error', async 
   model.download.mockImplementation((_p, signal) => new Promise((_res, rej) => {
     signal?.addEventListener('abort', () => { model.partialBytes.mockResolvedValue(500_000_000); rej(new Error('aborted')); });
   }));
-  await render(<LocalModelCard style={{}} />);
+  await render(<LocalModelCard />);
   await fireEvent.press(await screen.findByLabelText('Download (2.6 GB)'));
   await fireEvent.press(await screen.findByLabelText('Cancel download'));
   expect(await screen.findByText('Paused at 0.5 of 2.6 GB.')).toBeTruthy();
@@ -60,7 +60,7 @@ test('downloaded but not loaded offers Load now, then reads Downloaded and loade
   model.isDownloaded.mockResolvedValue(true);
   model.isLoaded.mockReturnValue(false);
   model.warmUp.mockImplementation(async () => { model.isLoaded.mockReturnValue(true); });
-  await render(<LocalModelCard style={{}} />);
+  await render(<LocalModelCard />);
   await fireEvent.press(await screen.findByLabelText('Load now'));
   expect(await screen.findByText('Downloaded and loaded. Ready offline.')).toBeTruthy();
   model.isLoaded.mockReturnValue(false);

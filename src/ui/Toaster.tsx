@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { subscribeToast } from '@/capabilities';
-import { radius, space, useTheme } from './theme';
+import { radius, space, type, useTheme } from './theme';
 
 const SHOW_MS = 2500;
 
@@ -28,6 +28,6 @@ const styles = StyleSheet.create({
   wrap: { position: 'absolute', left: space.md, right: space.md, bottom: space.lg + space.sm, alignItems: 'center' },
   text: {
     paddingHorizontal: space.md, paddingVertical: 12,
-    borderRadius: radius.control, overflow: 'hidden', fontSize: 16,
+    borderRadius: radius.control, overflow: 'hidden', fontSize: type.body,
   },
 });

@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
+import { MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
 
 export interface ListRow { key: string; title: string; subtitle?: string; trailing?: string; flag?: string; checked?: boolean }
 interface Props {
@@ -17,7 +17,7 @@ export function List({ rows, emptyText, onToggle, onDelete, onPress }: Props) {
           {onToggle ? (
             <Pressable
               accessibilityRole="checkbox" accessibilityLabel={r.title} accessibilityState={{ checked: !!r.checked }}
-              onPress={() => onToggle(i)} style={styles.target}
+              onPress={() => onToggle(i)} style={(st) => [styles.target, pressed(st)]}
             >
               <View style={[styles.box, { borderColor: r.checked ? t.accent : t.muted, backgroundColor: r.checked ? t.accent : 'transparent' }]}>
                 {r.checked ? <Text maxFontSizeMultiplier={1.2} style={{ color: t.accentText, fontWeight: '700' }}>✓</Text> : null}
@@ -25,14 +25,14 @@ export function List({ rows, emptyText, onToggle, onDelete, onPress }: Props) {
             </Pressable>
           ) : null}
           <Pressable disabled={!onPress} onPress={() => onPress?.(i)} accessibilityRole={onPress ? 'button' : undefined}
-            style={styles.body}>
+            style={(st) => [styles.body, onPress && pressed(st)]}>
             <Text style={[styles.title, { color: r.checked ? t.muted : t.text, textDecorationLine: r.checked ? 'line-through' : 'none' }]}>{r.title}</Text>
             {r.subtitle ? <Text style={[styles.sub, { color: t.muted }]}>{r.subtitle}</Text> : null}
           </Pressable>
           {r.flag ? <Text style={[styles.sub, styles.flag, { color: t.danger }]} accessibilityLabel={`Needs checking: ${r.flag}`}>⚠ {r.flag}</Text>
             : r.trailing ? <Text style={[styles.sub, { color: t.muted }]}>{r.trailing}</Text> : null}
           {onDelete ? (
-            <Pressable accessibilityRole="button" accessibilityLabel={`Delete ${r.title}`} onPress={() => onDelete(i)} style={styles.target}>
+            <Pressable accessibilityRole="button" accessibilityLabel={`Delete ${r.title}`} onPress={() => onDelete(i)} style={(st) => [styles.target, pressed(st)]}>
               <Text style={{ color: t.danger, fontSize: 20 }}>✕</Text>
             </Pressable>
           ) : null}
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: MIN_TARGET + 12 },
   target: { minWidth: MIN_TARGET, minHeight: MIN_TARGET, alignItems: 'center', justifyContent: 'center' },
   box: { width: 24, height: 24, borderRadius: radius.control / 2, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  body: { flex: 1, minHeight: MIN_TARGET, justifyContent: 'center', paddingVertical: 8 },
+  body: { flex: 1, minHeight: MIN_TARGET, justifyContent: 'center', paddingVertical: space.sm },
   title: { fontSize: 16 },
   sub: { fontSize: 14 },
   flag: { flexShrink: 1, maxWidth: '45%', fontWeight: '600' },

@@ -20,7 +20,7 @@ import { catalog } from '@/catalog';
 import { resolveTemplate, resolveValue, type ValueContext } from '@/spec/values';
 import type { Spec } from '@/spec/types';
 import { preferredCurrency } from '@/storage/settings';
-import { space, useTheme } from '@/ui/theme';
+import { MIN_TARGET, pressed, space, useTheme } from '@/ui/theme';
 import type { createActionEngine } from './actions';
 import { ElementBoundary } from './ElementBoundary';
 import { useStoreState, type Store } from './store';
@@ -178,7 +178,7 @@ export function Renderer({ spec, store, engine, onReady }: RendererProps) {
   return (
     <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       {history.length > 1 ? (
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" style={styles.back}
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" style={(st) => [styles.back, pressed(st)]}
           onPress={() => setHistory((h) => h.slice(0, -1))}>
           <Text style={{ color: theme.accent, fontSize: 16, fontWeight: '600' }}>‹ Back</Text>
         </Pressable>
@@ -196,5 +196,5 @@ function busyKey(spec: Spec, engine: Engine): string {
 const styles = StyleSheet.create({
   content: { padding: space.lg, paddingBottom: 64, maxWidth: 640, width: '100%', alignSelf: 'center' },
   root: { gap: space.md },
-  back: { minHeight: 44, justifyContent: 'center', marginBottom: space.sm },
+  back: { minHeight: MIN_TARGET, justifyContent: 'center', marginBottom: space.sm },
 });

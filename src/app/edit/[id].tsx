@@ -10,7 +10,7 @@ import type { Spec } from '@/spec/types';
 import { dataKey, readJson, specKey, writeJson } from '@/storage';
 import { duplicateApp, loadValid, notifyAppsChanged } from '@/storage/apps';
 import { ActionButton } from '@/ui/ActionButton';
-import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
+import { MIN_TARGET, radius, space, type, useTheme } from '@/ui/theme';
 
 const keysOf = (text: string) => [...readSettings(text).keys()];
 
@@ -43,7 +43,7 @@ export default function Customize() {
   if (!spec || !info) {
     return (
       <View style={[styles.pad, { backgroundColor: t.bg, flex: 1 }]}>
-        <Text style={{ color: t.text, fontSize: 16 }}>
+        <Text style={{ color: t.text, fontSize: type.body }}>
           {spec ? 'This one wasn’t built from a ready-made type, so it can’t be customized. Tap New mini-app on Home to start a new one.' : 'We couldn’t open this mini-app.'}
         </Text>
         <ActionButton label="Back" onPress={() => router.canGoBack() ? router.back() : router.replace('/')} />
@@ -82,23 +82,23 @@ export default function Customize() {
   return (
     <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={styles.pad} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: `Customize ${spec.meta.name}` }} />
-      <Text style={{ color: t.muted, fontSize: 16 }}>Change the settings this tool was built from. Your saved data stays unless a change would hide it; you’ll be asked first.</Text>
+      <Text style={{ color: t.muted, fontSize: type.body }}>Change the settings this tool was built from. Your saved data stays unless a change would hide it; you’ll be asked first.</Text>
       {keys.map((k) => (
-        <View key={k} style={{ gap: 4 }}>
-          <Text style={{ color: t.text, fontSize: 16, fontWeight: '600' }}>{labelOf(k)}</Text>
+        <View key={k} style={{ gap: space.xs }}>
+          <Text style={{ color: t.text, fontSize: type.body, fontWeight: '600' }}>{labelOf(k)}</Text>
           <TextInput
             accessibilityLabel={labelOf(k)} multiline value={values[k] ?? ''} onChangeText={(v) => setValues((s) => ({ ...s, [k]: v }))}
             style={[styles.input, { color: t.text, backgroundColor: t.surface, borderColor: t.border }]}
           />
         </View>
       ))}
-      {error ? <Text accessibilityRole="alert" style={{ color: t.danger, fontSize: 16 }}>{error}</Text> : null}
+      {error ? <Text accessibilityRole="alert" style={{ color: t.danger, fontSize: type.body }}>{error}</Text> : null}
       <ActionButton label={busy ? 'Saving…' : 'Save changes'} onPress={() => void save()} disabled={busy} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  pad: { padding: space.md, gap: space.md },
-  input: { minHeight: MIN_TARGET, borderWidth: 1, borderRadius: radius.control, paddingHorizontal: space.md, paddingVertical: 10, fontSize: 16 },
+  pad: { padding: space.lg, gap: space.md, maxWidth: 640, width: '100%', alignSelf: 'center' },
+  input: { minHeight: MIN_TARGET, borderWidth: 1, borderRadius: radius.control, paddingHorizontal: space.md, paddingVertical: 10, fontSize: type.body },
 });

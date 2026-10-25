@@ -22,7 +22,7 @@ export function TextInput({ label, value, placeholder, multiline, onChange, onSu
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 6 },
+  wrap: { gap: space.xs },
   label: { fontSize: 14, fontWeight: '500' },
   input: {
     minHeight: MIN_TARGET, borderRadius: radius.control, borderWidth: 1,

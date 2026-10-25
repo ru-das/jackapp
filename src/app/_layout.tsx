@@ -16,7 +16,7 @@ export default function RootLayout() {
         headerStyle: { backgroundColor: t.bg }, headerTintColor: t.text, headerShadowVisible: false,
         contentStyle: { backgroundColor: t.bg },
       }}>
-        <Stack.Screen name="index" options={{ title: 'JackApp' }} />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="create" options={{ title: 'New mini-app' }} />
         <Stack.Screen name="settings" options={{ title: 'Settings' }} />
         <Stack.Screen name="edit/[id]" options={{ title: 'Customize' }} />
