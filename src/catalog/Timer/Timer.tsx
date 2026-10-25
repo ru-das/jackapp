@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { Tap } from '@/ui/Tap';
 import { MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
 
 interface Props { label: string; seconds: number; onDone?(): void }
@@ -49,10 +50,10 @@ export function Timer({ label, seconds, onDone }: Props) {
 function Action({ name, label, primary, onPress }: { name: string; label: string; primary: boolean; onPress(): void }) {
   const t = useTheme();
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={`${name} ${label}`} onPress={onPress}
+    <Tap accessibilityRole="button" accessibilityLabel={`${name} ${label}`} onPress={onPress}
       style={(st) => [styles.btn, { backgroundColor: primary ? t.accent : 'transparent', borderColor: t.accent }, pressed(st)]}>
       <Text style={{ color: primary ? t.accentText : t.accent, fontSize: 16, fontWeight: '600' }}>{name}</Text>
-    </Pressable>
+    </Tap>
   );
 }
 

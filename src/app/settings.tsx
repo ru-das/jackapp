@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Tap } from '@/ui/Tap';
 import { toast } from '@/capabilities';
 import { OPENROUTER_MODELS } from '@/ai/models';
 import { localModel } from '@/ai/providers/litert';
@@ -52,13 +53,13 @@ export default function SettingsScreen() {
           {choices.map(([id, label]) => {
             const on = settings.provider === id;
             return (
-              <Pressable
+              <Tap
                 key={id} accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={label}
                 onPress={() => void update({ provider: id })}
                 style={(st) => [styles.row, { backgroundColor: on ? t.accentSoft : 'transparent', borderColor: on ? t.accent : t.outline }, pressed(st)]}
               >
                 <Text style={[styles.name, { color: t.text }]}>{label}</Text>
-              </Pressable>
+              </Tap>
             );
           })}
         </View>
@@ -71,13 +72,13 @@ export default function SettingsScreen() {
           {CURRENCIES.map((code) => {
             const on = settings.currency === code;
             return (
-              <Pressable
+              <Tap
                 key={code} accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={`Currency ${code}`}
                 onPress={() => void update({ currency: code })}
                 style={(st) => [styles.chip, { backgroundColor: on ? t.accentSoft : 'transparent', borderColor: on ? t.accent : t.outline }, pressed(st)]}
               >
                 <Text style={[styles.name, { color: t.text }]}>{code}</Text>
-              </Pressable>
+              </Tap>
             );
           })}
         </View>
@@ -95,9 +96,9 @@ export default function SettingsScreen() {
             onChangeText={(v) => void update({ openrouterKey: v })}
             secureTextEntry autoCapitalize="none" autoCorrect={false} placeholder="sk-or-…" placeholderTextColor={t.muted}
           />
-          <Pressable accessibilityRole="button" accessibilityLabel="Model details" accessibilityState={{ expanded: details }} onPress={() => setDetails(!details)} style={(st) => [styles.toggle, pressed(st)]}>
+          <Tap accessibilityRole="button" accessibilityLabel="Model details" accessibilityState={{ expanded: details }} onPress={() => setDetails(!details)} style={(st) => [styles.toggle, pressed(st)]}>
             <Text style={{ color: t.text, fontSize: type.hint }}>{details ? '▾' : '▸'} Model details</Text>
-          </Pressable>
+          </Tap>
           {details ? STAGES.map(([stage, id]) => (
             <Text key={stage} style={{ color: t.muted, fontSize: type.meta }}>{stage}: {id}</Text>
           )) : null}

@@ -61,6 +61,7 @@ A prompt may contain several tasks. Do them in the order given, one commit per t
 
 - Path alias `@/` → `src/`.
 - Components: function components, named exports, one per file.
+- Tap targets use `Tap` from `@/ui/Tap`, not a bare `Pressable` (ripple on Android, dim elsewhere; ADR-048).
 - Errors shown to users are short and friendly. Errors in logs are detailed.
 - A comment explains *why*, never *what*. A known limitation gets `// shortcut: <limit>, <when to fix>`.
 - Accessibility: every input has a label, touch targets ≥ 44 px, and screens work with system font scaling.

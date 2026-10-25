@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
+import { Tap } from '@/ui/Tap';
 import { MIN_TARGET, pressed, radius, space, type, useTheme } from './theme';
 
 type Props = { label: string; onPress(): void; kind?: 'primary' | 'quiet' | 'danger'; disabled?: boolean; accessibilityLabel?: string };
@@ -7,12 +8,12 @@ export function ActionButton({ label, onPress, kind = 'primary', disabled, acces
   const t = useTheme();
   const look = { primary: [t.accent, t.accentText], quiet: [t.accentSoft, t.text], danger: [t.dangerSoft, t.danger] }[kind];
   return (
-    <Pressable
+    <Tap
       accessibilityRole="button" accessibilityLabel={accessibilityLabel} accessibilityState={{ disabled: !!disabled }} disabled={disabled} onPress={onPress}
       style={(s) => [styles.btn, { backgroundColor: look[0], opacity: disabled ? 0.5 : 1 }, pressed(s)]}
     >
       <Text style={[styles.text, { color: look[1] }]}>{label}</Text>
-    </Pressable>
+    </Tap>
   );
 }
 

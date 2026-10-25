@@ -1,6 +1,7 @@
 import { useFocusEffect, useLocalSearchParams, usePreventRemove, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Tap } from '@/ui/Tap';
 import { generate, type GenerationProgress } from '@/ai/generator/generate';
 import type { Unsupported } from '@/ai/generator/outputSchemas';
 import { RECIPES, type RecipeId } from '@/ai/generator/recipes';
@@ -218,20 +219,20 @@ export default function Create() {
       />
       <View style={styles.chips}>
         {EXAMPLES.map((e) => (
-          <Pressable key={e.label} accessibilityRole="button" accessibilityLabel={`Example: ${e.label}`} disabled={busy}
+          <Tap key={e.label} accessibilityRole="button" accessibilityLabel={`Example: ${e.label}`} disabled={busy}
             onPress={() => setPrompt(e.prompt)} style={(st) => [styles.chip, { backgroundColor: t.accentSoft }, pressed(st)]}>
             <Text style={{ color: t.text, fontSize: type.hint }}>{e.label}</Text>
-          </Pressable>
+          </Tap>
         ))}
       </View>
       <Text style={{ color: t.muted, fontSize: type.hint }}>Or pick a kind of mini-app:</Text>
       <View style={styles.chips}>
         {(Object.keys(RECIPES) as RecipeId[]).map((id) => (
-          <Pressable key={id} accessibilityRole="button" accessibilityLabel={`Kind: ${RECIPES[id].title}`} accessibilityState={{ selected: picked === id }} disabled={busy}
+          <Tap key={id} accessibilityRole="button" accessibilityLabel={`Kind: ${RECIPES[id].title}`} accessibilityState={{ selected: picked === id }} disabled={busy}
             onPress={() => setPicked(picked === id ? undefined : id)}
             style={(st) => [styles.chip, { backgroundColor: picked === id ? t.accent : t.accentSoft }, pressed(st)]}>
             <Text style={{ color: picked === id ? t.accentText : t.text, fontSize: type.hint }}>{RECIPES[id].title}</Text>
-          </Pressable>
+          </Tap>
         ))}
       </View>
       {ready ? (

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
-import { BackHandler, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { BackHandler, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Tap } from '@/ui/Tap';
 import { PhotoError, pickImage, toast } from '@/capabilities';
 import { Button } from '@/catalog/Button/Button';
 import { Card } from '@/catalog/Card/Card';
@@ -184,10 +185,10 @@ export function Renderer({ spec, store, engine, onReady }: RendererProps) {
   return (
     <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       {history.length > 1 ? (
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" style={(st) => [styles.back, pressed(st)]}
+        <Tap accessibilityRole="button" accessibilityLabel="Back" style={(st) => [styles.back, pressed(st)]}
           onPress={() => setHistory((h) => h.slice(0, -1))}>
           <Text style={{ color: theme.accent, fontSize: 16, fontWeight: '600' }}>‹ Back</Text>
-        </Pressable>
+        </Tap>
       ) : null}
       <View style={styles.root}>{renderElement(screen.root, { spec, store, engine, base, busy })}</View>
     </ScrollView>

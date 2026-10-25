@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { Tap } from '@/ui/Tap';
 import { MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
 
 interface Props { label: string; value: string; options: string[]; onChange(v: string): void }
@@ -12,12 +13,12 @@ export function Select({ label, value, options, onChange }: Props) {
         {options.map((o) => {
           const on = o === value;
           return (
-            <Pressable
+            <Tap
               key={o} accessibilityRole="radio" accessibilityState={{ checked: on }} onPress={() => onChange(o)}
               style={(st) => [styles.chip, { backgroundColor: on ? t.accent : t.bg, borderColor: on ? t.accent : t.outline }, pressed(st)]}
             >
               <Text style={{ color: on ? t.accentText : t.text, fontSize: 15, fontWeight: on ? '600' : '400' }}>{o}</Text>
-            </Pressable>
+            </Tap>
           );
         })}
       </View>

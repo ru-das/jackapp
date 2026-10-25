@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Tap } from '@/ui/Tap';
 import { useAnnounce } from '@/ui/announce';
 import { MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
 import type { NumberInputProps } from './props';
@@ -60,15 +61,15 @@ export function NumberInput({ label, min, max, step, mode, value, onChange }: Pr
   };
   const stepper = (
     <View style={styles.row}>
-      <Pressable accessibilityRole="button" accessibilityLabel={`Decrease ${label}`} onPress={() => set(value - step)}
+      <Tap accessibilityRole="button" accessibilityLabel={`Decrease ${label}`} onPress={() => set(value - step)}
         style={(st) => [styles.round, { backgroundColor: t.accentSoft }, pressed(st)]}>
         <Text maxFontSizeMultiplier={1.5} style={[styles.sign, { color: t.accent }]}>−</Text>
-      </Pressable>
+      </Tap>
       <Text accessibilityLabel={`${label}: ${value}`} style={[styles.value, { color: t.text }]}>{value}</Text>
-      <Pressable accessibilityRole="button" accessibilityLabel={`Increase ${label}`} onPress={() => set(value + step)}
+      <Tap accessibilityRole="button" accessibilityLabel={`Increase ${label}`} onPress={() => set(value + step)}
         style={(st) => [styles.round, { backgroundColor: t.accentSoft }, pressed(st)]}>
         <Text maxFontSizeMultiplier={1.5} style={[styles.sign, { color: t.accent }]}>+</Text>
-      </Pressable>
+      </Tap>
     </View>
   );
   // shortcut: slider is a stepper over a progress bar (no native slider in core RN), swap for a real slider if one ships with Expo.

@@ -1,5 +1,6 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { Tap } from '@/ui/Tap';
 import type { Store } from '@/runtime/store';
 import { useAnnounce } from '@/ui/announce';
 import { useInsets } from '@/ui/insets';
@@ -26,9 +27,9 @@ export function UndoBar({ store }: { store: Store }) {
   return (
     <View style={[styles.bar, { backgroundColor: snack.bg, bottom: 88 + bottom }]}>
       <Text style={[styles.text, { color: snack.fg }]}>{text}</Text>
-      <Pressable accessibilityRole="button" accessibilityLabel="Undo remove" onPress={() => store.undo()} style={(st) => [styles.target, pressed(st)]}>
+      <Tap accessibilityRole="button" accessibilityLabel="Undo remove" onPress={() => store.undo()} style={(st) => [styles.target, pressed(st)]}>
         <Text style={[styles.undo, { color: snack.accent }]}>Undo</Text>
-      </Pressable>
+      </Tap>
     </View>
   );
 }

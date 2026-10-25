@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { BackHandler, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Tap } from '@/ui/Tap';
 import { MIN_TARGET, pressed, radius, space, type, useTheme } from './theme';
 
 type Item = { label: string; onPress(): void };
@@ -16,9 +17,9 @@ export function OverflowMenu({ items, onClose }: { items: Item[]; onClose(): voi
       <Pressable accessibilityRole="button" accessibilityLabel="Close menu" onPress={onClose} style={StyleSheet.absoluteFill} />
       <View accessibilityRole="menu" style={[styles.panel, { backgroundColor: t.surface }]}>
         {items.map((item) => (
-          <Pressable key={item.label} accessibilityRole="menuitem" onPress={() => { onClose(); item.onPress(); }} style={(st) => [styles.item, pressed(st)]}>
+          <Tap key={item.label} accessibilityRole="menuitem" onPress={() => { onClose(); item.onPress(); }} style={(st) => [styles.item, pressed(st)]}>
             <Text style={{ color: t.text, fontSize: type.body }}>{item.label}</Text>
-          </Pressable>
+          </Tap>
         ))}
       </View>
     </>

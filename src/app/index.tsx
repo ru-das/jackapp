@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Tap } from '@/ui/Tap';
 import { RECIPES } from '@/ai/generator/recipes';
 import { readSettings } from '@/ai/generator/recipes/settings';
 import { h1, h2, h3 } from '@/spec/fixtures';
@@ -96,9 +97,9 @@ export default function Home() {
     <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={[styles.content, { paddingTop: top + space.md, paddingBottom: bottom + space.lg }]}>
       <View style={styles.head}>
         <Text accessibilityRole="header" style={[styles.title, { color: t.text }]}>JackApp</Text>
-        <Pressable accessibilityRole="button" accessibilityLabel="Settings" onPress={() => router.push('/settings')} style={(st) => [styles.gear, pressed(st)]}>
+        <Tap accessibilityRole="button" accessibilityLabel="Settings" onPress={() => router.push('/settings')} style={(st) => [styles.gear, pressed(st)]}>
           <SettingsIcon />
-        </Pressable>
+        </Tap>
       </View>
       <Text style={{ color: t.muted, fontSize: type.body }}>
         Describe a small mini-app and it gets built. Or try a ready-made one: it works right away, no AI needed.
@@ -155,14 +156,14 @@ export default function Home() {
       {__DEV__ ? (
         <Card>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Dev: load a fixture</Text>
-          <Pressable
+          <Tap
             accessibilityRole="button" onPress={() => router.push('/dev/eval')}
             style={[styles.row, { backgroundColor: t.accentSoft }]}
           >
             <Text style={[styles.name, { color: t.text }]}>Run model eval</Text>
-          </Pressable>
+          </Tap>
           {FIXTURES.map(({ id, spec }) => (
-            <Pressable
+            <Tap
               key={id} accessibilityRole="button" accessibilityLabel={`Open ${spec.meta.name}`}
               onPress={() => void open(id, spec)} style={[styles.row, { backgroundColor: t.accentSoft }]}
             >
@@ -171,7 +172,7 @@ export default function Home() {
                 <Text style={[styles.name, { color: t.text }]}>{spec.meta.name}</Text>
                 <Text style={{ color: t.muted, fontSize: type.meta }}>{spec.meta.description}</Text>
               </View>
-            </Pressable>
+            </Tap>
           ))}
         </Card>
       ) : null}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Tap } from '@/ui/Tap';
 import { Card } from './Card';
 import type { AppSummary } from '@/storage/apps';
 import { ActionButton } from './ActionButton';
@@ -24,16 +25,16 @@ export function AppRow({ app, onOpen, onRename, onDuplicate, onDelete }: Props) 
     <Card style={styles.card}>
       {name === null ? (
         <View style={styles.head}>
-          <Pressable accessibilityRole="button" accessibilityLabel={`Open ${app.name}`} onPress={onOpen} style={(st) => [styles.title, pressed(st)]}>
+          <Tap accessibilityRole="button" accessibilityLabel={`Open ${app.name}`} onPress={onOpen} style={(st) => [styles.title, pressed(st)]}>
             <Text style={styles.icon}>{app.icon ?? '🦥'}</Text>
             <Text style={[styles.name, { color: t.text }]}>{app.name}</Text>
-          </Pressable>
-          <Pressable
+          </Tap>
+          <Tap
             accessibilityRole="button" accessibilityLabel={`More actions for ${app.name}`} accessibilityState={{ expanded: more }}
             onPress={() => setMore(!more)} style={(st) => [styles.more, pressed(st)]}
           >
             <MoreIcon />
-          </Pressable>
+          </Tap>
         </View>
       ) : (
         <>

@@ -2,7 +2,8 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { share, toast } from '@/capabilities';
 import { toCsv } from '@/runtime/export';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, AppState, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, AppState, StyleSheet, Text, View } from 'react-native';
+import { Tap } from '@/ui/Tap';
 import type { createActionEngine } from '@/runtime/actions';
 import { Renderer, type RendererHandle } from '@/runtime/Renderer';
 import { createSession } from '@/runtime/session';
@@ -78,13 +79,23 @@ export default function Run() {
     <View style={[styles.fill, { backgroundColor: t.bg }]}>
       {/* One header button, so a long mini-app name keeps the room; Customize and Export are occasional. */}
       <Stack.Screen options={{ title, headerRight: phase.kind === 'ready' ? () => (
-        <Pressable accessibilityRole="button" accessibilityLabel="More actions" accessibilityState={{ expanded: menu }} onPress={() => setMenu(!menu)} style={(st) => [styles.more, pressed(st)]}>
+        <Tap accessibilityRole="button" accessibilityLabel="More actions" accessibilityState={{ expanded: menu }} onPress={() => setMenu(!menu)} style={(st) => [styles.more, pressed(st)]}>
           <MoreIcon />
-        </Pressable>) : undefined }} />
-      {phase.kind === 'loading' ? <ActivityIndicator accessibilityLabel="Opening mini-app" color={t.accent} style={styles.spin} /> : null}
-      {phase.kind === 'ready' && reminders ? <ReminderStatus appId={id} result={reminders} /> : null}
-      {phase.kind === 'ready' ? <Renderer spec={phase.spec} store={phase.store} engine={phase.engine} onReady={(h) => { navigateRef.current = h.navigate; }} /> : null}
-      {phase.kind === 'ready' ? <UndoBar store={phase.store} /> : null}
+        </Tap>) : undefined }} />
+      {/* While the menu is open the mini-app behind it is hidden from the screen reader, as it is from the finger: Back or "Close menu" returns to it. */}
+      <View style={styles.fill} importantForAccessibility={menu ? 'no-hide-descendants' : 'auto'} accessibilityElementsHidden={menu}>
+        {phase.kind === 'loading' ? <ActivityIndicator accessibilityLabel="Opening mini-app" color={t.accent} style={styles.spin} /> : null}
+        {phase.kind === 'ready' && reminders ? <ReminderStatus appId={id} result={reminders} /> : null}
+        {phase.kind === 'ready' ? <Renderer spec={phase.spec} store={phase.store} engine={phase.engine} onReady={(h) => { navigateRef.current = h.navigate; }} /> : null}
+        {phase.kind === 'ready' ? <UndoBar store={phase.store} /> : null}
+        {phase.kind === 'error' ? (
+          <Card style={styles.card}>
+            <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Can’t open this one</Text>
+            <Text style={{ color: t.muted, fontSize: type.body }}>{phase.message}</Text>
+            <ActionButton label="Back" onPress={() => router.canGoBack() ? router.back() : router.replace('/')} />
+          </Card>
+        ) : null}
+      </View>
       {phase.kind === 'ready' && menu ? (
         <OverflowMenu onClose={() => setMenu(false)} items={[
           ...(phase.spec.meta.recipe ? [{
@@ -93,13 +104,6 @@ export default function Run() {
           }] : []),
           { label: 'Export data', onPress: () => void share(toCsv(phase.spec, phase.store.getState())).catch(() => toast("Couldn’t export.")) },
         ]} />
-      ) : null}
-      {phase.kind === 'error' ? (
-        <Card style={styles.card}>
-          <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Can’t open this one</Text>
-          <Text style={{ color: t.muted, fontSize: type.body }}>{phase.message}</Text>
-          <ActionButton label="Back" onPress={() => router.canGoBack() ? router.back() : router.replace('/')} />
-        </Card>
       ) : null}
     </View>
   );

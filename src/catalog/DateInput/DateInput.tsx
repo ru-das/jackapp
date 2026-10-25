@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput as RNTextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput as RNTextInput, View } from 'react-native';
+import { Tap } from '@/ui/Tap';
 import { useAnnounce } from '@/ui/announce';
 import { MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
 
@@ -43,10 +44,10 @@ export function DateInput({ label, value, onChange, today = () => new Date().toI
           keyboardType="number-pad" maxLength={10}
           style={[styles.input, { color: t.text, backgroundColor: t.bg, borderColor: bad ? t.danger : t.outline }]}
         />
-        <Pressable accessibilityRole="button" accessibilityLabel={`Today: ${label}`} onPress={() => { setDraft(null); onChange(today()); }}
+        <Tap accessibilityRole="button" accessibilityLabel={`Today: ${label}`} onPress={() => { setDraft(null); onChange(today()); }}
           style={(st) => [styles.today, { backgroundColor: t.accentSoft }, pressed(st)]}>
           <Text style={{ color: t.accent, fontSize: 16, fontWeight: '600' }}>Today</Text>
-        </Pressable>
+        </Tap>
       </View>
       {bad ? <Text style={{ color: t.danger, fontSize: 13 }}>{BAD_DAY}</Text> : null}
     </View>

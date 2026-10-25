@@ -1,4 +1,5 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text } from 'react-native';
+import { Tap } from '@/ui/Tap';
 import { MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
 import type { ButtonProps } from './props';
 
@@ -12,14 +13,14 @@ export function Button({ label, variant, busy, onPress }: Props) {
     danger: { bg: t.dangerSoft, fg: t.danger, border: t.dangerSoft },
   }[variant];
   return (
-    <Pressable
+    <Tap
       accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled: busy, busy }}
       disabled={busy} onPress={onPress}
       style={(st) => [styles.btn, { backgroundColor: look.bg, borderColor: look.border, opacity: busy ? 0.6 : 1 }, pressed(st)]}
     >
       {busy ? <ActivityIndicator color={look.fg} /> : null}
       <Text style={[styles.text, { color: look.fg }]}>{label}</Text>
-    </Pressable>
+    </Tap>
   );
 }
 

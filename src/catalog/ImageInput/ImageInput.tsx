@@ -1,4 +1,5 @@
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
+import { Tap } from '@/ui/Tap';
 import { MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
 import type { ImageInputProps } from './props';
 
@@ -10,10 +11,10 @@ interface Props {
 export function ImageInput({ label, value, source, onPick }: Props) {
   const t = useTheme();
   const btn = (text: string, s: 'camera' | 'library') => (
-    <Pressable key={s} accessibilityRole="button" accessibilityLabel={`${text}: ${label}`} onPress={() => onPick(s)}
+    <Tap key={s} accessibilityRole="button" accessibilityLabel={`${text}: ${label}`} onPress={() => onPick(s)}
       style={(st) => [styles.btn, { backgroundColor: t.accentSoft }, pressed(st)]}>
       <Text style={{ color: t.accent, fontWeight: '600', fontSize: 15 }}>{text}</Text>
-    </Pressable>
+    </Tap>
   );
   const verb = value ? 'Retake' : 'Take photo';
   return (
