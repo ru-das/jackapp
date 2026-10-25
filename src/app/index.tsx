@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/ui/Text';
 import { Tap } from '@/ui/Tap';
 import { RECIPES } from '@/ai/generator/recipes';
 import { readSettings } from '@/ai/generator/recipes/settings';
@@ -13,8 +14,9 @@ import { ActionButton } from '@/ui/ActionButton';
 import { AppRow } from '@/ui/AppRow';
 import { Card } from '@/ui/Card';
 import { useInsets } from '@/ui/insets';
-import { SettingsIcon } from '@/ui/SettingsIcon';
-import { MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/theme';
+import { AppIcon } from '@/ui/AppIcon';
+import { Icon } from '@/ui/Icon';
+import { font, MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/theme';
 
 // Photo templates call the AI when used; Plant Pal never does.
 const FIXTURES = [
@@ -26,7 +28,7 @@ const FIXTURES = [
 // Built with the same recipe builders the AI path uses, so they are valid by construction and need no model.
 const READY_MADE = [
   {
-    label: 'Checklist', hint: 'Tick things off',
+    label: 'Checklist', icon: 'checkbox-outline' as const, hint: 'Tick things off',
     spec: () => RECIPES.log.make(readSettings(`name Checklist
 icon ✅
 description Add things to do and tick them off
@@ -35,7 +37,7 @@ field name text Item
 checkbox yes`), 'Checklist'),
   },
   {
-    label: 'Tip Calculator', hint: 'Split a bill with a tip',
+    label: 'Tip Calculator', icon: 'calculator-outline' as const, hint: 'Split a bill with a tip',
     spec: () => RECIPES.calculator.make(readSettings(`name Tip Calculator
 icon 💵
 description Work out the tip and what each person pays
@@ -96,20 +98,23 @@ export default function Home() {
   return (
     <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={[styles.content, { paddingTop: top + space.md, paddingBottom: bottom + space.lg }]}>
       <View style={styles.head}>
-        <Text accessibilityRole="header" style={[styles.title, { color: t.text }]}>JackApp</Text>
+        <View style={styles.brand}>
+          <AppIcon size={40} />
+          <Text accessibilityRole="header" style={[styles.title, { color: t.text }]}>JackApp</Text>
+        </View>
         <Tap accessibilityRole="button" accessibilityLabel="Settings" onPress={() => router.push('/settings')} style={(st) => [styles.gear, pressed(st)]}>
-          <SettingsIcon />
+          <Icon name="settings-outline" size={26} color={t.text} />
         </Tap>
       </View>
       <Text style={{ color: t.muted, fontSize: type.body }}>
         Describe a small mini-app and it gets built. Or try a ready-made one: it works right away, no AI needed.
       </Text>
-      <ActionButton label="New mini-app" onPress={() => router.push('/create')} />
+      <ActionButton icon="add" label="New mini-app" onPress={() => router.push('/create')} />
       <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Try a ready-made mini-app</Text>
       <View style={styles.tpl}>
         {READY_MADE.map((r) => (
           <View key={r.label} style={styles.flex}>
-            <ActionButton kind="quiet" label={r.label} onPress={() => void tryTemplate(r.spec())} />
+            <ActionButton kind="quiet" icon={r.icon} label={r.label} onPress={() => void tryTemplate(r.spec())} />
           </View>
         ))}
       </View>
@@ -118,12 +123,12 @@ export default function Home() {
         <Card>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Couldn’t load your mini-apps</Text>
           <Text style={{ color: t.muted, fontSize: type.body }}>They are not lost. Storage did not answer. Try again.</Text>
-          <ActionButton label="Try again" onPress={refresh} />
+          <ActionButton icon="refresh" label="Try again" onPress={refresh} />
         </Card>
       ) : null}
       {apps !== 'error' && apps?.length === 0 ? (
         <Card style={styles.empty}>
-          <Text style={styles.icon} importantForAccessibility="no" accessibilityElementsHidden>🦥</Text>
+          <AppIcon size={72} />
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>No mini-apps yet</Text>
           <Text style={{ color: t.muted, fontSize: type.body, textAlign: 'center' }}>
             Describe a small mini-app and it gets built on your device.
@@ -148,8 +153,8 @@ export default function Home() {
             </View>
           </View>
           <View style={styles.tpl}>
-            <View style={styles.flex}><ActionButton label={`Try ${spec.meta.name}`} onPress={() => void tryTemplate(spec)} /></View>
-            <View style={styles.flex}><ActionButton kind="quiet" label={`Make similar to ${spec.meta.name}`} onPress={() => remix(spec)} /></View>
+            <View style={styles.flex}><ActionButton icon="play" label={`Try ${spec.meta.name}`} onPress={() => void tryTemplate(spec)} /></View>
+            <View style={styles.flex}><ActionButton kind="quiet" icon="copy-outline" label={`Make similar to ${spec.meta.name}`} onPress={() => remix(spec)} /></View>
           </View>
         </Card>
       ))}
@@ -183,10 +188,11 @@ export default function Home() {
 const styles = StyleSheet.create({
   content: { padding: space.lg, gap: space.md, maxWidth: 640, width: '100%', alignSelf: 'center' },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: type.title, fontWeight: '700' },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  title: { fontSize: type.title, fontFamily: font.display },
   gear: { minWidth: MIN_TARGET, minHeight: MIN_TARGET, alignItems: 'center', justifyContent: 'center' },
   empty: { alignItems: 'center' },
-  h: { fontSize: type.h, fontWeight: '600', marginBottom: space.sm },
+  h: { fontSize: type.h, fontFamily: font.display, marginBottom: space.sm },
   row: { minHeight: MIN_TARGET + 12, flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.control },
   icon: { fontSize: 28 },
   tpl: { flexDirection: 'row', alignItems: 'center', gap: space.sm },

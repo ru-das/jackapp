@@ -1,7 +1,8 @@
 import { Stack, useRouter } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/ui/Text';
 import { ActionButton } from '@/ui/ActionButton';
-import { space, useTheme } from '@/ui/theme';
+import { font, space, useTheme } from '@/ui/theme';
 
 export default function NotFound() {
   const t = useTheme();
@@ -9,9 +10,9 @@ export default function NotFound() {
   return (
     <View style={[styles.box, { backgroundColor: t.bg }]}>
       <Stack.Screen options={{ title: 'Not found' }} />
-      <Text accessibilityRole="header" style={{ color: t.text, fontSize: 19, fontWeight: '600' }}>We can’t find that page</Text>
+      <Text accessibilityRole="header" style={{ color: t.text, fontSize: 19, fontFamily: font.display }}>We can’t find that page</Text>
       <Text style={{ color: t.muted, fontSize: 16 }}>The link may be old or mistyped.</Text>
-      <ActionButton label="Go home" onPress={() => router.replace('/')} />
+      <ActionButton icon="home-outline" label="Go home" onPress={() => router.replace('/')} />
     </View>
   );
 }

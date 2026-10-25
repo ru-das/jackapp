@@ -1,4 +1,5 @@
-import { StyleSheet, Switch, Text, View } from 'react-native';
+import { StyleSheet, Switch, View } from 'react-native';
+import { Text } from '@/ui/Text';
 import { MIN_TARGET, space, switchColors, useTheme } from '@/ui/theme';
 
 export function Toggle({ label, value, onChange }: { label: string; value: boolean; onChange(v: boolean): void }) {

@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M7 — Ship: features done and device-tested; cleaning and polishing; T-70..74 (log, video, README, DEV post, publish) open |
-| Last updated | 2026-10-25 by Claude Code (T-133) |
+| Last updated | 2026-10-25 by Claude Code (T-134) |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-134 icons, app icon, fonts (Claude Code, 2026-10-25, human-requested; no Codex-owned files touched, though `src/catalog/*/*.tsx` is mine):** ADR-051. New deps: `@react-native-vector-icons/ionicons`, three `@expo-google-fonts/*`, `expo-font`, `expo-asset` (plugins added to `app.json`). `src/ui/Icon.tsx` (explicit colour, decorative), `src/ui/AppIcon.tsx`, `src/ui/Text.tsx` (`Text` / `TextInput` that set the font family; every screen, ui and catalog file imports these instead of React Native's). Headings use Fraunces, digits JetBrains Mono, the rest Figtree. `SettingsIcon` and `MoreIcon` deleted. The text glyphs left on purpose: the dev eval screen's log marks, and a prompt string with an arrow. `npm run check` green (69 suites / 2,711 tests); `expo export -p web` builds with exactly six app fonts plus the Ionicons font in `dist`. **I could not screenshot the result (no headless browser worked here), so nobody has looked at it yet; not tried on a device.** **Human next:** `npm run web` and look at Home, Create, Settings and a Timer / List mini-app in light and dark: icons draw (not empty boxes), titles are the serif, digits are monospace; then **build a new Android dev build** (native font assets) and check the same, plus that buttons with an icon still read their label with TalkBack. If an icon shows as a box on Android, switch `Icon.tsx` to the `/static` import and add the `@react-native-vector-icons/ionicons` plugin to `app.json`.
+>
 > **T-133 Appearance (Claude Code, 2026-10-25, human-requested; no Codex-owned files touched):** ADR-050. Settings → Appearance: System / Light / Dark, saved as `theme` in settings, applied live through `setThemePreference` (`src/ui/theme.ts`); the root layout applies the saved value on start. `npm run check` green (68 suites / 2,703 tests). **Not tried on a device.** **Human next (Android):** choose Light on a phone set to dark: the app turns light at once, the status bar icons turn dark, and it stays light after force-stopping and reopening; Dark on a light phone likewise; System follows the phone again. **Next:** T-134 (icons, app icon, fonts).
 >
 > **T-132 OpenRouter removed (Claude Code, 2026-10-25, human-requested; edited Codex-owned `src/ai/generator/generate.ts` and its tests, ask Codex to review):** ADR-049. `openrouter.ts`, `OPENROUTER_MODELS`, the key field, the Settings card and `getCloudFallback` are gone; `generate()` has no `fallback` option and `freeForm` is now a boolean (free-form runs on the same provider). Settings provider is `local | ollama | mock`; default is `local` on Android and `ollama` on web; a saved `openrouter` falls back to that default. `'openrouter'` stays in the `generatedBy` enum so old saved apps load. `npm run check` green (68 suites / 2,701 tests). **Next:** T-133 (Appearance), T-134 (icons, fonts).
@@ -243,6 +245,7 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 
 | Since | Task | Blocker | Tried | Needs |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-134 | Ionicons instead of text symbols, app icon in the header and empty states, Fraunces / Figtree / JetBrains Mono. ADR-051. | see git |
 | 2026-10-25 | Claude Code | T-133 | Appearance setting (System / Light / Dark), saved and applied live. ADR-050. | see git |
 | — | — | — | — | — |
 

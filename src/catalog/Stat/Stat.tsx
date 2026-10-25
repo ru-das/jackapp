@@ -1,5 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { radius, space, useTheme } from '@/ui/theme';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/ui/Text';
+import { font, radius, space, useTheme } from '@/ui/theme';
 
 export function Stat({ label, value }: { label: string; value: string }) {
   const t = useTheme();
@@ -17,5 +18,5 @@ export function Stat({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   box: { padding: space.md, gap: 2 },
   label: { fontSize: 14 },
-  value: { fontSize: 34, fontWeight: '700' },
+  value: { fontSize: 34, fontFamily: font.mono },
 });

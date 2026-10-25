@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/ui/Text';
 import { Tap } from '@/ui/Tap';
-import { MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
+import { Icon, type IconName } from '@/ui/Icon';
+import { font, MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
 
 interface Props { label: string; seconds: number; onDone?(): void }
 
@@ -36,22 +38,23 @@ export function Timer({ label, seconds, onDone }: Props) {
   return (
     <View accessible accessibilityLabel={`${label}: ${clock(left)} left`} style={[styles.box, { backgroundColor: t.accentSoft }]}>
       <Text style={{ color: t.muted, fontSize: 14 }}>{label}</Text>
-      <Text maxFontSizeMultiplier={1.5} style={{ color: t.accent, fontSize: 48, fontWeight: '700', fontVariant: ['tabular-nums'] }}>{clock(left)}</Text>
+      <Text maxFontSizeMultiplier={1.5} style={{ color: t.accent, fontSize: 48, fontFamily: font.mono, fontVariant: ['tabular-nums'] }}>{clock(left)}</Text>
       <View style={styles.row}>
         {running
-          ? <Action name="Pause" label={label} primary={false} onPress={() => setRunning(false)} />
-          : <Action name={left > 0 && left < total ? 'Resume' : 'Start'} label={label} primary onPress={start} />}
-        <Action name="Reset" label={label} primary={false} onPress={reset} />
+          ? <Action name="Pause" icon="pause" label={label} primary={false} onPress={() => setRunning(false)} />
+          : <Action name={left > 0 && left < total ? 'Resume' : 'Start'} icon="play" label={label} primary onPress={start} />}
+        <Action name="Reset" icon="refresh" label={label} primary={false} onPress={reset} />
       </View>
     </View>
   );
 }
 
-function Action({ name, label, primary, onPress }: { name: string; label: string; primary: boolean; onPress(): void }) {
+function Action({ name, icon, label, primary, onPress }: { name: string; icon: IconName; label: string; primary: boolean; onPress(): void }) {
   const t = useTheme();
   return (
     <Tap accessibilityRole="button" accessibilityLabel={`${name} ${label}`} onPress={onPress}
       style={(st) => [styles.btn, { backgroundColor: primary ? t.accent : 'transparent', borderColor: t.accent }, pressed(st)]}>
+      <Icon name={icon} size={18} color={primary ? t.accentText : t.accent} />
       <Text style={{ color: primary ? t.accentText : t.accent, fontSize: 16, fontWeight: '600' }}>{name}</Text>
     </Tap>
   );
@@ -60,5 +63,5 @@ function Action({ name, label, primary, onPress }: { name: string; label: string
 const styles = StyleSheet.create({
   box: { padding: space.md, gap: space.sm, borderRadius: radius.control, alignItems: 'center' },
   row: { flexDirection: 'row', gap: space.sm },
-  btn: { minHeight: MIN_TARGET, minWidth: 96, borderRadius: radius.control, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.md },
+  btn: { flexDirection: 'row', gap: 6, minHeight: MIN_TARGET, minWidth: 96, borderRadius: radius.control, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.md },
 });

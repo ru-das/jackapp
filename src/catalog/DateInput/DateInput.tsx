@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput as RNTextInput, View } from 'react-native';
+import { StyleSheet, TextInput as RNTextInput, View } from 'react-native';
+import { Text } from '@/ui/Text';
 import { Tap } from '@/ui/Tap';
+import { Icon } from '@/ui/Icon';
 import { useAnnounce } from '@/ui/announce';
 import { MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
 
@@ -46,6 +48,7 @@ export function DateInput({ label, value, onChange, today = () => new Date().toI
         />
         <Tap accessibilityRole="button" accessibilityLabel={`Today: ${label}`} onPress={() => { setDraft(null); onChange(today()); }}
           style={(st) => [styles.today, { backgroundColor: t.accentSoft }, pressed(st)]}>
+          <Icon name="today-outline" size={18} color={t.accent} />
           <Text style={{ color: t.accent, fontSize: 16, fontWeight: '600' }}>Today</Text>
         </Tap>
       </View>
@@ -59,5 +62,5 @@ const styles = StyleSheet.create({
   label: { fontSize: 14, fontWeight: '500' },
   row: { flexDirection: 'row', gap: space.sm, alignItems: 'center' },
   input: { flex: 1, minHeight: MIN_TARGET, borderRadius: radius.control, borderWidth: 1, paddingHorizontal: space.md, fontSize: 16 },
-  today: { minHeight: MIN_TARGET, borderRadius: radius.control, paddingHorizontal: space.md, alignItems: 'center', justifyContent: 'center' },
+  today: { flexDirection: 'row', gap: 6, minHeight: MIN_TARGET, borderRadius: radius.control, paddingHorizontal: space.md, alignItems: 'center', justifyContent: 'center' },
 });

@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
-import { BackHandler, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { BackHandler, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/ui/Text';
+import { Icon, type IconName } from '@/ui/Icon';
 import { Tap } from '@/ui/Tap';
 import { MIN_TARGET, pressed, radius, space, type, useTheme } from './theme';
 
-type Item = { label: string; onPress(): void };
+type Item = { label: string; icon?: IconName; onPress(): void };
 
 /** A small menu under the top-right corner, for actions that matter less than the screen's own content. Tapping outside or system Back closes it. */
 export function OverflowMenu({ items, onClose }: { items: Item[]; onClose(): void }) {
@@ -18,6 +20,7 @@ export function OverflowMenu({ items, onClose }: { items: Item[]; onClose(): voi
       <View accessibilityRole="menu" style={[styles.panel, { backgroundColor: t.surface }]}>
         {items.map((item) => (
           <Tap key={item.label} accessibilityRole="menuitem" onPress={() => { onClose(); item.onPress(); }} style={(st) => [styles.item, pressed(st)]}>
+            {item.icon ? <Icon name={item.icon} size={22} color={t.text} /> : null}
             <Text style={{ color: t.text, fontSize: type.body }}>{item.label}</Text>
           </Tap>
         ))}
@@ -31,5 +34,5 @@ const styles = StyleSheet.create({
     position: 'absolute', top: space.xs, right: space.sm, minWidth: 200, paddingVertical: space.xs, borderRadius: radius.control,
     ...Platform.select({ web: { boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }, default: { elevation: 6 } }),
   },
-  item: { minHeight: MIN_TARGET, justifyContent: 'center', paddingHorizontal: space.md },
+  item: { minHeight: MIN_TARGET, flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.md },
 });

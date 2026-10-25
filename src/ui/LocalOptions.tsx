@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Switch, Text, View } from 'react-native';
+import { Switch, View } from 'react-native';
+import { Text } from '@/ui/Text';
 import { localModel } from '@/ai/providers/litert';
 import type { LocalTuning } from '@/ai/provider';
 import { MIN_TARGET, space, switchColors, useTheme } from '@/ui/theme';

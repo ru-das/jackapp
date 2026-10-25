@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { Text } from '@/ui/Text';
 import type { GenerationProgress } from '@/ai/generator/generate';
+import { Icon } from './Icon';
 import { space, type, useTheme } from './theme';
 
 const STAGES = [['building', 'Building'], ['checking', 'Checking']] as const;
@@ -28,9 +30,10 @@ export function GenerationStages({ progress }: { progress: Pick<GenerationProgre
       <View accessibilityLiveRegion="polite" accessible accessibilityLabel={`Step: ${steps[Math.max(current, 0)].label}`} style={styles.row}>
         <ActivityIndicator color={t.accent} />
         {steps.map((s, i) => (
-          <Text key={s.id} style={{ fontSize: type.body, color: i === current ? t.accent : i < current ? t.text : t.muted, fontWeight: i === current ? '700' : '400' }}>
-            {i > 0 ? '→ ' : ''}{s.label}
-          </Text>
+          <View key={s.id} style={styles.step}>
+            {i > 0 ? <Icon name="chevron-forward" size={16} color={t.muted} /> : null}
+            <Text style={{ fontSize: type.body, color: i === current ? t.accent : i < current ? t.text : t.muted, fontWeight: i === current ? '700' : '400' }}>{s.label}</Text>
+          </View>
         ))}
       </View>
       <Text style={{ color: t.muted, fontSize: type.meta }}>
@@ -48,5 +51,6 @@ export function GenerationStages({ progress }: { progress: Pick<GenerationProgre
 
 const styles = StyleSheet.create({
   col: { gap: space.sm },
+  step: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.sm },
 });

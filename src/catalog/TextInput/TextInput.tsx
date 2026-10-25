@@ -1,4 +1,5 @@
-import { StyleSheet, Text, TextInput as RNTextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text, TextInput as RNTextInput } from '@/ui/Text';
 import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
 
 interface Props {

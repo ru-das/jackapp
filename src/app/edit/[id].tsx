@@ -1,6 +1,7 @@
 import { Stack, useLocalSearchParams, usePreventRemove, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '@/ui/Text';
 import { RECIPES } from '@/ai/generator/recipes';
 import { rebuild } from '@/ai/generator/recipes/rebuild';
 import { readSettings } from '@/ai/generator/recipes/settings';
@@ -66,7 +67,7 @@ export default function Customize() {
         <Text style={{ color: t.text, fontSize: type.body }}>
           {spec ? 'This one wasn’t built from a ready-made type, so it can’t be customized. Tap New mini-app on Home to start a new one.' : 'We couldn’t open this mini-app.'}
         </Text>
-        <ActionButton label="Back" onPress={() => router.canGoBack() ? router.back() : router.replace('/')} />
+        <ActionButton icon="arrow-back" label="Back" onPress={() => router.canGoBack() ? router.back() : router.replace('/')} />
       </View>
     );
   }
@@ -115,7 +116,7 @@ export default function Customize() {
         </View>
       ))}
       {error ? <Text style={{ color: t.danger, fontSize: type.body }}>{error}</Text> : null}
-      <ActionButton label={busy ? 'Saving…' : 'Save changes'} onPress={() => void save()} disabled={busy} />
+      <ActionButton icon="checkmark" label={busy ? 'Saving…' : 'Save changes'} onPress={() => void save()} disabled={busy} />
     </ScrollView>
   );
 }

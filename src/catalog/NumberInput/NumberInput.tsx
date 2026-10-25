@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '@/ui/Text';
 import { Tap } from '@/ui/Tap';
+import { Icon } from '@/ui/Icon';
 import { useAnnounce } from '@/ui/announce';
 import { MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
 import type { NumberInputProps } from './props';
@@ -63,12 +65,12 @@ export function NumberInput({ label, min, max, step, mode, value, onChange }: Pr
     <View style={styles.row}>
       <Tap accessibilityRole="button" accessibilityLabel={`Decrease ${label}`} onPress={() => set(value - step)}
         style={(st) => [styles.round, { backgroundColor: t.accentSoft }, pressed(st)]}>
-        <Text maxFontSizeMultiplier={1.5} style={[styles.sign, { color: t.accent }]}>−</Text>
+        <Icon name="remove" size={26} color={t.accent} />
       </Tap>
       <Text accessibilityLabel={`${label}: ${value}`} style={[styles.value, { color: t.text }]}>{value}</Text>
       <Tap accessibilityRole="button" accessibilityLabel={`Increase ${label}`} onPress={() => set(value + step)}
         style={(st) => [styles.round, { backgroundColor: t.accentSoft }, pressed(st)]}>
-        <Text maxFontSizeMultiplier={1.5} style={[styles.sign, { color: t.accent }]}>+</Text>
+        <Icon name="add" size={26} color={t.accent} />
       </Tap>
     </View>
   );
@@ -95,7 +97,6 @@ const styles = StyleSheet.create({
   label: { fontSize: 14, fontWeight: '500' },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   round: { width: MIN_TARGET + 4, height: MIN_TARGET + 4, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
-  sign: { fontSize: 24, fontWeight: '600' },
   value: { minWidth: 48, textAlign: 'center', fontSize: 22, fontWeight: '600' },
   field: { minHeight: MIN_TARGET, borderRadius: radius.control, borderWidth: 1, paddingHorizontal: space.md, fontSize: 16 },
   track: { height: 8, borderRadius: 4, overflow: 'hidden' },

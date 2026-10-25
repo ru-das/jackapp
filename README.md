@@ -35,6 +35,7 @@ Details for each doc live in `docs/` (start with `docs/PROGRESS.md`).
 
 - [Expo](https://expo.dev), [Expo Router](https://docs.expo.dev/router/introduction/), [React Native](https://reactnative.dev), [Zod](https://zod.dev): MIT.
 - [LiteRT-LM](https://github.com/google-ai-edge/LiteRT-LM) (Google, Apache-2.0) runs Gemma 4 E2B on Android; the model file is [litert-community/gemma-4-E2B-it-litert-lm](https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm) (Apache-2.0).
+- [Ionicons](https://ionic.io/ionicons) via [`@react-native-vector-icons/ionicons`](https://github.com/oblador/react-native-vector-icons) (MIT). Fonts, bundled with the app: [Fraunces](https://fonts.google.com/specimen/Fraunces), [Figtree](https://fonts.google.com/specimen/Figtree) and [JetBrains Mono](https://fonts.google.com/specimen/JetBrains+Mono) (SIL Open Font License), through [`@expo-google-fonts`](https://github.com/expo/google-fonts) (MIT).
 - Gemma 4 (Google DeepMind) on the phone through LiteRT-LM; optional local models through [Ollama](https://ollama.com).
 
 ## Post-deadline changes

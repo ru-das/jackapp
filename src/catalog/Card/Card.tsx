@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { radius, space, useTheme } from '@/ui/theme';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/ui/Text';
+import { font, radius, space, useTheme } from '@/ui/theme';
 
 export function Card({ title, subtitle, children }: { title?: string; subtitle?: string; children?: ReactNode }) {
   const t = useTheme();
@@ -15,6 +16,6 @@ export function Card({ title, subtitle, children }: { title?: string; subtitle?:
 
 const styles = StyleSheet.create({
   card: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, padding: space.lg, gap: space.md },
-  title: { fontSize: 19, fontWeight: '600' },
+  title: { fontSize: 19, fontFamily: font.display },
   subtitle: { fontSize: 14, marginTop: -space.sm },
 });

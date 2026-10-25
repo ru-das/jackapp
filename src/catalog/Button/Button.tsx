@@ -1,4 +1,5 @@
-import { ActivityIndicator, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, StyleSheet } from 'react-native';
+import { Text } from '@/ui/Text';
 import { Tap } from '@/ui/Tap';
 import { MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
 import type { ButtonProps } from './props';

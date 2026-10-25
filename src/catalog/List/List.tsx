@@ -1,6 +1,8 @@
 import { memo, useLayoutEffect, useRef } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/ui/Text';
 import { Tap } from '@/ui/Tap';
+import { Icon } from '@/ui/Icon';
 import { MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
 
 export interface ListRow { key: string; title: string; subtitle?: string; trailing?: string; flag?: string; checked?: boolean }
@@ -15,7 +17,14 @@ export function List({ rows, emptyText, onToggle, onDelete, onPress }: Props) {
   // The parent builds fresh rows and closures on every keystroke anywhere in the mini-app; rows read the latest handlers from here, so an unchanged row is not rendered again.
   const handlers = useRef<Handlers>({});
   useLayoutEffect(() => { handlers.current = { onToggle, onDelete, onPress }; });
-  if (rows.length === 0) return <Text accessibilityLabel={emptyText} style={[styles.empty, { color: t.muted }]}>🦥 {emptyText}</Text>;
+  if (rows.length === 0) {
+    return (
+      <View accessible accessibilityLabel={emptyText} style={styles.empty}>
+        <Icon name="file-tray-outline" size={28} color={t.muted} />
+        <Text style={[styles.emptyText, { color: t.muted }]}>{emptyText}</Text>
+      </View>
+    );
+  }
   return (
     <View>
       {rows.map((r, i) => (
@@ -42,7 +51,7 @@ const Item = memo(function Item({ row: r, i, handlers, toggle, del, press }: Ite
           onPress={() => handlers.current.onToggle?.(i)} style={(st) => [styles.target, pressed(st)]}
         >
           <View style={[styles.box, { borderColor: r.checked ? t.accent : t.muted, backgroundColor: r.checked ? t.accent : 'transparent' }]}>
-            {r.checked ? <Text maxFontSizeMultiplier={1.2} style={{ color: t.accentText, fontWeight: '700' }}>✓</Text> : null}
+            {r.checked ? <Icon name="checkmark" size={18} color={t.accentText} /> : null}
           </View>
         </Tap>
       ) : null}
@@ -51,11 +60,15 @@ const Item = memo(function Item({ row: r, i, handlers, toggle, del, press }: Ite
         <Text style={[styles.title, { color: r.checked ? t.muted : t.text, textDecorationLine: r.checked ? 'line-through' : 'none' }]}>{r.title}</Text>
         {r.subtitle ? <Text style={[styles.sub, { color: t.muted }]}>{r.subtitle}</Text> : null}
       </Tap>
-      {r.flag ? <Text style={[styles.sub, styles.flag, { color: t.danger }]} accessibilityLabel={`Needs checking: ${r.flag}`}>⚠ {r.flag}</Text>
+      {r.flag ? (
+        <View accessible accessibilityLabel={`Needs checking: ${r.flag}`} style={styles.flag}>
+          <Icon name="warning-outline" size={16} color={t.danger} />
+          <Text style={[styles.sub, styles.flagText, { color: t.danger }]}>{r.flag}</Text>
+        </View>)
         : r.trailing ? <Text style={[styles.sub, { color: t.muted }]}>{r.trailing}</Text> : null}
       {del ? (
         <Tap accessibilityRole="button" accessibilityLabel={`Delete ${r.title}`} onPress={() => handlers.current.onDelete?.(i)} style={(st) => [styles.target, pressed(st)]}>
-          <Text style={{ color: t.danger, fontSize: 20 }}>✕</Text>
+          <Icon name="close" size={22} color={t.danger} />
         </Tap>
       ) : null}
     </View>
@@ -63,12 +76,14 @@ const Item = memo(function Item({ row: r, i, handlers, toggle, del, press }: Ite
 }, sameItem);
 
 const styles = StyleSheet.create({
-  empty: { fontSize: 15, textAlign: 'center', paddingVertical: space.lg },
+  empty: { alignItems: 'center', gap: space.sm, paddingVertical: space.lg },
+  emptyText: { fontSize: 15, textAlign: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: MIN_TARGET + 12 },
   target: { minWidth: MIN_TARGET, minHeight: MIN_TARGET, alignItems: 'center', justifyContent: 'center' },
   box: { width: 24, height: 24, borderRadius: radius.control / 2, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   body: { flex: 1, minHeight: MIN_TARGET, justifyContent: 'center', paddingVertical: space.sm },
   title: { fontSize: 16 },
   sub: { fontSize: 14 },
-  flag: { flexShrink: 1, maxWidth: '45%', fontWeight: '600' },
+  flag: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1, maxWidth: '45%' },
+  flagText: { flexShrink: 1, fontWeight: '600' },
 });

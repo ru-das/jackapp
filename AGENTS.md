@@ -61,6 +61,7 @@ A prompt may contain several tasks. Do them in the order given, one commit per t
 
 - Path alias `@/` → `src/`.
 - Components: function components, named exports, one per file.
+- Text and inputs use `Text` and `TextInput` from `@/ui/Text` (they set the font family; a bare React Native `Text` shows the system font). Icons use `Icon` from `@/ui/Icon` (Ionicons); an emoji or a symbol character is not an icon. Fonts come from `font` in `@/ui/theme`; do not set `fontWeight` where a family is named (ADR-051).
 - Tap targets use `Tap` from `@/ui/Tap`, not a bare `Pressable` (ripple on Android, dim elsewhere; ADR-048).
 - Errors shown to users are short and friendly. Errors in logs are detailed.
 - A comment explains *why*, never *what*. A known limitation gets `// shortcut: <limit>, <when to fix>`.

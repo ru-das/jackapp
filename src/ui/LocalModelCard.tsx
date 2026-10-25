@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/ui/Text';
 import { LITERT_MODEL } from '@/ai/models';
 import { localModel } from '@/ai/providers/litert';
 import { confirm } from '@/capabilities';
 import { ActionButton } from '@/ui/ActionButton';
 import { useAnnounce } from '@/ui/announce';
 import { Card } from '@/ui/Card';
-import { space, type, useTheme } from '@/ui/theme';
+import type { IconName } from '@/ui/Icon';
+import { font, space, type, useTheme } from '@/ui/theme';
 
 const gb = (bytes: number) => (bytes / 1e9).toFixed(1);
 const percent = ({ loaded, total }: { loaded: number; total: number }) => Math.min(100, Math.round((loaded / total) * 100));
@@ -64,13 +66,13 @@ export function LocalModelCard() {
     setPartial(0);
   };
 
-  const button = (label: string, onPress: () => void, danger = false) => (
-    <ActionButton label={label} accessibilityLabel={label} onPress={onPress} kind={danger ? 'danger' : 'primary'} />
+  const button = (label: string, icon: IconName, onPress: () => void, danger = false) => (
+    <ActionButton icon={icon} label={label} accessibilityLabel={label} onPress={onPress} kind={danger ? 'danger' : 'primary'} />
   );
 
   return (
     <Card>
-      <Text accessibilityRole="header" style={{ color: t.text, fontSize: type.h, fontWeight: '600' }}>On-device model</Text>
+      <Text accessibilityRole="header" style={{ color: t.text, fontSize: type.h, fontFamily: font.display }}>On-device model</Text>
       <Text style={{ color: t.muted, fontSize: type.hint }}>
         {LITERT_MODEL.label}, {gb(LITERT_MODEL.size)} GB. Runs on this phone, so it works offline and has no request limit. Download it once over Wi-Fi.
       </Text>
@@ -84,23 +86,23 @@ export function LocalModelCard() {
             <View style={{ height: 8, borderRadius: 4, backgroundColor: t.accent, width: `${percent(progress)}%` }} />
           </View>
           <Text style={{ color: t.muted, fontSize: type.meta }}>{gb(progress.loaded)} of {gb(progress.total)} GB</Text>
-          {button('Cancel download', () => abort?.abort(), true)}
+          {button('Cancel download', 'close', () => abort?.abort(), true)}
         </View>
       ) : downloaded ? (
         <>
           <Text style={{ color: t.text, fontSize: type.body }}>
             {loaded ? 'Downloaded and loaded. Ready offline.' : 'Downloaded. It loads into memory on your first build (10 to 20 seconds).'}
           </Text>
-          {loaded ? null : button(loading ? 'Loading…' : 'Load now', () => void (loading || load()))}
-          {button('Delete model', () => void remove(), true)}
+          {loaded ? null : button(loading ? 'Loading…' : 'Load now', 'flash-outline', () => void (loading || load()))}
+          {button('Delete model', 'trash-outline', () => void remove(), true)}
         </>
       ) : downloaded === false && partial > 0 ? (
         <>
           <Text style={{ color: t.text, fontSize: type.body }}>Paused at {gb(partial)} of {gb(LITERT_MODEL.size)} GB.</Text>
-          {button('Resume download', () => void download())}
-          {button('Delete model', () => void remove(), true)}
+          {button('Resume download', 'play', () => void download())}
+          {button('Delete model', 'trash-outline', () => void remove(), true)}
         </>
-      ) : downloaded === false ? button(`Download (${gb(LITERT_MODEL.size)} GB)`, () => void download()) : null}
+      ) : downloaded === false ? button(`Download (${gb(LITERT_MODEL.size)} GB)`, 'cloud-download-outline', () => void download()) : null}
       {downloaded === null ? <Text style={{ color: t.muted, fontSize: type.hint }}>Checking for the model…</Text> : null}
       {error ? <Text style={{ color: t.danger, fontSize: type.hint }}>{error}</Text> : null}
     </Card>

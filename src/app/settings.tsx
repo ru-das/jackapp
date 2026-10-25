@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '@/ui/Text';
 import { Tap } from '@/ui/Tap';
 import { toast } from '@/capabilities';
 import { localModel } from '@/ai/providers/litert';
 import { CURRENCIES } from '@/ai/generator/recipes/splitter';
 import { loadSettings, saveSettings, type Settings } from '@/storage/settings';
 import { Card } from '@/ui/Card';
+import { Icon, type IconName } from '@/ui/Icon';
 import { useInsets } from '@/ui/insets';
 import { LocalModelCard } from '@/ui/LocalModelCard';
-import { MIN_TARGET, pressed, radius, setThemePreference, space, type, useTheme } from '@/ui/theme';
+import { font, MIN_TARGET, pressed, radius, setThemePreference, space, type, useTheme } from '@/ui/theme';
 
-const THEMES: [Settings['theme'], string][] = [['system', 'System'], ['light', 'Light'], ['dark', 'Dark']];
+const THEMES: [Settings['theme'], string, IconName][] = [['system', 'System', 'contrast-outline'], ['light', 'Light', 'sunny-outline'], ['dark', 'Dark', 'moon-outline']];
+const PROVIDER_ICONS: Record<Settings['provider'], IconName> = { local: 'phone-portrait-outline', ollama: 'desktop-outline', mock: 'construct-outline' };
 
 export default function SettingsScreen() {
   const t = useTheme();
@@ -53,7 +56,9 @@ export default function SettingsScreen() {
                 onPress={() => void update({ provider: id })}
                 style={(st) => [styles.row, { backgroundColor: on ? t.accentSoft : 'transparent', borderColor: on ? t.accent : t.outline }, pressed(st)]}
               >
+                <Icon name={PROVIDER_ICONS[id]} size={22} color={on ? t.accent : t.text} />
                 <Text style={[styles.name, { color: t.text }]}>{label}</Text>
+                {on ? <Icon name="checkmark-circle" size={22} color={t.accent} /> : null}
               </Tap>
             );
           })}
@@ -64,7 +69,7 @@ export default function SettingsScreen() {
         <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Appearance</Text>
         <Text style={{ color: t.muted, fontSize: type.hint }}>System follows your phone’s light or dark setting.</Text>
         <View accessibilityRole="radiogroup" accessibilityLabel="Appearance" style={styles.chips}>
-          {THEMES.map(([id, label]) => {
+          {THEMES.map(([id, label, icon]) => {
             const on = settings.theme === id;
             return (
               <Tap
@@ -72,6 +77,7 @@ export default function SettingsScreen() {
                 onPress={() => void update({ theme: id })}
                 style={(st) => [styles.chip, { backgroundColor: on ? t.accentSoft : 'transparent', borderColor: on ? t.accent : t.outline }, pressed(st)]}
               >
+                <Icon name={icon} size={20} color={on ? t.accent : t.text} />
                 <Text style={[styles.name, { color: t.text }]}>{label}</Text>
               </Tap>
             );
@@ -124,11 +130,11 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   content: { padding: space.lg, gap: space.md, maxWidth: 640, width: '100%', alignSelf: 'center' },
-  h: { fontSize: type.h, fontWeight: '600' },
-  row: { minHeight: MIN_TARGET, padding: space.md, borderRadius: radius.control, borderWidth: 1, justifyContent: 'center' },
+  h: { fontSize: type.h, fontFamily: font.display },
+  row: { minHeight: MIN_TARGET, padding: space.md, borderRadius: radius.control, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: space.md },
   group: { gap: space.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  chip: { minHeight: MIN_TARGET, minWidth: MIN_TARGET + 12, paddingHorizontal: space.md, borderRadius: radius.control, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  name: { fontSize: type.body, fontWeight: '600' },
+  chip: { minHeight: MIN_TARGET, minWidth: MIN_TARGET + 12, paddingHorizontal: space.md, borderRadius: radius.control, borderWidth: 1, flexDirection: 'row', gap: space.sm, alignItems: 'center', justifyContent: 'center' },
+  name: { flexShrink: 1, fontSize: type.body, fontWeight: '600' },
   input: { minHeight: MIN_TARGET, borderWidth: 1, borderRadius: radius.control, paddingHorizontal: space.md, fontSize: type.body },
 });

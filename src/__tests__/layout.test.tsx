@@ -11,9 +11,11 @@ jest.mock('expo-router', () => {
 });
 jest.mock('@react-native-async-storage/async-storage', () =>
   jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'));
+let mockFontsReady = true;
+jest.mock('expo-font', () => ({ useFonts: () => [mockFontsReady] }));
 jest.mock('@/capabilities', () => ({ onNotificationOpen: () => () => {}, registerOffline: () => () => {}, subscribeToast: () => () => {} }));
 
-afterEach(() => jest.restoreAllMocks());
+afterEach(() => { jest.restoreAllMocks(); mockFontsReady = true; mockOptions = {}; });
 
 test.each([['light', 'dark'], ['dark', 'light']] as const)('%s theme draws %s status bar icons', async (scheme, icons) => {
   jest.spyOn(RN, 'useColorScheme').mockReturnValue(scheme);
@@ -29,4 +31,10 @@ test('the saved Appearance choice beats the system scheme', async () => {
   await act(async () => { setThemePreference('light'); });
   expect(mockOptions.statusBarStyle).toBe('dark');
   await act(async () => { setThemePreference('system'); });
+});
+
+test('on native the stack waits for the fonts, so no text is drawn in the wrong family', async () => {
+  mockFontsReady = false;
+  await render(<RootLayout />);
+  expect(mockOptions.statusBarStyle).toBeUndefined();
 });

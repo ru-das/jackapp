@@ -1,5 +1,6 @@
 import { useRef } from 'react';
-import { Platform, ScrollView, Text, type ScrollViewInstance } from 'react-native';
+import { Platform, ScrollView, type ScrollViewInstance } from 'react-native';
+import { Text } from '@/ui/Text';
 import { radius, space, useTheme } from '@/ui/theme';
 
 export const SHOWN_LINES = 300;

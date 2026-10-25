@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, StyleSheet, View } from 'react-native';
+import { Text } from '@/ui/Text';
 import { subscribeToast } from '@/capabilities';
 import { useInsets } from './insets';
 import { inverse, radius, space, type, useTheme } from './theme';

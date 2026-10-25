@@ -1,6 +1,7 @@
 import { useFocusEffect, useLocalSearchParams, usePreventRemove, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '@/ui/Text';
 import { Tap } from '@/ui/Tap';
 import { generate, type GenerationProgress } from '@/ai/generator/generate';
 import type { Unsupported } from '@/ai/generator/outputSchemas';
@@ -20,7 +21,7 @@ import { Card } from '@/ui/Card';
 import { useAnnounce } from '@/ui/announce';
 import { GenerationStages } from '@/ui/GenerationStages';
 import { useInsets } from '@/ui/insets';
-import { MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/theme';
+import { font, MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/theme';
 import { UnsupportedCard } from '@/ui/UnsupportedCard';
 
 const EXAMPLES = [
@@ -200,8 +201,8 @@ export default function Create() {
         ) : null}
         <View style={[styles.barWrap, { borderColor: t.border, backgroundColor: t.surface, paddingBottom: bottom }]}>
           <View style={styles.barInner}>
-            <View style={styles.flex}><ActionButton kind="quiet" label="Build again" onPress={() => void build(prompt)} /></View>
-            <View style={styles.flex}><ActionButton label={saving ? 'Saving…' : 'Save'} disabled={saving} onPress={() => void save(phase)} /></View>
+            <View style={styles.flex}><ActionButton kind="quiet" icon="refresh" label="Build again" onPress={() => void build(prompt)} /></View>
+            <View style={styles.flex}><ActionButton icon="checkmark" label={saving ? 'Saving…' : 'Save'} disabled={saving} onPress={() => void save(phase)} /></View>
           </View>
         </View>
       </View>
@@ -240,9 +241,9 @@ export default function Create() {
           AI: {ready.name} · {ready.ok ? 'ready' : 'not set up yet'}
         </Text>
       ) : null}
-      {busy ? <ActionButton kind="quiet" label="Cancel" onPress={cancel} />
-        : ready && !ready.ok ? <ActionButton label="Set up AI" onPress={() => router.push('/settings')} />
-        : <ActionButton label="Build" disabled={!prompt.trim()} onPress={() => void build(prompt)} />}
+      {busy ? <ActionButton kind="quiet" icon="close" label="Cancel" onPress={cancel} />
+        : ready && !ready.ok ? <ActionButton icon="settings-outline" label="Set up AI" onPress={() => router.push('/settings')} />
+        : <ActionButton icon="sparkles-outline" label="Build" disabled={!prompt.trim()} onPress={() => void build(prompt)} />}
 
       {phase.kind === 'loading' ? (
         <View accessibilityLiveRegion="polite" style={styles.wait}>
@@ -255,14 +256,14 @@ export default function Create() {
         <Card>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Set up AI first</Text>
           <Text style={{ color: t.muted, fontSize: type.body }}>JackApp needs the on-device model or an Ollama model to build mini-apps.</Text>
-          <ActionButton label="Open settings" onPress={() => router.push('/settings')} />
+          <ActionButton icon="settings-outline" label="Open settings" onPress={() => router.push('/settings')} />
         </Card>
       ) : null}
       {phase.kind === 'failed' ? (
         <Card>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>That didn’t work</Text>
           <Text style={{ color: t.muted, fontSize: type.body }}>{phase.message}</Text>
-          <ActionButton label="Try again" onPress={() => void build(prompt)} />
+          <ActionButton icon="refresh" label="Try again" onPress={() => void build(prompt)} />
         </Card>
       ) : null}
       {phase.kind === 'choose' ? (
@@ -288,12 +289,12 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   flex: { flex: 1 },
   content: { padding: space.lg, gap: space.md, maxWidth: 640, width: '100%', alignSelf: 'center' },
-  label: { fontSize: type.h, fontWeight: '600' },
+  label: { fontSize: type.h, fontFamily: font.display },
   input: { minHeight: 110, padding: space.md, borderRadius: radius.control, borderWidth: 1, fontSize: type.body, textAlignVertical: 'top' },
   wait: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   chip: { minHeight: MIN_TARGET, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill },
-  h: { fontSize: type.h, fontWeight: '600' },
+  h: { fontSize: type.h, fontFamily: font.display },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center' },
   preview: { fontSize: type.meta, paddingHorizontal: space.lg, paddingTop: space.sm },
   about: { paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.sm },

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { Text } from '@/ui/Text';
 import Constants from 'expo-constants';
 import behaviourCorpus from '../../../evals/behaviour.json';
 import corpus from '../../../evals/prompts.json';
@@ -11,7 +12,7 @@ import { pickImage, saveFile, share, toast } from '@/capabilities';
 import { EvalLog, SHOWN_LINES } from '@/ui/EvalLog';
 import { metricRows } from '@/ui/evalMetrics';
 import { LocalOptions } from '@/ui/LocalOptions';
-import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
+import { font, MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
 
 type Result = Awaited<ReturnType<typeof runEval>>;
 type Suite = 'main' | 'behaviour';
@@ -304,7 +305,7 @@ export default function EvalScreen() {
 const styles = StyleSheet.create({
   content: { padding: space.md, gap: space.md },
   card: { borderWidth: 1, borderRadius: radius.card, padding: space.md, gap: space.sm },
-  h: { fontSize: 20, fontWeight: '700' },
+  h: { fontSize: 20, fontFamily: font.display },
   row: { minHeight: MIN_TARGET, justifyContent: 'center', borderWidth: 1, borderRadius: radius.control, paddingHorizontal: space.md },
   switchRow: { flexDirection: 'row', alignItems: 'center', minHeight: MIN_TARGET },
   chips: { gap: space.sm },

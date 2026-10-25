@@ -1,5 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/ui/Text';
+import { Icon } from '@/ui/Icon';
 import { Tap } from '@/ui/Tap';
 import type { Store } from '@/runtime/store';
 import { useAnnounce } from '@/ui/announce';
@@ -28,6 +30,7 @@ export function UndoBar({ store }: { store: Store }) {
     <View style={[styles.bar, { backgroundColor: snack.bg, bottom: 88 + bottom }]}>
       <Text style={[styles.text, { color: snack.fg }]}>{text}</Text>
       <Tap accessibilityRole="button" accessibilityLabel="Undo remove" onPress={() => store.undo()} style={(st) => [styles.target, pressed(st)]}>
+        <Icon name="arrow-undo" size={18} color={snack.accent} />
         <Text style={[styles.undo, { color: snack.accent }]}>Undo</Text>
       </Tap>
     </View>
@@ -40,6 +43,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between', paddingLeft: space.md, borderRadius: radius.control,
   },
   text: { fontSize: type.body, flexShrink: 1 },
-  target: { minHeight: MIN_TARGET, minWidth: MIN_TARGET, paddingHorizontal: space.md, justifyContent: 'center' },
+  target: { minHeight: MIN_TARGET, minWidth: MIN_TARGET, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: space.md, justifyContent: 'center' },
   undo: { fontSize: type.body, fontWeight: '600' },
 });

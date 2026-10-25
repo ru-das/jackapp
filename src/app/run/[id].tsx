@@ -2,7 +2,8 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { share, toast } from '@/capabilities';
 import { toCsv } from '@/runtime/export';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, AppState, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, AppState, StyleSheet, View } from 'react-native';
+import { Text } from '@/ui/Text';
 import { Tap } from '@/ui/Tap';
 import type { createActionEngine } from '@/runtime/actions';
 import { Renderer, type RendererHandle } from '@/runtime/Renderer';
@@ -16,12 +17,12 @@ import { readJson, specKey, StorageError } from '@/storage';
 import { subscribeApps } from '@/storage/apps';
 import { loadSettings } from '@/storage/settings';
 import { ActionButton } from '@/ui/ActionButton';
-import { MoreIcon } from '@/ui/MoreIcon';
+import { Icon } from '@/ui/Icon';
 import { OverflowMenu } from '@/ui/OverflowMenu';
 import { ReminderStatus } from '@/ui/ReminderStatus';
 import { UndoBar } from '@/ui/UndoBar';
 import { Card } from '@/ui/Card';
-import { MIN_TARGET, pressed, space, type, useTheme } from '@/ui/theme';
+import { font, MIN_TARGET, pressed, space, type, useTheme } from '@/ui/theme';
 
 type Loaded = { spec: Spec; store: Store; engine: ReturnType<typeof createActionEngine> };
 type Phase = { kind: 'loading' } | { kind: 'error'; message: string } | ({ kind: 'ready' } & Loaded);
@@ -80,7 +81,7 @@ export default function Run() {
       {/* One header button, so a long mini-app name keeps the room; Customize and Export are occasional. */}
       <Stack.Screen options={{ title, headerRight: phase.kind === 'ready' ? () => (
         <Tap accessibilityRole="button" accessibilityLabel="More actions" accessibilityState={{ expanded: menu }} onPress={() => setMenu(!menu)} style={(st) => [styles.more, pressed(st)]}>
-          <MoreIcon />
+          <Icon name="ellipsis-vertical" size={24} color={t.text} />
         </Tap>) : undefined }} />
       {/* While the menu is open the mini-app behind it is hidden from the screen reader, as it is from the finger: Back or "Close menu" returns to it. */}
       <View style={styles.fill} importantForAccessibility={menu ? 'no-hide-descendants' : 'auto'} accessibilityElementsHidden={menu}>
@@ -92,17 +93,17 @@ export default function Run() {
           <Card style={styles.card}>
             <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Can’t open this one</Text>
             <Text style={{ color: t.muted, fontSize: type.body }}>{phase.message}</Text>
-            <ActionButton label="Back" onPress={() => router.canGoBack() ? router.back() : router.replace('/')} />
+            <ActionButton icon="arrow-back" label="Back" onPress={() => router.canGoBack() ? router.back() : router.replace('/')} />
           </Card>
         ) : null}
       </View>
       {phase.kind === 'ready' && menu ? (
         <OverflowMenu onClose={() => setMenu(false)} items={[
           ...(phase.spec.meta.recipe ? [{
-            label: 'Customize',
+            label: 'Customize', icon: 'create-outline' as const,
             onPress: () => void phase.store.flush().catch(() => {}).then(() => router.push({ pathname: '/edit/[id]', params: { id } })),
           }] : []),
-          { label: 'Export data', onPress: () => void share(toCsv(phase.spec, phase.store.getState())).catch(() => toast("Couldn’t export.")) },
+          { label: 'Export data', icon: 'download-outline' as const, onPress: () => void share(toCsv(phase.spec, phase.store.getState())).catch(() => toast("Couldn’t export.")) },
         ]} />
       ) : null}
     </View>
@@ -114,5 +115,5 @@ const styles = StyleSheet.create({
   more: { minHeight: MIN_TARGET, minWidth: MIN_TARGET, alignItems: 'center', justifyContent: 'center' },
   spin: { marginTop: space.lg * 2 },
   card: { margin: space.lg, width: 'auto', maxWidth: 640, alignSelf: 'center' },
-  h: { fontSize: type.h, fontWeight: '600' },
+  h: { fontSize: type.h, fontFamily: font.display },
 });
