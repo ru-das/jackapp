@@ -1,0 +1,2283 @@
+{
+  "startedAt": "2026-10-25T10:45:22.748Z",
+  "finishedAt": "2026-10-25T10:46:14.626Z",
+  "provider": "local",
+  "model": "gemma-4-E2B-it.litertlm",
+  "options": {
+    "corpus": "main",
+    "noPlan": true,
+    "maxRepairs": 1,
+    "recipes": true,
+    "only": [
+      "e01",
+      "e05",
+      "e09",
+      "e13",
+      "e26",
+      "e29"
+    ],
+    "env": {
+      "revision": "unknown",
+      "appVersion": "0.1.0",
+      "loadMs": 72,
+      "backend": "gpu",
+      "speculative": true,
+      "constrained": true
+    }
+  },
+  "rows": [
+    {
+      "id": "e01",
+      "prompt": "Make me a shopping list from a photo of my fridge, with boxes to tick when bought.",
+      "expect": "spec",
+      "mustUse": [
+        "ImageInput",
+        "List"
+      ],
+      "mustOps": [
+        "ai.run"
+      ],
+      "durationMs": 15639,
+      "result": {
+        "status": "done",
+        "spec": {
+          "specVersion": "0.1",
+          "meta": {
+            "name": "Fridge Snap",
+            "description": "Photo of your fridge to grocery list",
+            "icon": "🧊",
+            "sourcePrompt": "Make me a shopping list from a photo of my fridge, with boxes to tick when bought.",
+            "generatedBy": {
+              "provider": "local",
+              "model": "gemma-4-E2B-it.litertlm"
+            },
+            "recipe": {
+              "id": "ai",
+              "version": 1,
+              "settings": "name Fridge Snap\nicon 🧊\ndescription Photo of your fridge to grocery list\ninput photo photo Fridge photo\ninput note text Anything to add?\ninstruction List the food you can see in the photo.\noutput checklist\nusual milk, eggs, bread, butter, cheese, fruit\nbutton Make shopping list\nhistory no\nshare no"
+            }
+          },
+          "state": {
+            "photo": {
+              "type": "image",
+              "default": null,
+              "persist": false
+            },
+            "seen": {
+              "type": "list",
+              "of": {
+                "name": "string"
+              },
+              "default": [],
+              "persist": true
+            },
+            "staples": {
+              "type": "list",
+              "of": {
+                "name": "string"
+              },
+              "default": [
+                {
+                  "name": "Milk"
+                },
+                {
+                  "name": "Eggs"
+                },
+                {
+                  "name": "Bread"
+                },
+                {
+                  "name": "Butter"
+                },
+                {
+                  "name": "Cheese"
+                },
+                {
+                  "name": "Fruit"
+                }
+              ],
+              "persist": true
+            },
+            "items": {
+              "type": "list",
+              "of": {
+                "name": "string",
+                "done": "boolean"
+              },
+              "default": [],
+              "persist": true
+            },
+            "newSeen": {
+              "type": "string",
+              "default": "",
+              "persist": false
+            },
+            "newStaple": {
+              "type": "string",
+              "default": "",
+              "persist": false
+            }
+          },
+          "screens": [
+            {
+              "id": "main",
+              "title": "Fridge Snap",
+              "root": "stack1"
+            }
+          ],
+          "elements": {
+            "imageInput1": {
+              "type": "ImageInput",
+              "props": {
+                "bind": "photo",
+                "label": "Fridge photo"
+              }
+            },
+            "button1": {
+              "type": "Button",
+              "props": {
+                "label": "Look at the photo",
+                "onPress": "look",
+                "variant": "primary"
+              }
+            },
+            "text1": {
+              "type": "Text",
+              "props": {
+                "value": "Only items clearly visible. Remove wrong ones and add what I missed.",
+                "variant": "muted"
+              }
+            },
+            "list1": {
+              "type": "List",
+              "props": {
+                "items": "seen",
+                "title": "{{$item.name}}",
+                "deletable": true,
+                "emptyText": "Nothing read yet"
+              }
+            },
+            "textInput1": {
+              "type": "TextInput",
+              "props": {
+                "bind": "newSeen",
+                "label": "Something I missed",
+                "onSubmit": "addSeen"
+              }
+            },
+            "button2": {
+              "type": "Button",
+              "props": {
+                "label": "Add",
+                "onPress": "addSeen",
+                "variant": "secondary"
+              }
+            },
+            "card1": {
+              "type": "Card",
+              "props": {
+                "title": "1. What I can see"
+              },
+              "children": [
+                "imageInput1",
+                "button1",
+                "text1",
+                "list1",
+                "textInput1",
+                "button2"
+              ]
+            },
+            "list2": {
+              "type": "List",
+              "props": {
+                "items": "staples",
+                "title": "{{$item.name}}",
+                "deletable": true,
+                "emptyText": "Add the things you always buy"
+              }
+            },
+            "textInput2": {
+              "type": "TextInput",
+              "props": {
+                "bind": "newStaple",
+                "label": "Add a usual item",
+                "onSubmit": "addStaple"
+              }
+            },
+            "button3": {
+              "type": "Button",
+              "props": {
+                "label": "Add",
+                "onPress": "addStaple",
+                "variant": "secondary"
+              }
+            },
+            "card2": {
+              "type": "Card",
+              "props": {
+                "title": "2. What you usually keep"
+              },
+              "children": [
+                "list2",
+                "textInput2",
+                "button3"
+              ]
+            },
+            "button4": {
+              "type": "Button",
+              "props": {
+                "label": "Make shopping list",
+                "onPress": "makeList",
+                "variant": "primary"
+              }
+            },
+            "text2": {
+              "type": "Text",
+              "props": {
+                "value": "Usual items not seen in the photo. Food can hide at the back, so check before you buy.",
+                "variant": "muted"
+              }
+            },
+            "list3": {
+              "type": "List",
+              "props": {
+                "items": "items",
+                "title": "{{$item.name}}",
+                "checkField": "done",
+                "deletable": true,
+                "emptyText": "Your list will appear here"
+              }
+            },
+            "button5": {
+              "type": "Button",
+              "props": {
+                "label": "Clear bought",
+                "onPress": "clearDone",
+                "variant": "secondary"
+              }
+            },
+            "card3": {
+              "type": "Card",
+              "props": {
+                "title": "3. Shopping list"
+              },
+              "children": [
+                "button4",
+                "text2",
+                "list3",
+                "button5"
+              ]
+            },
+            "stack1": {
+              "type": "Stack",
+              "props": {
+                "gap": "md"
+              },
+              "children": [
+                "card1",
+                "card2",
+                "card3"
+              ]
+            }
+          },
+          "actions": {
+            "look": {
+              "steps": [
+                {
+                  "op": "ai.run",
+                  "prompt": "List the food and drink items you can clearly see in this photo of a fridge. Short names. Do not guess items that are hidden or unclear.",
+                  "image": {
+                    "$ref": "photo"
+                  },
+                  "output": {
+                    "type": "list",
+                    "of": {
+                      "name": "string"
+                    }
+                  },
+                  "into": "seen",
+                  "mode": "replace"
+                },
+                {
+                  "op": "toast",
+                  "message": "{{seen|count}} items seen. Check the list."
+                }
+              ]
+            },
+            "addSeen": {
+              "steps": [
+                {
+                  "op": "state.append",
+                  "path": "seen",
+                  "value": {
+                    "name": {
+                      "$ref": "newSeen"
+                    }
+                  }
+                },
+                {
+                  "op": "state.reset",
+                  "path": "newSeen"
+                }
+              ]
+            },
+            "addStaple": {
+              "steps": [
+                {
+                  "op": "state.append",
+                  "path": "staples",
+                  "value": {
+                    "name": {
+                      "$ref": "newStaple"
+                    }
+                  }
+                },
+                {
+                  "op": "state.reset",
+                  "path": "newStaple"
+                }
+              ]
+            },
+            "makeList": {
+              "steps": [
+                {
+                  "op": "state.diff",
+                  "path": "items",
+                  "from": "staples",
+                  "without": "seen",
+                  "field": "name"
+                },
+                {
+                  "op": "toast",
+                  "message": "{{items|count}} usual items not seen"
+                }
+              ]
+            },
+            "clearDone": {
+              "steps": [
+                {
+                  "op": "state.remove",
+                  "path": "items",
+                  "where": {
+                    "field": "done",
+                    "equals": true
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "repairs": 0
+      },
+      "checkResults": [],
+      "firstFillValid": true,
+      "missingRequirements": {
+        "components": [],
+        "ops": []
+      },
+      "diagnostics": []
+    },
+    {
+      "id": "e05",
+      "prompt": "Track my plants in a list and tap a plant to record when I watered it.",
+      "expect": "spec",
+      "mustUse": [
+        "List"
+      ],
+      "mustOps": [
+        "state.update"
+      ],
+      "durationMs": 18501,
+      "result": {
+        "status": "done",
+        "spec": {
+          "specVersion": "0.1",
+          "meta": {
+            "name": "Plant Tracker",
+            "description": "Keep track of your plants and watering history",
+            "icon": "🌱",
+            "sourcePrompt": "Track my plants in a list and tap a plant to record when I watered it.",
+            "generatedBy": {
+              "provider": "local",
+              "model": "gemma-4-E2B-it.litertlm"
+            },
+            "recipe": {
+              "id": "log",
+              "version": 1,
+              "settings": "name Plant Tracker\nicon 🌱\ndescription Keep track of your plants and watering history\nnoun plant\nfield name text Plant Name\nfield water date date Watered on\ncheckbox yes\ntotal count count Planted\ntap none\nsort none\nshare yes\nreminder none"
+            }
+          },
+          "state": {
+            "items": {
+              "type": "list",
+              "of": {
+                "name": "string",
+                "water": "date",
+                "done": "boolean"
+              },
+              "default": [],
+              "persist": true
+            },
+            "newName": {
+              "type": "string",
+              "default": "",
+              "persist": false
+            },
+            "editIndex": {
+              "type": "number",
+              "default": 0,
+              "persist": false
+            },
+            "fixName": {
+              "type": "string",
+              "default": "",
+              "persist": false
+            }
+          },
+          "screens": [
+            {
+              "id": "main",
+              "title": "Plant Tracker",
+              "root": "stack1"
+            },
+            {
+              "id": "edit",
+              "title": "Fix plant",
+              "root": "stack2"
+            }
+          ],
+          "elements": {
+            "textInput1": {
+              "type": "TextInput",
+              "props": {
+                "bind": "newName",
+                "label": "Plant Name",
+                "onSubmit": "add"
+              }
+            },
+            "button1": {
+              "type": "Button",
+              "props": {
+                "label": "Add plant",
+                "onPress": "add",
+                "variant": "primary"
+              }
+            },
+            "card1": {
+              "type": "Card",
+              "props": {
+                "title": "New plant"
+              },
+              "children": [
+                "textInput1",
+                "button1"
+              ]
+            },
+            "list1": {
+              "type": "List",
+              "props": {
+                "items": "items",
+                "title": "{{$item.name}}",
+                "subtitle": "{{$item.water|date}}",
+                "checkField": "done",
+                "deletable": true,
+                "onItemPress": "edit",
+                "emptyText": "Add your first plant"
+              }
+            },
+            "text1": {
+              "type": "Text",
+              "props": {
+                "value": "Tap a plant to fix or delete it.",
+                "variant": "muted"
+              }
+            },
+            "stat1": {
+              "type": "Stat",
+              "props": {
+                "label": "count Planted",
+                "format": "number",
+                "value": {
+                  "$agg": {
+                    "op": "count",
+                    "of": "items"
+                  }
+                }
+              }
+            },
+            "button2": {
+              "type": "Button",
+              "props": {
+                "label": "Clear done",
+                "onPress": "clearDone",
+                "variant": "secondary"
+              }
+            },
+            "button3": {
+              "type": "Button",
+              "props": {
+                "label": "Share",
+                "onPress": "share",
+                "variant": "secondary"
+              }
+            },
+            "card2": {
+              "type": "Card",
+              "props": {
+                "title": "Plant list"
+              },
+              "children": [
+                "text1",
+                "list1",
+                "stat1",
+                "button2",
+                "button3"
+              ]
+            },
+            "stack1": {
+              "type": "Stack",
+              "props": {
+                "gap": "md"
+              },
+              "children": [
+                "card1",
+                "card2"
+              ]
+            },
+            "textInput2": {
+              "type": "TextInput",
+              "props": {
+                "bind": "fixName",
+                "label": "Plant Name"
+              }
+            },
+            "button4": {
+              "type": "Button",
+              "props": {
+                "label": "Save changes",
+                "onPress": "saveEdit",
+                "variant": "primary"
+              }
+            },
+            "button5": {
+              "type": "Button",
+              "props": {
+                "label": "Delete plant",
+                "onPress": "deleteEdit",
+                "variant": "danger"
+              }
+            },
+            "card3": {
+              "type": "Card",
+              "props": {
+                "title": "Fix this plant"
+              },
+              "children": [
+                "textInput2",
+                "button4",
+                "button5"
+              ]
+            },
+            "stack2": {
+              "type": "Stack",
+              "props": {
+                "gap": "md"
+              },
+              "children": [
+                "card3"
+              ]
+            }
+          },
+          "actions": {
+            "add": {
+              "steps": [
+                {
+                  "op": "state.append",
+                  "path": "items",
+                  "value": {
+                    "name": {
+                      "$ref": "newName"
+                    },
+                    "water": {
+                      "$now": true
+                    },
+                    "done": false
+                  },
+                  "required": [
+                    "name"
+                  ]
+                },
+                {
+                  "op": "state.reset",
+                  "path": "newName"
+                }
+              ]
+            },
+            "edit": {
+              "steps": [
+                {
+                  "op": "state.set",
+                  "path": "editIndex",
+                  "value": {
+                    "$ref": "$index"
+                  }
+                },
+                {
+                  "op": "state.set",
+                  "path": "fixName",
+                  "value": {
+                    "$ref": "$item.name"
+                  }
+                },
+                {
+                  "op": "navigate",
+                  "screen": "edit"
+                }
+              ]
+            },
+            "saveEdit": {
+              "steps": [
+                {
+                  "op": "state.update",
+                  "path": "items",
+                  "index": {
+                    "$ref": "editIndex"
+                  },
+                  "set": {
+                    "name": {
+                      "$ref": "fixName"
+                    }
+                  }
+                },
+                {
+                  "op": "navigate",
+                  "screen": "main"
+                },
+                {
+                  "op": "toast",
+                  "message": "Saved"
+                }
+              ]
+            },
+            "deleteEdit": {
+              "steps": [
+                {
+                  "op": "confirm",
+                  "message": "Delete this plant?"
+                },
+                {
+                  "op": "state.remove",
+                  "path": "items",
+                  "index": {
+                    "$ref": "editIndex"
+                  }
+                },
+                {
+                  "op": "navigate",
+                  "screen": "main"
+                }
+              ]
+            },
+            "clearDone": {
+              "steps": [
+                {
+                  "op": "state.remove",
+                  "path": "items",
+                  "where": {
+                    "field": "done",
+                    "equals": true
+                  }
+                }
+              ]
+            },
+            "share": {
+              "steps": [
+                {
+                  "op": "share",
+                  "text": "Plant Tracker: {{items|count}} plants\n{{items|lines}}"
+                }
+              ]
+            }
+          }
+        },
+        "repairs": 0
+      },
+      "checkResults": [],
+      "firstFillValid": true,
+      "missingRequirements": {
+        "components": [],
+        "ops": []
+      },
+      "diagnostics": []
+    },
+    {
+      "id": "e09",
+      "prompt": "Split a restaurant bill from a photo equally among a number of friends I enter.",
+      "expect": "spec",
+      "mustUse": [
+        "ImageInput",
+        "NumberInput",
+        "Stat"
+      ],
+      "mustOps": [
+        "ai.run"
+      ],
+      "durationMs": 5661,
+      "result": {
+        "status": "done",
+        "spec": {
+          "specVersion": "0.1",
+          "meta": {
+            "name": "Bill Splitter",
+            "description": "Read a receipt and split it between friends",
+            "icon": "🧾",
+            "sourcePrompt": "Split a restaurant bill from a photo equally among a number of friends I enter.",
+            "generatedBy": {
+              "provider": "local",
+              "model": "gemma-4-E2B-it.litertlm"
+            },
+            "recipe": {
+              "id": "splitter",
+              "version": 1,
+              "settings": "name Bill Splitter\nicon 🧾\ndescription Read a receipt and split it between friends"
+            }
+          },
+          "state": {
+            "bill": {
+              "type": "image",
+              "default": null,
+              "persist": false
+            },
+            "lines": {
+              "type": "list",
+              "of": {
+                "name": "string",
+                "price": "number",
+                "kind": "string",
+                "check": "string"
+              },
+              "default": [],
+              "persist": true
+            },
+            "billTotal": {
+              "type": "number",
+              "default": 0,
+              "persist": true
+            },
+            "tip": {
+              "type": "number",
+              "default": 0,
+              "persist": true
+            },
+            "people": {
+              "type": "number",
+              "default": 2,
+              "persist": true
+            },
+            "currency": {
+              "type": "string",
+              "default": "USD",
+              "persist": true
+            },
+            "editIndex": {
+              "type": "number",
+              "default": 0,
+              "persist": false
+            },
+            "editName": {
+              "type": "string",
+              "default": "",
+              "persist": false
+            },
+            "editPrice": {
+              "type": "number",
+              "default": 0,
+              "persist": false
+            },
+            "editKind": {
+              "type": "string",
+              "default": "item",
+              "persist": false
+            },
+            "editCheck": {
+              "type": "string",
+              "default": "",
+              "persist": false
+            },
+            "summary": {
+              "type": "string",
+              "default": "",
+              "persist": false
+            },
+            "grandTotal": {
+              "type": "number",
+              "default": 0,
+              "persist": false
+            },
+            "eachPays": {
+              "type": "number",
+              "default": 0,
+              "persist": false
+            }
+          },
+          "screens": [
+            {
+              "id": "main",
+              "title": "Bill Splitter",
+              "root": "stack2"
+            },
+            {
+              "id": "line",
+              "title": "Fix a line",
+              "root": "stack3"
+            }
+          ],
+          "elements": {
+            "imageInput1": {
+              "type": "ImageInput",
+              "props": {
+                "bind": "bill",
+                "label": "Receipt photo"
+              }
+            },
+            "button1": {
+              "type": "Button",
+              "props": {
+                "label": "Read receipt",
+                "onPress": "readBill",
+                "variant": "primary"
+              }
+            },
+            "card1": {
+              "type": "Card",
+              "props": {
+                "title": "The bill"
+              },
+              "children": [
+                "imageInput1",
+                "button1"
+              ]
+            },
+            "text1": {
+              "type": "Text",
+              "props": {
+                "value": "Check each line. Tap one to fix a price or its type; subtotal and total rows are not added twice. Lines marked ⚠ could not be fully read and are left out of the total until you fix them.",
+                "variant": "muted"
+              }
+            },
+            "list1": {
+              "type": "List",
+              "props": {
+                "items": "lines",
+                "title": "{{$item.name}}",
+                "subtitle": "{{$item.kind}}",
+                "trailing": "{{$item.price|fixed2}}",
+                "flagField": "check",
+                "deletable": true,
+                "onItemPress": "editLine",
+                "emptyText": "Take a photo of the receipt"
+              }
+            },
+            "stat1": {
+              "type": "Stat",
+              "props": {
+                "label": "Items",
+                "value": {
+                  "$agg": {
+                    "op": "sum",
+                    "of": "lines",
+                    "field": "price",
+                    "where": {
+                      "field": "kind",
+                      "equals": "item"
+                    }
+                  }
+                },
+                "format": "currency",
+                "currency": "{{currency}}"
+              }
+            },
+            "stat2": {
+              "type": "Stat",
+              "props": {
+                "label": "Tax and service",
+                "value": {
+                  "$math": [
+                    "+",
+                    {
+                      "$agg": {
+                        "op": "sum",
+                        "of": "lines",
+                        "field": "price",
+                        "where": {
+                          "field": "kind",
+                          "equals": "tax"
+                        }
+                      }
+                    },
+                    {
+                      "$agg": {
+                        "op": "sum",
+                        "of": "lines",
+                        "field": "price",
+                        "where": {
+                          "field": "kind",
+                          "equals": "service"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "format": "currency",
+                "currency": "{{currency}}"
+              }
+            },
+            "stat3": {
+              "type": "Stat",
+              "props": {
+                "label": "Lines to check",
+                "value": {
+                  "$math": [
+                    "-",
+                    {
+                      "$agg": {
+                        "op": "count",
+                        "of": "lines"
+                      }
+                    },
+                    {
+                      "$agg": {
+                        "op": "count",
+                        "of": "lines",
+                        "where": {
+                          "field": "check",
+                          "equals": ""
+                        }
+                      }
+                    }
+                  ]
+                },
+                "format": "number"
+              }
+            },
+            "button2": {
+              "type": "Button",
+              "props": {
+                "label": "Use the lines for the bill total",
+                "onPress": "recalc",
+                "variant": "secondary"
+              }
+            },
+            "card2": {
+              "type": "Card",
+              "props": {
+                "title": "What was read"
+              },
+              "children": [
+                "text1",
+                "list1",
+                "stat3",
+                "stat1",
+                "stat2",
+                "button2"
+              ]
+            },
+            "select1": {
+              "type": "Select",
+              "props": {
+                "bind": "currency",
+                "label": "Currency",
+                "options": [
+                  "USD",
+                  "EUR",
+                  "GBP",
+                  "INR",
+                  "JPY",
+                  "AUD",
+                  "CAD",
+                  "SGD",
+                  "AED",
+                  "CHF"
+                ]
+              }
+            },
+            "numberInput1": {
+              "type": "NumberInput",
+              "props": {
+                "bind": "billTotal",
+                "label": "Bill total (type it if the photo is wrong)",
+                "min": 0,
+                "mode": "field"
+              }
+            },
+            "button3": {
+              "type": "Button",
+              "props": {
+                "label": "No tip",
+                "onPress": "tip0",
+                "variant": "secondary"
+              }
+            },
+            "button4": {
+              "type": "Button",
+              "props": {
+                "label": "10% tip",
+                "onPress": "tip10",
+                "variant": "secondary"
+              }
+            },
+            "button5": {
+              "type": "Button",
+              "props": {
+                "label": "15% tip",
+                "onPress": "tip15",
+                "variant": "secondary"
+              }
+            },
+            "stack1": {
+              "type": "Stack",
+              "props": {
+                "direction": "horizontal",
+                "gap": "sm",
+                "wrap": true
+              },
+              "children": [
+                "button3",
+                "button4",
+                "button5"
+              ]
+            },
+            "numberInput2": {
+              "type": "NumberInput",
+              "props": {
+                "bind": "tip",
+                "label": "Tip",
+                "min": 0,
+                "mode": "field"
+              }
+            },
+            "numberInput3": {
+              "type": "NumberInput",
+              "props": {
+                "bind": "people",
+                "label": "People",
+                "min": 1
+              }
+            },
+            "stat4": {
+              "type": "Stat",
+              "props": {
+                "label": "Total with tip",
+                "value": {
+                  "$math": [
+                    "+",
+                    {
+                      "$ref": "billTotal"
+                    },
+                    {
+                      "$ref": "tip"
+                    }
+                  ]
+                },
+                "format": "currency",
+                "currency": "{{currency}}"
+              }
+            },
+            "stat5": {
+              "type": "Stat",
+              "props": {
+                "label": "Each person pays",
+                "value": {
+                  "$math": [
+                    "round",
+                    {
+                      "$math": [
+                        "/",
+                        {
+                          "$math": [
+                            "+",
+                            {
+                              "$ref": "billTotal"
+                            },
+                            {
+                              "$ref": "tip"
+                            }
+                          ]
+                        },
+                        {
+                          "$ref": "people"
+                        }
+                      ]
+                    },
+                    2
+                  ]
+                },
+                "format": "currency",
+                "currency": "{{currency}}"
+              }
+            },
+            "text2": {
+              "type": "Text",
+              "props": {
+                "value": "Split equally between everyone.",
+                "variant": "muted"
+              }
+            },
+            "button6": {
+              "type": "Button",
+              "props": {
+                "label": "Share",
+                "onPress": "share",
+                "variant": "secondary"
+              }
+            },
+            "card3": {
+              "type": "Card",
+              "props": {
+                "title": "The split"
+              },
+              "children": [
+                "select1",
+                "numberInput1",
+                "stack1",
+                "numberInput2",
+                "numberInput3",
+                "stat4",
+                "stat5",
+                "text2",
+                "button6"
+              ]
+            },
+            "stack2": {
+              "type": "Stack",
+              "props": {
+                "gap": "md"
+              },
+              "children": [
+                "card1",
+                "card2",
+                "card3"
+              ]
+            },
+            "textInput1": {
+              "type": "TextInput",
+              "props": {
+                "bind": "editName",
+                "label": "Name"
+              }
+            },
+            "numberInput4": {
+              "type": "NumberInput",
+              "props": {
+                "bind": "editPrice",
+                "label": "Price",
+                "min": 0,
+                "mode": "field"
+              }
+            },
+            "select2": {
+              "type": "Select",
+              "props": {
+                "bind": "editKind",
+                "label": "Type",
+                "options": [
+                  "item",
+                  "tax",
+                  "service",
+                  "tip",
+                  "subtotal",
+                  "total"
+                ]
+              }
+            },
+            "text3": {
+              "type": "Text",
+              "props": {
+                "value": "{{editCheck}}",
+                "variant": "muted"
+              }
+            },
+            "button7": {
+              "type": "Button",
+              "props": {
+                "label": "Save line",
+                "onPress": "saveLine",
+                "variant": "primary"
+              }
+            },
+            "button8": {
+              "type": "Button",
+              "props": {
+                "label": "Delete line",
+                "onPress": "deleteLine",
+                "variant": "danger"
+              }
+            },
+            "card4": {
+              "type": "Card",
+              "props": {
+                "title": "Fix this line"
+              },
+              "children": [
+                "text3",
+                "textInput1",
+                "numberInput4",
+                "select2",
+                "button7",
+                "button8"
+              ]
+            },
+            "stack3": {
+              "type": "Stack",
+              "props": {
+                "gap": "md"
+              },
+              "children": [
+                "card4"
+              ]
+            }
+          },
+          "actions": {
+            "readBill": {
+              "steps": [
+                {
+                  "op": "ai.run",
+                  "prompt": "Read the receipt. Return every printed row with its name, its numeric price and kind. kind is one of: item (food or drink), tax, service (service charge), tip, subtotal, total.",
+                  "image": {
+                    "$ref": "bill"
+                  },
+                  "output": {
+                    "type": "list",
+                    "of": {
+                      "name": "string",
+                      "price": "number",
+                      "kind": "string"
+                    }
+                  },
+                  "into": "lines",
+                  "mode": "replace",
+                  "flag": "check"
+                },
+                {
+                  "op": "state.set",
+                  "path": "billTotal",
+                  "value": {
+                    "$math": [
+                      "+",
+                      {
+                        "$agg": {
+                          "op": "sum",
+                          "of": "lines",
+                          "field": "price",
+                          "where": {
+                            "field": "kind",
+                            "equals": "item"
+                          }
+                        }
+                      },
+                      {
+                        "$agg": {
+                          "op": "sum",
+                          "of": "lines",
+                          "field": "price",
+                          "where": {
+                            "field": "kind",
+                            "equals": "tax"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "op": "state.increment",
+                  "path": "billTotal",
+                  "by": {
+                    "$agg": {
+                      "op": "sum",
+                      "of": "lines",
+                      "field": "price",
+                      "where": {
+                        "field": "kind",
+                        "equals": "service"
+                      }
+                    }
+                  }
+                },
+                {
+                  "op": "state.set",
+                  "path": "billTotal",
+                  "value": {
+                    "$math": [
+                      "max",
+                      {
+                        "$ref": "billTotal"
+                      },
+                      {
+                        "$agg": {
+                          "op": "sum",
+                          "of": "lines",
+                          "field": "price",
+                          "where": {
+                            "field": "kind",
+                            "equals": "total"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "op": "toast",
+                  "message": "Check the lines and the bill total. Fix any line marked ⚠."
+                }
+              ]
+            },
+            "recalc": {
+              "steps": [
+                {
+                  "op": "state.set",
+                  "path": "billTotal",
+                  "value": {
+                    "$math": [
+                      "+",
+                      {
+                        "$agg": {
+                          "op": "sum",
+                          "of": "lines",
+                          "field": "price",
+                          "where": {
+                            "field": "kind",
+                            "equals": "item"
+                          }
+                        }
+                      },
+                      {
+                        "$agg": {
+                          "op": "sum",
+                          "of": "lines",
+                          "field": "price",
+                          "where": {
+                            "field": "kind",
+                            "equals": "tax"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "op": "state.increment",
+                  "path": "billTotal",
+                  "by": {
+                    "$agg": {
+                      "op": "sum",
+                      "of": "lines",
+                      "field": "price",
+                      "where": {
+                        "field": "kind",
+                        "equals": "service"
+                      }
+                    }
+                  }
+                },
+                {
+                  "op": "state.set",
+                  "path": "billTotal",
+                  "value": {
+                    "$math": [
+                      "max",
+                      {
+                        "$ref": "billTotal"
+                      },
+                      {
+                        "$agg": {
+                          "op": "sum",
+                          "of": "lines",
+                          "field": "price",
+                          "where": {
+                            "field": "kind",
+                            "equals": "total"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "tip0": {
+              "steps": [
+                {
+                  "op": "state.set",
+                  "path": "tip",
+                  "value": {
+                    "$math": [
+                      "round",
+                      {
+                        "$math": [
+                          "*",
+                          {
+                            "$ref": "billTotal"
+                          },
+                          0
+                        ]
+                      },
+                      2
+                    ]
+                  }
+                }
+              ]
+            },
+            "tip10": {
+              "steps": [
+                {
+                  "op": "state.set",
+                  "path": "tip",
+                  "value": {
+                    "$math": [
+                      "round",
+                      {
+                        "$math": [
+                          "*",
+                          {
+                            "$ref": "billTotal"
+                          },
+                          0.1
+                        ]
+                      },
+                      2
+                    ]
+                  }
+                }
+              ]
+            },
+            "tip15": {
+              "steps": [
+                {
+                  "op": "state.set",
+                  "path": "tip",
+                  "value": {
+                    "$math": [
+                      "round",
+                      {
+                        "$math": [
+                          "*",
+                          {
+                            "$ref": "billTotal"
+                          },
+                          0.15
+                        ]
+                      },
+                      2
+                    ]
+                  }
+                }
+              ]
+            },
+            "editLine": {
+              "steps": [
+                {
+                  "op": "state.set",
+                  "path": "editIndex",
+                  "value": {
+                    "$ref": "$index"
+                  }
+                },
+                {
+                  "op": "state.set",
+                  "path": "editName",
+                  "value": {
+                    "$ref": "$item.name"
+                  }
+                },
+                {
+                  "op": "state.set",
+                  "path": "editPrice",
+                  "value": {
+                    "$ref": "$item.price"
+                  }
+                },
+                {
+                  "op": "state.set",
+                  "path": "editKind",
+                  "value": {
+                    "$ref": "$item.kind"
+                  }
+                },
+                {
+                  "op": "state.set",
+                  "path": "editCheck",
+                  "value": {
+                    "$ref": "$item.check"
+                  }
+                },
+                {
+                  "op": "navigate",
+                  "screen": "line"
+                }
+              ]
+            },
+            "saveLine": {
+              "steps": [
+                {
+                  "op": "state.update",
+                  "path": "lines",
+                  "index": {
+                    "$ref": "editIndex"
+                  },
+                  "set": {
+                    "name": {
+                      "$ref": "editName"
+                    },
+                    "price": {
+                      "$ref": "editPrice"
+                    },
+                    "kind": {
+                      "$ref": "editKind"
+                    },
+                    "check": ""
+                  }
+                },
+                {
+                  "op": "state.set",
+                  "path": "billTotal",
+                  "value": {
+                    "$math": [
+                      "+",
+                      {
+                        "$agg": {
+                          "op": "sum",
+                          "of": "lines",
+                          "field": "price",
+                          "where": {
+                            "field": "kind",
+                            "equals": "item"
+                          }
+                        }
+                      },
+                      {
+                        "$agg": {
+                          "op": "sum",
+                          "of": "lines",
+                          "field": "price",
+                          "where": {
+                            "field": "kind",
+                            "equals": "tax"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "op": "state.increment",
+                  "path": "billTotal",
+                  "by": {
+                    "$agg": {
+                      "op": "sum",
+                      "of": "lines",
+                      "field": "price",
+                      "where": {
+                        "field": "kind",
+                        "equals": "service"
+                      }
+                    }
+                  }
+                },
+                {
+                  "op": "state.set",
+                  "path": "billTotal",
+                  "value": {
+                    "$math": [
+                      "max",
+                      {
+                        "$ref": "billTotal"
+                      },
+                      {
+                        "$agg": {
+                          "op": "sum",
+                          "of": "lines",
+                          "field": "price",
+                          "where": {
+                            "field": "kind",
+                            "equals": "total"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "op": "navigate",
+                  "screen": "main"
+                }
+              ]
+            },
+            "deleteLine": {
+              "steps": [
+                {
+                  "op": "confirm",
+                  "message": "Delete this line?"
+                },
+                {
+                  "op": "state.remove",
+                  "path": "lines",
+                  "index": {
+                    "$ref": "editIndex"
+                  }
+                },
+                {
+                  "op": "state.set",
+                  "path": "billTotal",
+                  "value": {
+                    "$math": [
+                      "+",
+                      {
+                        "$agg": {
+                          "op": "sum",
+                          "of": "lines",
+                          "field": "price",
+                          "where": {
+                            "field": "kind",
+                            "equals": "item"
+                          }
+                        }
+                      },
+                      {
+                        "$agg": {
+                          "op": "sum",
+                          "of": "lines",
+                          "field": "price",
+                          "where": {
+                            "field": "kind",
+                            "equals": "tax"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "op": "state.increment",
+                  "path": "billTotal",
+                  "by": {
+                    "$agg": {
+                      "op": "sum",
+                      "of": "lines",
+                      "field": "price",
+                      "where": {
+                        "field": "kind",
+                        "equals": "service"
+                      }
+                    }
+                  }
+                },
+                {
+                  "op": "state.set",
+                  "path": "billTotal",
+                  "value": {
+                    "$math": [
+                      "max",
+                      {
+                        "$ref": "billTotal"
+                      },
+                      {
+                        "$agg": {
+                          "op": "sum",
+                          "of": "lines",
+                          "field": "price",
+                          "where": {
+                            "field": "kind",
+                            "equals": "total"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "op": "navigate",
+                  "screen": "main"
+                }
+              ]
+            },
+            "share": {
+              "steps": [
+                {
+                  "op": "state.set",
+                  "path": "grandTotal",
+                  "value": {
+                    "$math": [
+                      "+",
+                      {
+                        "$ref": "billTotal"
+                      },
+                      {
+                        "$ref": "tip"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "op": "state.set",
+                  "path": "eachPays",
+                  "value": {
+                    "$math": [
+                      "round",
+                      {
+                        "$math": [
+                          "/",
+                          {
+                            "$math": [
+                              "+",
+                              {
+                                "$ref": "billTotal"
+                              },
+                              {
+                                "$ref": "tip"
+                              }
+                            ]
+                          },
+                          {
+                            "$ref": "people"
+                          }
+                        ]
+                      },
+                      2
+                    ]
+                  }
+                },
+                {
+                  "op": "state.set",
+                  "path": "summary",
+                  "value": "Bill Splitter: bill {{billTotal|fixed2}} + tip {{tip|fixed2}} = {{grandTotal|fixed2}} {{currency}}\n{{people}} people, {{eachPays|fixed2}} {{currency}} each"
+                },
+                {
+                  "op": "share",
+                  "text": "{{summary}}"
+                }
+              ]
+            }
+          }
+        },
+        "repairs": 0
+      },
+      "checkResults": [],
+      "firstFillValid": true,
+      "missingRequirements": {
+        "components": [],
+        "ops": []
+      },
+      "diagnostics": []
+    },
+    {
+      "id": "e13",
+      "prompt": "Log expenses with a name and amount and show the total spent.",
+      "expect": "spec",
+      "mustUse": [
+        "TextInput",
+        "NumberInput",
+        "List",
+        "Stat"
+      ],
+      "mustOps": [
+        "state.append"
+      ],
+      "durationMs": 12071,
+      "result": {
+        "status": "done",
+        "spec": {
+          "specVersion": "0.1",
+          "meta": {
+            "name": "Expense Log",
+            "description": "Log what you spend and see the total",
+            "icon": "💰",
+            "sourcePrompt": "Log expenses with a name and amount and show the total spent.",
+            "generatedBy": {
+              "provider": "local",
+              "model": "gemma-4-E2B-it.litertlm"
+            },
+            "recipe": {
+              "id": "log",
+              "version": 1,
+              "settings": "name Expense Log\nicon 💰\ndescription Log what you spend and see the total\nnoun expense\nfield name text Expense\nfield amount money Amount\ncheckbox no\ntotal sum amount Total spent\ntap none\nsort none\nshare no\nreminder none"
+            }
+          },
+          "state": {
+            "items": {
+              "type": "list",
+              "of": {
+                "name": "string",
+                "amount": "number"
+              },
+              "default": [],
+              "persist": true
+            },
+            "newName": {
+              "type": "string",
+              "default": "",
+              "persist": false
+            },
+            "newAmount": {
+              "type": "number",
+              "default": 0,
+              "persist": false
+            },
+            "editIndex": {
+              "type": "number",
+              "default": 0,
+              "persist": false
+            },
+            "fixName": {
+              "type": "string",
+              "default": "",
+              "persist": false
+            },
+            "fixAmount": {
+              "type": "number",
+              "default": 0,
+              "persist": false
+            }
+          },
+          "screens": [
+            {
+              "id": "main",
+              "title": "Expense Log",
+              "root": "stack1"
+            },
+            {
+              "id": "edit",
+              "title": "Fix expense",
+              "root": "stack2"
+            }
+          ],
+          "elements": {
+            "textInput1": {
+              "type": "TextInput",
+              "props": {
+                "bind": "newName",
+                "label": "Expense"
+              }
+            },
+            "numberInput1": {
+              "type": "NumberInput",
+              "props": {
+                "bind": "newAmount",
+                "label": "Amount",
+                "min": 0,
+                "mode": "field"
+              }
+            },
+            "button1": {
+              "type": "Button",
+              "props": {
+                "label": "Add expense",
+                "onPress": "add",
+                "variant": "primary"
+              }
+            },
+            "card1": {
+              "type": "Card",
+              "props": {
+                "title": "New expense"
+              },
+              "children": [
+                "textInput1",
+                "numberInput1",
+                "button1"
+              ]
+            },
+            "list1": {
+              "type": "List",
+              "props": {
+                "items": "items",
+                "title": "{{$item.name}}",
+                "subtitle": "{{$item.amount|currency}}",
+                "deletable": true,
+                "onItemPress": "edit",
+                "emptyText": "Add your first expense"
+              }
+            },
+            "text1": {
+              "type": "Text",
+              "props": {
+                "value": "Tap a expense to fix or delete it.",
+                "variant": "muted"
+              }
+            },
+            "stat1": {
+              "type": "Stat",
+              "props": {
+                "label": "Total spent",
+                "format": "currency",
+                "value": {
+                  "$agg": {
+                    "op": "sum",
+                    "of": "items",
+                    "field": "amount"
+                  }
+                }
+              }
+            },
+            "card2": {
+              "type": "Card",
+              "props": {
+                "title": "Expense list"
+              },
+              "children": [
+                "text1",
+                "list1",
+                "stat1"
+              ]
+            },
+            "stack1": {
+              "type": "Stack",
+              "props": {
+                "gap": "md"
+              },
+              "children": [
+                "card1",
+                "card2"
+              ]
+            },
+            "textInput2": {
+              "type": "TextInput",
+              "props": {
+                "bind": "fixName",
+                "label": "Expense"
+              }
+            },
+            "numberInput2": {
+              "type": "NumberInput",
+              "props": {
+                "bind": "fixAmount",
+                "label": "Amount",
+                "min": 0,
+                "mode": "field"
+              }
+            },
+            "button2": {
+              "type": "Button",
+              "props": {
+                "label": "Save changes",
+                "onPress": "saveEdit",
+                "variant": "primary"
+              }
+            },
+            "button3": {
+              "type": "Button",
+              "props": {
+                "label": "Delete expense",
+                "onPress": "deleteEdit",
+                "variant": "danger"
+              }
+            },
+            "card3": {
+              "type": "Card",
+              "props": {
+                "title": "Fix this expense"
+              },
+              "children": [
+                "textInput2",
+                "numberInput2",
+                "button2",
+                "button3"
+              ]
+            },
+            "stack2": {
+              "type": "Stack",
+              "props": {
+                "gap": "md"
+              },
+              "children": [
+                "card3"
+              ]
+            }
+          },
+          "actions": {
+            "add": {
+              "steps": [
+                {
+                  "op": "state.append",
+                  "path": "items",
+                  "value": {
+                    "name": {
+                      "$ref": "newName"
+                    },
+                    "amount": {
+                      "$ref": "newAmount"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                },
+                {
+                  "op": "state.reset",
+                  "path": "newName"
+                },
+                {
+                  "op": "state.reset",
+                  "path": "newAmount"
+                }
+              ]
+            },
+            "edit": {
+              "steps": [
+                {
+                  "op": "state.set",
+                  "path": "editIndex",
+                  "value": {
+                    "$ref": "$index"
+                  }
+                },
+                {
+                  "op": "state.set",
+                  "path": "fixName",
+                  "value": {
+                    "$ref": "$item.name"
+                  }
+                },
+                {
+                  "op": "state.set",
+                  "path": "fixAmount",
+                  "value": {
+                    "$ref": "$item.amount"
+                  }
+                },
+                {
+                  "op": "navigate",
+                  "screen": "edit"
+                }
+              ]
+            },
+            "saveEdit": {
+              "steps": [
+                {
+                  "op": "state.update",
+                  "path": "items",
+                  "index": {
+                    "$ref": "editIndex"
+                  },
+                  "set": {
+                    "name": {
+                      "$ref": "fixName"
+                    },
+                    "amount": {
+                      "$ref": "fixAmount"
+                    }
+                  }
+                },
+                {
+                  "op": "navigate",
+                  "screen": "main"
+                },
+                {
+                  "op": "toast",
+                  "message": "Saved"
+                }
+              ]
+            },
+            "deleteEdit": {
+              "steps": [
+                {
+                  "op": "confirm",
+                  "message": "Delete this expense?"
+                },
+                {
+                  "op": "state.remove",
+                  "path": "items",
+                  "index": {
+                    "$ref": "editIndex"
+                  }
+                },
+                {
+                  "op": "navigate",
+                  "screen": "main"
+                }
+              ]
+            }
+          }
+        },
+        "repairs": 0
+      },
+      "checkResults": [],
+      "firstFillValid": true,
+      "missingRequirements": {
+        "components": [],
+        "ops": []
+      },
+      "diagnostics": []
+    },
+    {
+      "id": "e26",
+      "prompt": "Build an interactive physics simulation with bouncing objects and collisions.",
+      "expect": "unsupported",
+      "durationMs": 0,
+      "result": {
+        "status": "unsupported",
+        "unsupported": {
+          "reason": "Physics and simulations need a real-time drawing canvas, which mini-apps do not have.",
+          "missing": [
+            "physics simulation",
+            "animated canvas"
+          ],
+          "suggestion": "Build me a log where I note each object with its mass and speed, with the total mass."
+        },
+        "repairs": 0
+      },
+      "checkResults": [],
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [],
+        "ops": []
+      },
+      "diagnostics": []
+    },
+    {
+      "id": "e29",
+      "prompt": "Show live weather fetched automatically for my location.",
+      "expect": "unsupported",
+      "durationMs": 0,
+      "result": {
+        "status": "unsupported",
+        "unsupported": {
+          "reason": "Mini-apps work offline and cannot fetch live data from the internet.",
+          "missing": [
+            "internet access",
+            "live data"
+          ],
+          "suggestion": "Build me a weather diary where I log the date, the weather and the temperature."
+        },
+        "repairs": 0
+      },
+      "checkResults": [],
+      "firstFillValid": false,
+      "missingRequirements": {
+        "components": [],
+        "ops": []
+      },
+      "diagnostics": []
+    }
+  ],
+  "metrics": {
+    "firstFillValidity": {
+      "count": 4,
+      "denominator": 4,
+      "rate": 1
+    },
+    "validWithinTwoRepairs": {
+      "count": 4,
+      "denominator": 4,
+      "rate": 1
+    },
+    "requirementsSatisfied": {
+      "count": 4,
+      "denominator": 4,
+      "rate": 1
+    },
+    "correctRefusals": {
+      "count": 2,
+      "denominator": 2,
+      "rate": 1
+    },
+    "refusalRecall": {
+      "count": 2,
+      "denominator": 2,
+      "rate": 1
+    },
+    "refusalPrecision": {
+      "count": 2,
+      "denominator": 2,
+      "rate": 1
+    },
+    "falseRefusals": {
+      "count": 0,
+      "denominator": 4,
+      "rate": 0
+    },
+    "medianLatencyMs": 13855,
+    "latencySamples": 4,
+    "firstBuildMs": 15639,
+    "warmMedianMs": 12071,
+    "layers": {
+      "structure": {
+        "count": 4,
+        "denominator": 4,
+        "rate": 1
+      },
+      "behaviour": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "intent": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      }
+    }
+  },
+  "targets": {
+    "firstFillValidity": {
+      "minimumRate": 0.5,
+      "met": null
+    },
+    "validWithinTwoRepairs": {
+      "minimumRate": 0.8,
+      "met": null
+    },
+    "requirementsSatisfied": {
+      "minimumRate": 0.8,
+      "met": null
+    },
+    "correctRefusals": {
+      "minimumCount": 4,
+      "denominator": 5,
+      "met": null
+    },
+    "falseRefusals": {
+      "maximumCount": 2,
+      "denominator": 25,
+      "met": null
+    },
+    "medianLatencyMs": {
+      "maximumMs": 90000,
+      "met": null
+    }
+  },
+  "topErrors": [],
+  "photo": null,
+  "log": [
+    "16:15:22 e01 Model load 0.1 s",
+    "16:15:22 e01 Starting 6 prompt(s) on On-device (Gemma 4 E2B) (gemma-4-E2B-it.litertlm), plan stage off, GPU, speculative on, recipes on",
+    "16:15:22 e01 → FILL: 1415 system chars, 91 prompt chars",
+    "16:15:27 e01 ← first token after 5.0 s",
+    "16:15:38 e01   GPU + speculative decoding, constrained JSON off: model load 0 ms, first token 5021 ms, total 15596 ms, 467 tokens in cache",
+    "16:15:38 e01 ✓ 299 chars in 15.6 s: name Fridge Snap icon 🧊 description Photo of your fridge to grocery list input photo photo Fridge p",
+    "16:15:38 e01 ⎘ output: name Fridge Snap\nicon 🧊\ndescription Photo of your fridge to grocery list\ninput photo photo Fridge photo\ninput note text Anything to add?\ninstruction List the food you can see in the photo.\noutput checklist\nusual milk, eggs, bread, butter, cheese, fruit\nbutton Make shopping list\nhistory no\nshare no",
+    "16:15:38 e01 ✓ done after 15.6 s, 0 repair(s)",
+    "16:15:38 e05 → FILL: 1479 system chars, 79 prompt chars",
+    "16:15:43 e05 ← first token after 5.1 s",
+    "16:15:56 e05   GPU + speculative decoding, constrained JSON off: model load 0 ms, first token 5037 ms, total 18381 ms, 512 tokens in cache",
+    "16:15:56 e05 ✓ 238 chars in 18.5 s: name Plant Tracker icon 🌱 description Keep track of your plants and watering history noun plant fie",
+    "16:15:56 e05 ⎘ output: name Plant Tracker\nicon 🌱\ndescription Keep track of your plants and watering history\nnoun plant\nfield name text Plant Name\nfield water date date Watered on\ncheckbox yes\ntotal count count Planted\ntap none\nsort none\nshare yes\nreminder none",
+    "16:15:56 e05 ✓ done after 18.5 s, 0 repair(s)",
+    "16:15:56 e09 → FILL: 611 system chars, 88 prompt chars",
+    "16:15:59 e09 ← first token after 3.0 s",
+    "16:16:02 e09   GPU + speculative decoding, constrained JSON off: model load 0 ms, first token 2921 ms, total 5530 ms, 199 tokens in cache",
+    "16:16:02 e09 ✓ 82 chars in 5.6 s: name Bill Splitter icon 🧾 description Read a receipt and split it between friends",
+    "16:16:02 e09 ⎘ output: name Bill Splitter\nicon 🧾\ndescription Read a receipt and split it between friends",
+    "16:16:02 e09 ✓ done after 5.7 s, 0 repair(s)",
+    "16:16:02 e13 → FILL: 1479 system chars, 70 prompt chars",
+    "16:16:07 e13 ← first token after 5.2 s",
+    "16:16:14 e13   GPU + speculative decoding, constrained JSON off: model load 0 ms, first token 5065 ms, total 11955 ms, 504 tokens in cache",
+    "16:16:14 e13 ✓ 219 chars in 12.1 s: name Expense Log icon 💰 description Log what you spend and see the total noun expense field name te",
+    "16:16:14 e13 ⎘ output: name Expense Log\nicon 💰\ndescription Log what you spend and see the total\nnoun expense\nfield name text Expense\nfield amount money Amount\ncheckbox no\ntotal sum amount Total spent\ntap none\nsort none\nshare no\nreminder none",
+    "16:16:14 e13 ✓ done after 12.1 s, 0 repair(s)",
+    "16:16:14 e26 ✓ unsupported after 0.0 s, 0 repair(s)",
+    "16:16:14 e29 ✓ unsupported after 0.0 s, 0 repair(s)",
+    "16:16:14 Finished in 52.0 s"
+  ]
+}

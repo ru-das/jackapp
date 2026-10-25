@@ -179,6 +179,10 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 | Date | Test | Result |
 |---|---|---|
 | 2026-10-25 | Model download (T-112): resume after force-stop, Cancel, airplane mode, space message, Load now | Passed (human-reported) |
+| 2026-10-25 | Gate 1: dev build installed, On-device model downloaded | Passed (human-reported) |
+| 2026-10-25 | Gate 2: e01, Skip plan on, GPU, speculative off, recipes on (`evals/results/eval-2026-10-25T10-37-56-574Z-gemma-4-E2B-it.litertlm-noplan.json`) | Passed. Moto G45: model load 21.8 s, first token 6.9 s, engine total 24.6 s, build 32.7 s (gate ≤ 150 s), valid, 0 repairs |
+| 2026-10-25 | Gate 4: Quick 6, recipes on, GPU, speculative **on** (`evals/results/eval-2026-10-25T10-45-22-748Z-gemma-4-E2B-it.litertlm-noplan.json`) | Passed. 4/4 valid first FILL, 0 repairs, 2/2 refusals (e26, e29), 0 false refusals; build times 15.6 / 18.5 / 5.7 / 12.1 s, median 13.9 s (target ≤ 90 s). Recipes path, so not comparable with the free-form runs of Oct 23. Speculative on cut e01 engine time 24.6 → 15.6 s |
+| 2026-10-25 | Gate 3 (A/B: speculative, GPU off) | Not done (optional). Quick 6 with speculative **off** also not run |
 
 ---
 

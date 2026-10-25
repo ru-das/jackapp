@@ -1,0 +1,473 @@
+{
+  "startedAt": "2026-10-25T10:37:56.574Z",
+  "finishedAt": "2026-10-25T10:38:29.270Z",
+  "provider": "local",
+  "model": "gemma-4-E2B-it.litertlm",
+  "options": {
+    "corpus": "main",
+    "noPlan": true,
+    "maxRepairs": 1,
+    "recipes": true,
+    "only": "e01",
+    "env": {
+      "revision": "unknown",
+      "appVersion": "0.1.0",
+      "loadMs": 21831,
+      "backend": "gpu",
+      "speculative": false,
+      "constrained": true
+    }
+  },
+  "rows": [
+    {
+      "id": "e01",
+      "prompt": "Make me a shopping list from a photo of my fridge, with boxes to tick when bought.",
+      "expect": "spec",
+      "mustUse": [
+        "ImageInput",
+        "List"
+      ],
+      "mustOps": [
+        "ai.run"
+      ],
+      "durationMs": 32692,
+      "result": {
+        "status": "done",
+        "spec": {
+          "specVersion": "0.1",
+          "meta": {
+            "name": "Fridge Snap",
+            "description": "Photo of your fridge to grocery list",
+            "icon": "🧊",
+            "sourcePrompt": "Make me a shopping list from a photo of my fridge, with boxes to tick when bought.",
+            "generatedBy": {
+              "provider": "local",
+              "model": "gemma-4-E2B-it.litertlm"
+            },
+            "recipe": {
+              "id": "ai",
+              "version": 1,
+              "settings": "name Fridge Snap\nicon 🧊\ndescription Photo of your fridge to grocery list\ninput photo photo Fridge photo\ninput note text Anything to add?\ninstruction List the food you can see in the photo.\noutput checklist\nusual milk, eggs, bread, butter, cheese, fruit\nbutton Make shopping list\nhistory no\nshare no"
+            }
+          },
+          "state": {
+            "photo": {
+              "type": "image",
+              "default": null,
+              "persist": false
+            },
+            "seen": {
+              "type": "list",
+              "of": {
+                "name": "string"
+              },
+              "default": [],
+              "persist": true
+            },
+            "staples": {
+              "type": "list",
+              "of": {
+                "name": "string"
+              },
+              "default": [
+                {
+                  "name": "Milk"
+                },
+                {
+                  "name": "Eggs"
+                },
+                {
+                  "name": "Bread"
+                },
+                {
+                  "name": "Butter"
+                },
+                {
+                  "name": "Cheese"
+                },
+                {
+                  "name": "Fruit"
+                }
+              ],
+              "persist": true
+            },
+            "items": {
+              "type": "list",
+              "of": {
+                "name": "string",
+                "done": "boolean"
+              },
+              "default": [],
+              "persist": true
+            },
+            "newSeen": {
+              "type": "string",
+              "default": "",
+              "persist": false
+            },
+            "newStaple": {
+              "type": "string",
+              "default": "",
+              "persist": false
+            }
+          },
+          "screens": [
+            {
+              "id": "main",
+              "title": "Fridge Snap",
+              "root": "stack1"
+            }
+          ],
+          "elements": {
+            "imageInput1": {
+              "type": "ImageInput",
+              "props": {
+                "bind": "photo",
+                "label": "Fridge photo"
+              }
+            },
+            "button1": {
+              "type": "Button",
+              "props": {
+                "label": "Look at the photo",
+                "onPress": "look",
+                "variant": "primary"
+              }
+            },
+            "text1": {
+              "type": "Text",
+              "props": {
+                "value": "Only items clearly visible. Remove wrong ones and add what I missed.",
+                "variant": "muted"
+              }
+            },
+            "list1": {
+              "type": "List",
+              "props": {
+                "items": "seen",
+                "title": "{{$item.name}}",
+                "deletable": true,
+                "emptyText": "Nothing read yet"
+              }
+            },
+            "textInput1": {
+              "type": "TextInput",
+              "props": {
+                "bind": "newSeen",
+                "label": "Something I missed",
+                "onSubmit": "addSeen"
+              }
+            },
+            "button2": {
+              "type": "Button",
+              "props": {
+                "label": "Add",
+                "onPress": "addSeen",
+                "variant": "secondary"
+              }
+            },
+            "card1": {
+              "type": "Card",
+              "props": {
+                "title": "1. What I can see"
+              },
+              "children": [
+                "imageInput1",
+                "button1",
+                "text1",
+                "list1",
+                "textInput1",
+                "button2"
+              ]
+            },
+            "list2": {
+              "type": "List",
+              "props": {
+                "items": "staples",
+                "title": "{{$item.name}}",
+                "deletable": true,
+                "emptyText": "Add the things you always buy"
+              }
+            },
+            "textInput2": {
+              "type": "TextInput",
+              "props": {
+                "bind": "newStaple",
+                "label": "Add a usual item",
+                "onSubmit": "addStaple"
+              }
+            },
+            "button3": {
+              "type": "Button",
+              "props": {
+                "label": "Add",
+                "onPress": "addStaple",
+                "variant": "secondary"
+              }
+            },
+            "card2": {
+              "type": "Card",
+              "props": {
+                "title": "2. What you usually keep"
+              },
+              "children": [
+                "list2",
+                "textInput2",
+                "button3"
+              ]
+            },
+            "button4": {
+              "type": "Button",
+              "props": {
+                "label": "Make shopping list",
+                "onPress": "makeList",
+                "variant": "primary"
+              }
+            },
+            "text2": {
+              "type": "Text",
+              "props": {
+                "value": "Usual items not seen in the photo. Food can hide at the back, so check before you buy.",
+                "variant": "muted"
+              }
+            },
+            "list3": {
+              "type": "List",
+              "props": {
+                "items": "items",
+                "title": "{{$item.name}}",
+                "checkField": "done",
+                "deletable": true,
+                "emptyText": "Your list will appear here"
+              }
+            },
+            "button5": {
+              "type": "Button",
+              "props": {
+                "label": "Clear bought",
+                "onPress": "clearDone",
+                "variant": "secondary"
+              }
+            },
+            "card3": {
+              "type": "Card",
+              "props": {
+                "title": "3. Shopping list"
+              },
+              "children": [
+                "button4",
+                "text2",
+                "list3",
+                "button5"
+              ]
+            },
+            "stack1": {
+              "type": "Stack",
+              "props": {
+                "gap": "md"
+              },
+              "children": [
+                "card1",
+                "card2",
+                "card3"
+              ]
+            }
+          },
+          "actions": {
+            "look": {
+              "steps": [
+                {
+                  "op": "ai.run",
+                  "prompt": "List the food and drink items you can clearly see in this photo of a fridge. Short names. Do not guess items that are hidden or unclear.",
+                  "image": {
+                    "$ref": "photo"
+                  },
+                  "output": {
+                    "type": "list",
+                    "of": {
+                      "name": "string"
+                    }
+                  },
+                  "into": "seen",
+                  "mode": "replace"
+                },
+                {
+                  "op": "toast",
+                  "message": "{{seen|count}} items seen. Check the list."
+                }
+              ]
+            },
+            "addSeen": {
+              "steps": [
+                {
+                  "op": "state.append",
+                  "path": "seen",
+                  "value": {
+                    "name": {
+                      "$ref": "newSeen"
+                    }
+                  }
+                },
+                {
+                  "op": "state.reset",
+                  "path": "newSeen"
+                }
+              ]
+            },
+            "addStaple": {
+              "steps": [
+                {
+                  "op": "state.append",
+                  "path": "staples",
+                  "value": {
+                    "name": {
+                      "$ref": "newStaple"
+                    }
+                  }
+                },
+                {
+                  "op": "state.reset",
+                  "path": "newStaple"
+                }
+              ]
+            },
+            "makeList": {
+              "steps": [
+                {
+                  "op": "state.diff",
+                  "path": "items",
+                  "from": "staples",
+                  "without": "seen",
+                  "field": "name"
+                },
+                {
+                  "op": "toast",
+                  "message": "{{items|count}} usual items not seen"
+                }
+              ]
+            },
+            "clearDone": {
+              "steps": [
+                {
+                  "op": "state.remove",
+                  "path": "items",
+                  "where": {
+                    "field": "done",
+                    "equals": true
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "repairs": 0
+      },
+      "checkResults": [],
+      "firstFillValid": true,
+      "missingRequirements": {
+        "components": [],
+        "ops": []
+      },
+      "diagnostics": []
+    }
+  ],
+  "metrics": {
+    "firstFillValidity": {
+      "count": 1,
+      "denominator": 1,
+      "rate": 1
+    },
+    "validWithinTwoRepairs": {
+      "count": 1,
+      "denominator": 1,
+      "rate": 1
+    },
+    "requirementsSatisfied": {
+      "count": 1,
+      "denominator": 1,
+      "rate": 1
+    },
+    "correctRefusals": {
+      "count": 0,
+      "denominator": 0,
+      "rate": null
+    },
+    "refusalRecall": {
+      "count": 0,
+      "denominator": 0,
+      "rate": null
+    },
+    "refusalPrecision": {
+      "count": 0,
+      "denominator": 0,
+      "rate": null
+    },
+    "falseRefusals": {
+      "count": 0,
+      "denominator": 1,
+      "rate": 0
+    },
+    "medianLatencyMs": 32692,
+    "latencySamples": 1,
+    "firstBuildMs": 32692,
+    "warmMedianMs": null,
+    "layers": {
+      "structure": {
+        "count": 1,
+        "denominator": 1,
+        "rate": 1
+      },
+      "behaviour": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "intent": {
+        "count": 0,
+        "denominator": 0,
+        "rate": null
+      }
+    }
+  },
+  "targets": {
+    "firstFillValidity": {
+      "minimumRate": 0.5,
+      "met": null
+    },
+    "validWithinTwoRepairs": {
+      "minimumRate": 0.8,
+      "met": null
+    },
+    "requirementsSatisfied": {
+      "minimumRate": 0.8,
+      "met": null
+    },
+    "correctRefusals": {
+      "minimumCount": 4,
+      "denominator": 5,
+      "met": null
+    },
+    "falseRefusals": {
+      "maximumCount": 2,
+      "denominator": 25,
+      "met": null
+    },
+    "medianLatencyMs": {
+      "maximumMs": 90000,
+      "met": null
+    }
+  },
+  "topErrors": [],
+  "photo": null,
+  "log": [
+    "16:07:56 e01 Model load 21.8 s",
+    "16:07:56 e01 Starting 1 prompt(s) on On-device (Gemma 4 E2B) (gemma-4-E2B-it.litertlm), plan stage off, GPU, speculative off, recipes on",
+    "16:07:56 e01 → FILL: 1415 system chars, 91 prompt chars",
+    "16:08:11 e01 ← first token after 14.9 s",
+    "16:08:29 e01   GPU, constrained JSON off: model load 0 ms, first token 6858 ms, total 24562 ms, 468 tokens in cache",
+    "16:08:29 e01 ✓ 299 chars in 32.6 s: name Fridge Snap icon 🧊 description Photo of your fridge to grocery list input photo photo Fridge p",
+    "16:08:29 e01 ⎘ output: name Fridge Snap\nicon 🧊\ndescription Photo of your fridge to grocery list\ninput photo photo Fridge photo\ninput note text Anything to add?\ninstruction List the food you can see in the photo.\noutput checklist\nusual milk, eggs, bread, butter, cheese, fruit\nbutton Make shopping list\nhistory no\nshare no",
+    "16:08:29 e01 ✓ done after 32.7 s, 0 repair(s)",
+    "16:08:29 Finished in 54.5 s"
+  ]
+}
