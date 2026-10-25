@@ -1,4 +1,4 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { share } from '@/capabilities';
 import { toCsv } from '@/runtime/export';
 import { useEffect, useRef, useState } from 'react';
@@ -12,6 +12,7 @@ import { SpecSchema } from '@/spec/schema';
 import type { Spec } from '@/spec/types';
 import { validate } from '@/spec/validate';
 import { readJson, specKey, StorageError } from '@/storage';
+import { subscribeApps } from '@/storage/apps';
 import { loadSettings } from '@/storage/settings';
 import { ReminderStatus } from '@/ui/ReminderStatus';
 import { UndoBar } from '@/ui/UndoBar';
@@ -26,6 +27,10 @@ export default function Run() {
   const [phase, setPhase] = useState<Phase>({ kind: 'loading' });
   const [reminders, setReminders] = useState<SyncResult>();
   const navigateRef = useRef<RendererHandle['navigate']>(undefined);
+  const router = useRouter();
+  // Customize saves a rebuilt spec while this screen is still mounted underneath; reload it.
+  const [rev, setRev] = useState(0);
+  useEffect(() => subscribeApps(() => setRev((n) => n + 1)), []);
 
   useEffect(() => {
     let store: Store | undefined;
@@ -61,15 +66,22 @@ export default function Run() {
     });
     const sub = AppState.addEventListener('change', (s) => { if (s !== 'active') void store?.flush().catch(() => {}); else void resync(); }); // coming back may follow turning notifications on in system settings
     return () => { live = false; abort.abort(); sub.remove(); void store?.flush().catch(() => {}); };
-  }, [id]);
+  }, [id, rev]);
 
   const title = phase.kind === 'ready' ? `${phase.spec.meta.icon ?? ''} ${phase.spec.meta.name}`.trim() : '';
   return (
     <View style={[styles.fill, { backgroundColor: t.bg }]}>
       <Stack.Screen options={{ title, headerRight: phase.kind === 'ready' ? () => (
+        <View style={styles.row}>
+        {phase.spec.meta.recipe ? (
+          <Pressable accessibilityRole="button" accessibilityLabel="Customize this mini-app" style={styles.export}
+            onPress={() => void phase.store.flush().catch(() => {}).then(() => router.push({ pathname: '/edit/[id]', params: { id } }))}>
+            <Text style={{ color: t.accent, fontSize: 16 }}>Customize</Text>
+          </Pressable>) : null}
         <Pressable accessibilityRole="button" accessibilityLabel="Export data as CSV" onPress={() => void share(toCsv(phase.spec, phase.store.getState())).catch(() => {})} style={styles.export}>
           <Text style={{ color: t.accent, fontSize: 16 }}>Export data</Text>
-        </Pressable>) : undefined }} />
+        </Pressable>
+        </View>) : undefined }} />
       {phase.kind === 'loading' ? <ActivityIndicator accessibilityLabel="Opening mini-app" color={t.accent} style={styles.spin} /> : null}
       {phase.kind === 'ready' && reminders ? <ReminderStatus appId={id} result={reminders} /> : null}
       {phase.kind === 'ready' ? <Renderer spec={phase.spec} store={phase.store} engine={phase.engine} onReady={(h) => { navigateRef.current = h.navigate; }} /> : null}
@@ -86,6 +98,7 @@ export default function Run() {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
+  row: { flexDirection: 'row' },
   export: { minHeight: 44, minWidth: 44, paddingHorizontal: space.sm, justifyContent: 'center' },
   spin: { marginTop: space.lg * 2 },
   card: { margin: space.lg, padding: space.lg, gap: space.sm, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth },

@@ -25,7 +25,7 @@ export function parseCounter(s: Settings, request: string): CounterConfig {
 }
 
 export const counterRecipe: Recipe = {
-  id: 'counter', title: 'Counter',
+  id: 'counter', version: 1, title: 'Counter',
   hint: 'one number that goes up by a button: tally, reps, glasses of water',
   summary: 'A number that goes up by a fixed step with one button and can be reset.',
   lines: `name <app name, 2-4 words>

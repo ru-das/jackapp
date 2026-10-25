@@ -113,7 +113,7 @@ export function parseAi(s: Settings, request: string, notes: string[] = []): AiC
 }
 
 export const aiRecipe: Recipe = {
-  id: 'ai', title: 'AI helper',
+  id: 'ai', version: 1, title: 'AI helper',
   hint: 'the AI writes an answer or a checklist from text or a photo: generators, summaries, translations, explanations, identification',
   summary: 'The user gives some text, numbers or a photo, and the AI writes an answer or a checklist: generators, summarisers, rewriters, translators, explainers, identifiers, planners.',
   lines: `name <app name, 2-4 words>

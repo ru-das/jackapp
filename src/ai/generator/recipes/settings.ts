@@ -18,6 +18,10 @@ export function readSettings(text: string): Settings {
   return out;
 }
 
+/** Inverse of readSettings: one "key value" line per entry. Braces are dropped: no builder uses them, and stored text must never look like a template. */
+export const writeSettings = (s: Settings): string =>
+  [...s].flatMap(([k, vs]) => vs.map((v) => `${k} ${v.replace(/[{}]/g, ' ')}`)).join('\n');
+
 export const first = (s: Settings, key: string) => s.get(key)?.[0];
 
 /** Removes what could change meaning inside a spec string: template braces, control characters, runaway length. */

@@ -8,7 +8,7 @@ import { classifyPrompt, parseClassification } from './classify';
 import { matchRecipe, refusalGate } from './match';
 import { recipePrompt } from './prompt';
 import { RecipeError } from './kit';
-import { readSettings } from './settings';
+import { readSettings, writeSettings } from './settings';
 
 /** `fallback`: nothing ready-made fits, so the caller should generate freely (cloud model, or this one). */
 export type RecipeOutcome = GenerationResult | { status: 'fallback' };
@@ -57,14 +57,16 @@ export async function generateRecipe(options: GenerateOptions): Promise<RecipeOu
     progress('checking');
     let spec;
     const notes: string[] = [];
-    try { spec = recipe.make(readSettings(reply), options.prompt, notes); }
+    const settings = readSettings(reply);
+    try { spec = recipe.make(settings, options.prompt, notes); }
     catch (error) {
       // The reply cannot make a working app of this type (e.g. no usable formula): let the free-form path try.
       if (error instanceof RecipeError) return { status: 'fallback' };
       throw error;
     }
     // Metadata is assigned here, never taken from the model, as in the free-form path.
-    spec.meta = { ...(spec.meta as object), sourcePrompt: options.prompt, generatedBy: { provider: options.provider.id, model: options.model } };
+    spec.meta = { ...(spec.meta as object), sourcePrompt: options.prompt, generatedBy: { provider: options.provider.id, model: options.model },
+      recipe: { id: recipe.id, version: recipe.version, settings: writeSettings(settings).slice(0, 2000) } };
     const errors = validate(spec);
     if (errors.length) {
       // A builder bug, not a model mistake: surface it instead of saving a broken app.

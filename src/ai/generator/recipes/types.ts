@@ -6,6 +6,8 @@ export type RecipeId = 'log' | 'counter' | 'splitter' | 'ai' | 'calculator' | 't
 /** A ready-made app type: the model fills in its settings, `make` returns a Spec-shaped object that is valid by construction. */
 export interface Recipe {
   id: RecipeId;
+  /** Bumped when the builder's output changes in a way old settings would not reproduce. */
+  version: number;
   title: string;
   /** One line for the classifier prompt. */
   hint: string;

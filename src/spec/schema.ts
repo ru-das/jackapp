@@ -70,6 +70,8 @@ export const MetaSchema = z.strictObject({
   icon: z.string().regex(/^(?:\p{Regional_Indicator}{2}|[#*0-9]\uFE0F?\u20E3|\p{Extended_Pictographic}(?:\uFE0F|\p{Emoji_Modifier})?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\p{Emoji_Modifier})?)*)$/u),
   sourcePrompt: z.string().optional(),
   generatedBy: z.strictObject({ provider: z.enum(['mock', 'local', 'openrouter', 'ollama']), model: z.string() }).optional(),
+  // The ready-made type and its setting lines, kept so Customize can rebuild; data only, re-read by the recipe's forgiving parser.
+  recipe: z.strictObject({ id: z.enum(['log', 'counter', 'splitter', 'ai', 'calculator', 'timer', 'reminder']), version: z.number().int().min(1), settings: z.string().max(2000) }).optional(),
 });
 export const ScreenSchema = z.strictObject({ id: IdentifierSchema, title: z.string(), root: IdentifierSchema });
 export const ComponentNameSchema = z.enum([

@@ -42,7 +42,7 @@ export function parseTimer(s: Settings, request: string, notes: string[] = []): 
 }
 
 export const timerRecipe: Recipe = {
-  id: 'timer', title: 'Timer', hint: 'a countdown timer with start, pause and reset: Pomodoro, cooking, workouts, tea',
+  id: 'timer', version: 1, title: 'Timer', hint: 'a countdown timer with start, pause and reset: Pomodoro, cooking, workouts, tea',
   summary: 'A countdown timer the user starts, pauses and resets. It can count how many times it finished.',
   lines: `name <app name, 2-4 words>
 icon <one emoji>

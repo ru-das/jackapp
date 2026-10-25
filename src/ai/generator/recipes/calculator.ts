@@ -104,7 +104,7 @@ export function parseCalculator(s: Settings, request: string, notes: string[] = 
 }
 
 export const calculatorRecipe: Recipe = {
-  id: 'calculator', title: 'Calculator',
+  id: 'calculator', version: 1, title: 'Calculator',
   hint: 'type numbers, get results from a formula: converters, tip, loan, interest, BMI, percentages',
   summary: 'The user types some numbers and sees results computed from them: converters, tips, taxes, loans, health formulas and the like.',
   lines: `name <app name, 2-4 words>

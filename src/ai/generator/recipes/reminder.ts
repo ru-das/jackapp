@@ -40,7 +40,7 @@ export function parseReminder(s: Settings, request: string, notes: string[] = []
 }
 
 export const reminderRecipe: Recipe = {
-  id: 'reminder', title: 'Reminder', hint: 'notifications at set times: daily or weekly reminders, with a Done button to check in',
+  id: 'reminder', version: 1, title: 'Reminder', hint: 'notifications at set times: daily or weekly reminders, with a Done button to check in',
   summary: 'Up to three reminders at fixed times (daily or weekly) that show a notification, plus a Done button that counts check-ins.',
   lines: `name <app name, 2-4 words>
 icon <one emoji>

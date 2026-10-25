@@ -22,12 +22,12 @@ test('dev menu lists the three fixtures', async () => {
   }
 });
 
-test('empty Home invites a first build and offers templates with Remix', async () => {
+test('empty Home invites a first build and offers templates with Make similar', async () => {
   await render(<Home />);
   expect(await screen.findByText('No mini-apps yet')).toBeTruthy();
   for (const name of ['Fridge Snap', 'Plant Pal', 'Bill Splitter']) {
     expect(screen.getByText(`Try ${name}`)).toBeTruthy();
-    expect(screen.getByText(`Remix ${name}`)).toBeTruthy();
+    expect(screen.getByText(`Make similar to ${name}`)).toBeTruthy();
   }
 });
 

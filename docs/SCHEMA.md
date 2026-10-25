@@ -20,6 +20,7 @@ This is **the** contract between the model, the validator, the runtime, and stor
     "icon": "🧊",                      // a single emoji
     "sourcePrompt": "…",              // set by the generator, not the model
     "generatedBy": { "provider": "openrouter", "model": "google/gemma-4-31b-it:free" } // set by the generator
+    "recipe": { "id": "counter", "version": 1, "settings": "name Water\nstep 2" } // optional; set by recipe builds, edited by Customize (ADR-039)
   },
   "state":    { /* key → StateDecl */ },
   "screens":  [ /* Screen, first one is the entry screen */ ],

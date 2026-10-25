@@ -35,6 +35,13 @@ test('duplicate copies the spec, not the data', async () => {
   expect((await listApps()).map((a) => a.name)).toContain(`${h1.meta.name} (copy)`);
 });
 
+test('duplicate with data copies the data too', async () => {
+  await writeJson(specKey('app-1'), h1);
+  await writeJson(dataKey('app-1'), { items: [1] });
+  const id = await duplicateApp('app-1', (n) => n, true);
+  expect(await readJson(dataKey(id!))).toEqual({ items: [1] });
+});
+
 test('delete removes spec and data', async () => {
   await writeJson(specKey('app-1'), h1);
   await writeJson(dataKey('app-1'), { a: 1 });

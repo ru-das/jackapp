@@ -140,7 +140,7 @@ export default function Home() {
           </View>
           <View style={styles.tpl}>
             <View style={styles.flex}><ActionButton label={`Try ${spec.meta.name}`} onPress={() => void tryTemplate(spec)} /></View>
-            <View style={styles.flex}><ActionButton kind="quiet" label={`Remix ${spec.meta.name}`} onPress={() => remix(spec)} /></View>
+            <View style={styles.flex}><ActionButton kind="quiet" label={`Make similar to ${spec.meta.name}`} onPress={() => remix(spec)} /></View>
           </View>
         </View>
       ))}
