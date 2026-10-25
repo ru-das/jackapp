@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-110 CSV export (Claude Code, 2026-10-25, human-requested):** run-screen header "Export data" → share sheet / clipboard with CSV text. It is data only; no app definition and no import (T-53 / backlog). **Not tried on a device.** **Human next (T-107..110):** web or phone: grocery checklist → Share, delete a row → Undo, Clear done → Undo; Spend log → tap a row, Save, Delete; Export data; Bill Splitter → Share.
+>
 > **T-109 edit entry (Claude Code, 2026-10-25, human-requested; edits Codex-owned `recipes/log.ts`; ask Codex to review):** log apps with no tap action open a "Fix" screen on row tap (Save / Delete with confirm; Delete is undoable). Date-tap and add-tap apps are unchanged. Limit: Save does not re-check a blank title. **Not tried on a device.**
 >
 > **T-108 undo (Claude Code, 2026-10-25, human-requested):** any list that gets shorter (row delete, Clear done, splitter Delete line, `state.diff`, AI replace) shows "Removed N items · Undo" for 8 s; one step only; a later change to that list clears it. **Not tried on a device.** Limit: a re-read that replaces rows also offers undo.
@@ -187,6 +189,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-110 | Run screen "Export data" shares saved data as CSV. | see git |
 | 2026-10-25 | Claude Code | T-109 | Log apps with no tap action: tap a row to fix or delete it. | see git |
 | 2026-10-25 | Claude Code | T-108 | Store remembers the last list shrink; UndoBar restores it. | see git |
 | 2026-10-25 | Claude Code | T-107 | `lines` formatter; Share sends item rows; splitter Share sends bill, tip, total, each. | see git |

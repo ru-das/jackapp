@@ -1,6 +1,8 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
+import { share } from '@/capabilities';
+import { toCsv } from '@/runtime/export';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, AppState, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { createActionEngine } from '@/runtime/actions';
 import { Renderer, type RendererHandle } from '@/runtime/Renderer';
 import { createSession } from '@/runtime/session';
@@ -64,7 +66,10 @@ export default function Run() {
   const title = phase.kind === 'ready' ? `${phase.spec.meta.icon ?? ''} ${phase.spec.meta.name}`.trim() : '';
   return (
     <View style={[styles.fill, { backgroundColor: t.bg }]}>
-      <Stack.Screen options={{ title }} />
+      <Stack.Screen options={{ title, headerRight: phase.kind === 'ready' ? () => (
+        <Pressable accessibilityRole="button" accessibilityLabel="Export data as CSV" onPress={() => void share(toCsv(phase.spec, phase.store.getState())).catch(() => {})} style={styles.export}>
+          <Text style={{ color: t.accent, fontSize: 16 }}>Export data</Text>
+        </Pressable>) : undefined }} />
       {phase.kind === 'loading' ? <ActivityIndicator accessibilityLabel="Opening mini-app" color={t.accent} style={styles.spin} /> : null}
       {phase.kind === 'ready' && reminders ? <ReminderStatus appId={id} result={reminders} /> : null}
       {phase.kind === 'ready' ? <Renderer spec={phase.spec} store={phase.store} engine={phase.engine} onReady={(h) => { navigateRef.current = h.navigate; }} /> : null}
@@ -81,6 +86,7 @@ export default function Run() {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
+  export: { minHeight: 44, minWidth: 44, paddingHorizontal: space.sm, justifyContent: 'center' },
   spin: { marginTop: space.lg * 2 },
   card: { margin: space.lg, padding: space.lg, gap: space.sm, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth },
   h: { fontSize: 19, fontWeight: '600' },
