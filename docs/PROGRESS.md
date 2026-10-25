@@ -188,6 +188,9 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 | 2026-10-25 | Reminders (AT-09, T-99): Plant Pal reminder notification | Passed (human-reported: notification arrived). Not reported: tap opens Plant Pal, delete cancels, denied-permission line |
 | 2026-10-25 | Recent features (Android): T-114/115 Customize, T-111 first-value route, T-106 data entry, T-103/T-100 receipts, T-98/T-97 Create screen, T-110 CSV export | All passed (human-reported, no per-step detail) |
 | 2026-10-25 | Remaining acceptance: AT-05 persistence, AT-11 export/import, AT-12 network log, AT-13 APK on clean phone, AT-16 accessibility, device matrix | All passed (human-reported, no per-step detail). Network-log findings, TalkBack/font-scale results and device model not recorded here |
+| 2026-10-25 | Web checks: T-113 service worker offline reopen, T-111 Tab order and 200% zoom, AT-13 PWA install | Passed (human-reported, no per-step detail) |
+| 2026-10-25 | Device matrix | Phone: Moto G45, Android 15, 8 GB RAM (filled in TESTING §4) |
+| 2026-10-25 | OpenRouter-offline and Ollama-unreachable message rows (AT-10) | Dropped by the human: OpenRouter and Ollama will not be used in future, so not tested |
 
 ---
 

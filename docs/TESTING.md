@@ -144,7 +144,7 @@ Every input has a label read by TalkBack or the browser's screen reader. Touch t
 | Device | OS / browser | WebGPU | Local model | Notes |
 |---|---|---|---|---|
 | Dev laptop (4 GB RAM) | ____ | n/a | none (mock only) | |
-| Phone 1 | Android __ / Chrome __ | ____ | ____ | RAM __ GB |
+| Phone 1 (Moto G45) | Android 15 / Chrome (version not recorded) | n/a (native LiteRT-LM, GPU) | Gemma 4 E2B | RAM 8 GB |
 
 ## 5. Pre-submission checklist (Sun night)
 
