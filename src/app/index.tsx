@@ -92,12 +92,10 @@ export default function Home() {
     <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={styles.content}>
       <Text accessibilityRole="header" style={[styles.title, { color: t.text }]}>JackApp</Text>
       <Text style={{ color: t.muted, fontSize: 16 }}>
-        Describe a small tool and it gets built. Or try a ready-made one: it works right away, no AI needed.
+        Describe a small mini-app and it gets built. Or try a ready-made one: it works right away, no AI needed.
       </Text>
-      <Pressable accessibilityRole="button" onPress={() => router.push('/create')} style={[styles.nav, { backgroundColor: t.accent, borderColor: t.border }]}>
-        <Text style={[styles.name, { color: t.accentText }]}>New mini-app</Text>
-      </Pressable>
-      <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Try a ready-made tool</Text>
+      <ActionButton label="New mini-app" onPress={() => router.push('/create')} />
+      <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Try a ready-made mini-app</Text>
       <View style={styles.tpl}>
         {READY_MADE.map((r) => (
           <View key={r.label} style={styles.flex}>
@@ -117,7 +115,7 @@ export default function Home() {
           <Text style={styles.icon}>🦥</Text>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>No mini-apps yet</Text>
           <Text style={{ color: t.muted, fontSize: 16, textAlign: 'center' }}>
-            Describe a small tool and it gets built on your device.
+            Describe a small mini-app and it gets built on your device.
           </Text>
         </View>
       ) : null}
@@ -127,7 +125,7 @@ export default function Home() {
           onRename={(n) => void rename(a, n)} onDuplicate={() => void duplicate(a)} onDelete={() => void remove(a)}
         />
       )) : null}
-      <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Start from a template</Text>
+      <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Examples to try</Text>
       {FIXTURES.map(({ id, spec, tag }) => (
         <View key={id} style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
           <View style={styles.tpl}>
@@ -177,9 +175,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 34, fontWeight: '700' },
   empty: { alignItems: 'center' },
   card: { padding: space.lg, gap: space.sm, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth },
-  h: { fontSize: 17, fontWeight: '600', marginBottom: space.sm },
+  h: { fontSize: 19, fontWeight: '600', marginBottom: space.sm },
   row: { minHeight: MIN_TARGET + 12, flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.control },
-  nav: { minHeight: MIN_TARGET + 8, borderRadius: radius.control, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', padding: space.md },
   icon: { fontSize: 28 },
   tpl: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   flex: { flex: 1 },

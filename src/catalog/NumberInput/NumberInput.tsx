@@ -60,12 +60,12 @@ export function NumberInput({ label, min, max, step, mode, value, onChange }: Pr
     <View style={styles.row}>
       <Pressable accessibilityRole="button" accessibilityLabel={`Decrease ${label}`} onPress={() => set(value - step)}
         style={[styles.round, { backgroundColor: t.accentSoft }]}>
-        <Text style={[styles.sign, { color: t.accent }]}>−</Text>
+        <Text maxFontSizeMultiplier={1.5} style={[styles.sign, { color: t.accent }]}>−</Text>
       </Pressable>
       <Text accessibilityLabel={`${label}: ${value}`} style={[styles.value, { color: t.text }]}>{value}</Text>
       <Pressable accessibilityRole="button" accessibilityLabel={`Increase ${label}`} onPress={() => set(value + step)}
         style={[styles.round, { backgroundColor: t.accentSoft }]}>
-        <Text style={[styles.sign, { color: t.accent }]}>+</Text>
+        <Text maxFontSizeMultiplier={1.5} style={[styles.sign, { color: t.accent }]}>+</Text>
       </Pressable>
     </View>
   );

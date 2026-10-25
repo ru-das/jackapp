@@ -20,7 +20,7 @@ export function List({ rows, emptyText, onToggle, onDelete, onPress }: Props) {
               onPress={() => onToggle(i)} style={styles.target}
             >
               <View style={[styles.box, { borderColor: r.checked ? t.accent : t.muted, backgroundColor: r.checked ? t.accent : 'transparent' }]}>
-                {r.checked ? <Text style={{ color: t.accentText, fontWeight: '700' }}>✓</Text> : null}
+                {r.checked ? <Text maxFontSizeMultiplier={1.2} style={{ color: t.accentText, fontWeight: '700' }}>✓</Text> : null}
               </View>
             </Pressable>
           ) : null}
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: MIN_TARGET + 12 },
   target: { minWidth: MIN_TARGET, minHeight: MIN_TARGET, alignItems: 'center', justifyContent: 'center' },
   box: { width: 24, height: 24, borderRadius: radius.control / 2, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  body: { flex: 1, paddingVertical: 8 },
+  body: { flex: 1, minHeight: MIN_TARGET, justifyContent: 'center', paddingVertical: 8 },
   title: { fontSize: 16 },
   sub: { fontSize: 14 },
   flag: { flexShrink: 1, maxWidth: '45%', fontWeight: '600' },

@@ -20,7 +20,7 @@ export function GenerationStages({ progress }: { progress: Pick<GenerationProgre
   const t = useTheme();
   const repairing = progress.stage === 'repairing';
   const steps = [...STAGES.map(([id, label]) => ({ id: id as string, label })),
-    ...(repairing ? [{ id: 'repairing', label: `Repairing ${progress.attempt}` }] : [])];
+    ...(repairing ? [{ id: 'repairing', label: `Fixing mistakes (try ${progress.attempt})` }] : [])];
   const elapsed = useElapsed();
   const current = steps.findIndex((s) => s.id === progress.stage);
   return (

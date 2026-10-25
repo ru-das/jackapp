@@ -1,6 +1,6 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { RECIPES } from '@/ai/generator/recipes';
 import { rebuild } from '@/ai/generator/recipes/rebuild';
 import { readSettings } from '@/ai/generator/recipes/settings';
@@ -13,6 +13,10 @@ import { ActionButton } from '@/ui/ActionButton';
 import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
 
 const keysOf = (text: string) => [...readSettings(text).keys()];
+
+// Setting keys are written for the builder; these are the words people see.
+const LABELS: Record<string, string> = { name: 'Name', icon: 'Icon', description: 'Description', input: 'Inputs (one per line)', output: 'Results (one per line)' };
+const labelOf = (k: string) => LABELS[k] ?? k;
 
 /** Customize (ADR-039): edit the setting lines a recipe app was built from, then rebuild through the same validated builder. */
 export default function Customize() {
@@ -35,18 +39,18 @@ export default function Customize() {
   }, [id]);
 
   const info = spec?.meta.recipe;
-  if (spec === undefined) return <View style={{ flex: 1, backgroundColor: t.bg }} />;
+  if (spec === undefined) return <View style={{ flex: 1, backgroundColor: t.bg }}><ActivityIndicator accessibilityLabel="Opening settings" color={t.accent} style={{ marginTop: space.lg * 2 }} /></View>;
   if (!spec || !info) {
     return (
       <View style={[styles.pad, { backgroundColor: t.bg, flex: 1 }]}>
         <Text style={{ color: t.text, fontSize: 16 }}>
-          {spec ? 'This one wasn’t built from a ready-made type, so it can’t be customized. Use “Make similar” on Home to start a new one.' : 'We couldn’t open this mini-app.'}
+          {spec ? 'This one wasn’t built from a ready-made type, so it can’t be customized. Tap New mini-app on Home to start a new one.' : 'We couldn’t open this mini-app.'}
         </Text>
+        <ActionButton label="Back" onPress={() => router.canGoBack() ? router.back() : router.replace('/')} />
       </View>
     );
   }
   const recipe = RECIPES[info.id];
-  const hint = (key: string) => recipe.lines.split('\n').find((l) => l.startsWith(`${key} `) || l.startsWith(`${key}:`)) ?? '';
   // Settings the model left out still get a box, so they can be set.
   const keys = [...new Set([...Object.keys(values), ...keysOf(recipe.example.reply)])];
 
@@ -60,7 +64,7 @@ export default function Customize() {
       const saved = await readJson(dataKey(id)).catch(() => null);
       const risk = dataAtRisk(spec, result.spec, saved && typeof saved === 'object' ? (saved as Record<string, unknown>) : {});
       if (risk.length) {
-        const ok = await confirm(`Saved data for ${risk.join(', ')} won't show in the new version. OK keeps the old version as a copy with its data, then saves.`);
+        const ok = await confirm(`Saved data for ${risk.join(', ')} won't show in the new version. OK saves the old version as a copy first.`);
         if (!ok) return;
         if (!(await duplicateApp(id, (n) => `${n.slice(0, 33)} (old)`, true))) return setError("Couldn't keep a copy, so nothing was changed.");
       }
@@ -81,10 +85,9 @@ export default function Customize() {
       <Text style={{ color: t.muted, fontSize: 16 }}>Change the settings this tool was built from. Your saved data stays unless a change would hide it; you’ll be asked first.</Text>
       {keys.map((k) => (
         <View key={k} style={{ gap: 4 }}>
-          <Text nativeID={`l-${k}`} style={{ color: t.text, fontSize: 16, fontWeight: '600' }}>{k}</Text>
-          {hint(k) ? <Text style={{ color: t.muted, fontSize: 14 }}>{hint(k)}</Text> : null}
+          <Text style={{ color: t.text, fontSize: 16, fontWeight: '600' }}>{labelOf(k)}</Text>
           <TextInput
-            accessibilityLabel={k} multiline value={values[k] ?? ''} onChangeText={(v) => setValues((s) => ({ ...s, [k]: v }))}
+            accessibilityLabel={labelOf(k)} multiline value={values[k] ?? ''} onChangeText={(v) => setValues((s) => ({ ...s, [k]: v }))}
             style={[styles.input, { color: t.text, backgroundColor: t.surface, borderColor: t.border }]}
           />
         </View>

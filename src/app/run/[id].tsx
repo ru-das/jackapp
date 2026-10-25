@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { share } from '@/capabilities';
+import { share, toast } from '@/capabilities';
 import { toCsv } from '@/runtime/export';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, AppState, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -14,9 +14,10 @@ import { validate } from '@/spec/validate';
 import { readJson, specKey, StorageError } from '@/storage';
 import { subscribeApps } from '@/storage/apps';
 import { loadSettings } from '@/storage/settings';
+import { ActionButton } from '@/ui/ActionButton';
 import { ReminderStatus } from '@/ui/ReminderStatus';
 import { UndoBar } from '@/ui/UndoBar';
-import { radius, space, useTheme } from '@/ui/theme';
+import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
 
 type Loaded = { spec: Spec; store: Store; engine: ReturnType<typeof createActionEngine> };
 type Phase = { kind: 'loading' } | { kind: 'error'; message: string } | ({ kind: 'ready' } & Loaded);
@@ -68,7 +69,7 @@ export default function Run() {
     return () => { live = false; abort.abort(); sub.remove(); void store?.flush().catch(() => {}); };
   }, [id, rev]);
 
-  const title = phase.kind === 'ready' ? `${phase.spec.meta.icon ?? ''} ${phase.spec.meta.name}`.trim() : '';
+  const title = phase.kind === 'ready' ? `${phase.spec.meta.icon ?? ''} ${phase.spec.meta.name}`.trim() : 'Mini-app';
   return (
     <View style={[styles.fill, { backgroundColor: t.bg }]}>
       <Stack.Screen options={{ title, headerRight: phase.kind === 'ready' ? () => (
@@ -78,8 +79,8 @@ export default function Run() {
             onPress={() => void phase.store.flush().catch(() => {}).then(() => router.push({ pathname: '/edit/[id]', params: { id } }))}>
             <Text style={{ color: t.accent, fontSize: 16 }}>Customize</Text>
           </Pressable>) : null}
-        <Pressable accessibilityRole="button" accessibilityLabel="Export data as CSV" onPress={() => void share(toCsv(phase.spec, phase.store.getState())).catch(() => {})} style={styles.export}>
-          <Text style={{ color: t.accent, fontSize: 16 }}>Export data</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Export data as CSV" onPress={() => void share(toCsv(phase.spec, phase.store.getState())).catch(() => toast("Couldn't export."))} style={styles.export}>
+          <Text style={{ color: t.accent, fontSize: 16 }}>Export</Text>
         </Pressable>
         </View>) : undefined }} />
       {phase.kind === 'loading' ? <ActivityIndicator accessibilityLabel="Opening mini-app" color={t.accent} style={styles.spin} /> : null}
@@ -90,6 +91,7 @@ export default function Run() {
         <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Can&apos;t open this one</Text>
           <Text style={{ color: t.muted, fontSize: 16 }}>{phase.message}</Text>
+          <ActionButton label="Back" onPress={() => router.canGoBack() ? router.back() : router.replace('/')} />
         </View>
       ) : null}
     </View>
@@ -99,7 +101,7 @@ export default function Run() {
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   row: { flexDirection: 'row' },
-  export: { minHeight: 44, minWidth: 44, paddingHorizontal: space.sm, justifyContent: 'center' },
+  export: { minHeight: MIN_TARGET, minWidth: MIN_TARGET, paddingHorizontal: space.sm, justifyContent: 'center' },
   spin: { marginTop: space.lg * 2 },
   card: { margin: space.lg, padding: space.lg, gap: space.sm, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth },
   h: { fontSize: 19, fontWeight: '600' },

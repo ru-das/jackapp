@@ -43,7 +43,7 @@ test('storage failure shows a retry card, never the empty state', async () => {
 test('New mini-app comes before the templates, with an AI note on photo templates', async () => {
   await render(<Home />);
   expect(screen.getByText('New mini-app')).toBeTruthy();
-  expect(screen.getByText('Try a ready-made tool')).toBeTruthy();
+  expect(screen.getByText('Try a ready-made mini-app')).toBeTruthy();
   expect(screen.getAllByText(/Reading photos needs AI/)).toHaveLength(2);
   expect(screen.getByText('Works right away.')).toBeTruthy();
 });

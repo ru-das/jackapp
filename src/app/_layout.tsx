@@ -19,6 +19,7 @@ export default function RootLayout() {
         <Stack.Screen name="index" options={{ title: 'JackApp' }} />
         <Stack.Screen name="create" options={{ title: 'New mini-app' }} />
         <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+        <Stack.Screen name="edit/[id]" options={{ title: 'Customize' }} />
       </Stack>
       <Toaster />
     </>

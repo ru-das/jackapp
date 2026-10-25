@@ -50,7 +50,7 @@ export default function SettingsScreen() {
           const on = settings.provider === id;
           return (
             <Pressable
-              key={id} accessibilityRole="radio" accessibilityState={{ selected: on }} accessibilityLabel={label}
+              key={id} accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={label}
               onPress={() => void update({ provider: id })}
               style={[styles.row, { backgroundColor: on ? t.accentSoft : 'transparent', borderColor: on ? t.accent : t.border }]}
             >
@@ -68,7 +68,7 @@ export default function SettingsScreen() {
             const on = settings.currency === code;
             return (
               <Pressable
-                key={code} accessibilityRole="radio" accessibilityState={{ selected: on }} accessibilityLabel={`Currency ${code}`}
+                key={code} accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={`Currency ${code}`}
                 onPress={() => void update({ currency: code })}
                 style={[styles.chip, { backgroundColor: on ? t.accentSoft : 'transparent', borderColor: on ? t.accent : t.border }]}
               >
@@ -91,7 +91,7 @@ export default function SettingsScreen() {
             onChangeText={(v) => void update({ openrouterKey: v })}
             secureTextEntry autoCapitalize="none" autoCorrect={false} placeholder="sk-or-…" placeholderTextColor={t.muted}
           />
-          <Pressable accessibilityRole="button" accessibilityState={{ expanded: details }} onPress={() => setDetails(!details)} style={styles.toggle}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Model details" accessibilityState={{ expanded: details }} onPress={() => setDetails(!details)} style={styles.toggle}>
             <Text style={{ color: t.text, fontSize: 15 }}>{details ? '▾' : '▸'} Model details</Text>
           </Pressable>
           {details ? STAGES.map(([stage, id]) => (
@@ -103,7 +103,7 @@ export default function SettingsScreen() {
       {settings.provider === 'ollama' ? (
         <View style={card}>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Ollama</Text>
-          <Text style={{ color: t.muted, fontSize: 15 }}>Run `ollama serve` on your computer. On a phone, use your computer’s address on the same Wi-Fi.</Text>
+          <Text style={{ color: t.muted, fontSize: 15 }}>Run “ollama serve” on your computer. On a phone, use your computer’s address on the same Wi-Fi.</Text>
           <Text style={{ color: t.text, fontSize: 16 }}>Server address</Text>
           <TextInput
             accessibilityLabel="Ollama server address" style={input} value={settings.ollamaUrl}
@@ -114,7 +114,7 @@ export default function SettingsScreen() {
           <TextInput
             accessibilityLabel="Ollama model name" style={input} value={settings.ollamaModel}
             onChangeText={(v) => void update({ ollamaModel: v })}
-            autoCapitalize="none" autoCorrect={false} placeholder="a model from `ollama list`" placeholderTextColor={t.muted}
+            autoCapitalize="none" autoCorrect={false} placeholder="a model from “ollama list”" placeholderTextColor={t.muted}
           />
         </View>
       ) : null}

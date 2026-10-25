@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { subscribeToast } from '@/capabilities';
+import { radius, space, useTheme } from './theme';
 
 const SHOW_MS = 2500;
 
 export function Toaster() {
+  const th = useTheme();
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => subscribeToast(setMessage), []);
@@ -17,15 +19,15 @@ export function Toaster() {
   if (!message) return null;
   return (
     <View style={styles.wrap} pointerEvents="none" accessibilityLiveRegion="polite">
-      <Text style={styles.text}>{message}</Text>
+      <Text style={[styles.text, { backgroundColor: th.text, color: th.bg }]}>{message}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { position: 'absolute', left: 16, right: 16, bottom: 32, alignItems: 'center' },
+  wrap: { position: 'absolute', left: space.md, right: space.md, bottom: space.lg + space.sm, alignItems: 'center' },
   text: {
-    backgroundColor: '#222', color: '#fff', paddingHorizontal: 16, paddingVertical: 12,
-    borderRadius: 8, overflow: 'hidden', fontSize: 16,
+    paddingHorizontal: space.md, paddingVertical: 12,
+    borderRadius: radius.control, overflow: 'hidden', fontSize: 16,
   },
 });

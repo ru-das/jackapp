@@ -131,7 +131,7 @@ export default function Create() {
       setPhase({ kind: 'preview', ...next });
     } catch (error) {
       console.error('create: unexpected failure', error);
-      if (live()) setPhase({ kind: 'failed', message: 'Something went wrong. Please try again.' });
+      if (live()) setPhase({ kind: 'failed', message: 'Something went wrong. Try again.' });
     }
   };
 
@@ -184,7 +184,7 @@ export default function Create() {
           </Text>
         ) : null}
         <View style={[styles.bar, { borderColor: t.border, backgroundColor: t.surface }]}>
-          <View style={styles.flex}><ActionButton kind="quiet" label="Try again" onPress={() => void build(prompt)} /></View>
+          <View style={styles.flex}><ActionButton kind="quiet" label="Build again" onPress={() => void build(prompt)} /></View>
           <View style={styles.flex}><ActionButton label={saving ? 'Saving…' : 'Save'} disabled={saving} onPress={() => void save(phase)} /></View>
         </View>
       </View>
