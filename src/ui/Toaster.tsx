@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { subscribeToast } from '@/capabilities';
+import { useAnnounce } from './announce';
 import { useInsets } from './insets';
 import { radius, space, type, useTheme } from './theme';
 
@@ -12,6 +13,7 @@ export function Toaster() {
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => subscribeToast(setMessage), []);
+  useAnnounce(message);
   useEffect(() => {
     if (!message) return;
     const t = setTimeout(() => setMessage(null), SHOW_MS);
@@ -20,7 +22,7 @@ export function Toaster() {
 
   if (!message) return null;
   return (
-    <View style={[styles.wrap, { bottom: space.lg + space.sm + bottom }]} pointerEvents="none" accessibilityLiveRegion="polite">
+    <View style={[styles.wrap, { bottom: space.lg + space.sm + bottom }]} pointerEvents="none">
       <Text style={[styles.text, { backgroundColor: th.text, color: th.bg }]}>{message}</Text>
     </View>
   );

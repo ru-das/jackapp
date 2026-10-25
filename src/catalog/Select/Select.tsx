@@ -14,7 +14,7 @@ export function Select({ label, value, options, onChange }: Props) {
           return (
             <Pressable
               key={o} accessibilityRole="radio" accessibilityState={{ checked: on }} onPress={() => onChange(o)}
-              style={(st) => [styles.chip, { backgroundColor: on ? t.accent : t.bg, borderColor: on ? t.accent : t.border }, pressed(st)]}
+              style={(st) => [styles.chip, { backgroundColor: on ? t.accent : t.bg, borderColor: on ? t.accent : t.outline }, pressed(st)]}
             >
               <Text style={{ color: on ? t.accentText : t.text, fontSize: 15, fontWeight: on ? '600' : '400' }}>{o}</Text>
             </Pressable>

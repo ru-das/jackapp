@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Switch, Text, View } from 'react-native';
 import { localModel } from '@/ai/providers/litert';
 import type { LocalTuning } from '@/ai/provider';
-import { MIN_TARGET, space, useTheme } from '@/ui/theme';
+import { MIN_TARGET, space, switchColors, useTheme } from '@/ui/theme';
 
 const OPTIONS: { label: string; hint: string; read: (t: LocalTuning) => boolean; write: (t: LocalTuning, on: boolean) => void }[] = [
   { label: 'GPU', hint: 'Off = CPU, for comparing speed', read: (t) => t.backend === 'gpu', write: (t, on) => { t.backend = on ? 'gpu' : 'cpu'; } },
@@ -24,7 +24,7 @@ export function LocalOptions({ disabled }: { disabled?: boolean }) {
             <Text style={{ color: t.muted, fontSize: 13 }}>{o.hint}</Text>
           </View>
           <Switch
-            accessibilityLabel={o.label} disabled={disabled} value={o.read(state)}
+            accessibilityLabel={o.label} disabled={disabled} value={o.read(state)} {...switchColors(t)}
             onValueChange={(on) => { o.write(localModel.tuning, on); setState({ ...localModel.tuning }); }}
           />
         </View>

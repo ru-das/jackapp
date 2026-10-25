@@ -1,5 +1,5 @@
 import { StyleSheet, Switch, Text, View } from 'react-native';
-import { MIN_TARGET, space, useTheme } from '@/ui/theme';
+import { MIN_TARGET, space, switchColors, useTheme } from '@/ui/theme';
 
 export function Toggle({ label, value, onChange }: { label: string; value: boolean; onChange(v: boolean): void }) {
   const t = useTheme();
@@ -8,7 +8,7 @@ export function Toggle({ label, value, onChange }: { label: string; value: boole
       <Text style={[styles.label, { color: t.text }]}>{label}</Text>
       <Switch
         accessibilityLabel={label} value={value} onValueChange={onChange}
-        trackColor={{ true: t.accent, false: t.border }} thumbColor={t.surface}
+        {...switchColors(t)}
       />
     </View>
   );

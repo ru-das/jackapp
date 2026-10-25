@@ -21,3 +21,13 @@ describe.each(Object.entries(palettes))('%s palette', (_name, p) => {
     expect(ratio(p[fg], p[bg])).toBeGreaterThanOrEqual(4.5);
   });
 });
+
+// WCAG 1.4.11: the edge of a control (input, off Switch) is a graphic the user must see; `border` is only a hairline.
+describe.each(Object.entries(palettes))('%s palette controls', (_name, p) => {
+  test.each(['bg', 'surface', 'accentSoft'] as const)('outline on %s is at least 3:1', (bg) => {
+    expect(ratio(p.outline, p[bg])).toBeGreaterThanOrEqual(3);
+  });
+  test('an off Switch thumb stands out from its track', () => {
+    expect(ratio(p.surface, p.outline)).toBeGreaterThanOrEqual(3);
+  });
+});

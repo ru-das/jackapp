@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useAnnounce } from '@/ui/announce';
 import { MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
 import type { NumberInputProps } from './props';
 
@@ -24,6 +25,7 @@ function NumberField({ label, min, max, value, onChange }: Pick<Props, 'label' |
   const [text, setText] = useState(String(value));
   const [error, setError] = useState('');
   const committed = useRef(value);
+  useAnnounce(error);
   useEffect(() => {
     if (value !== committed.current) { committed.current = value; setText(String(value)); setError(''); }
   }, [value]);
@@ -43,9 +45,9 @@ function NumberField({ label, min, max, value, onChange }: Pick<Props, 'label' |
     <View style={{ gap: space.xs }}>
       <TextInput
         accessibilityLabel={label} keyboardType={min !== undefined && min >= 0 ? 'decimal-pad' : 'default'} value={text} onChangeText={type} onBlur={leave}
-        style={[styles.field, { color: t.text, backgroundColor: t.bg, borderColor: error ? t.danger : t.border }]}
+        style={[styles.field, { color: t.text, backgroundColor: t.bg, borderColor: error ? t.danger : t.outline }]}
       />
-      {error ? <Text accessibilityLiveRegion="polite" style={{ color: t.danger, fontSize: 14 }}>{error}</Text> : null}
+      {error ? <Text style={{ color: t.danger, fontSize: 14 }}>{error}</Text> : null}
     </View>
   );
 }

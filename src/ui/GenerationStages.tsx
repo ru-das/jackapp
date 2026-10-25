@@ -24,8 +24,8 @@ export function GenerationStages({ progress }: { progress: Pick<GenerationProgre
   const elapsed = useElapsed();
   const current = steps.findIndex((s) => s.id === progress.stage);
   return (
-    <View accessibilityLiveRegion="polite" accessibilityLabel={`Step: ${steps[Math.max(current, 0)].label}, ${elapsed} seconds`} style={styles.col}>
-      <View style={styles.row}>
+    <View style={styles.col}>
+      <View accessibilityLiveRegion="polite" accessible accessibilityLabel={`Step: ${steps[Math.max(current, 0)].label}`} style={styles.row}>
         <ActivityIndicator color={t.accent} />
         {steps.map((s, i) => (
           <Text key={s.id} style={{ fontSize: type.body, color: i === current ? t.accent : i < current ? t.text : t.muted, fontWeight: i === current ? '700' : '400' }}>

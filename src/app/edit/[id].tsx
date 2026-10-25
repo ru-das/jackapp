@@ -10,6 +10,7 @@ import type { Spec } from '@/spec/types';
 import { dataKey, readJson, specKey, writeJson } from '@/storage';
 import { duplicateApp, loadValid, notifyAppsChanged } from '@/storage/apps';
 import { ActionButton } from '@/ui/ActionButton';
+import { useAnnounce } from '@/ui/announce';
 import { useInsets } from '@/ui/insets';
 import { MIN_TARGET, radius, space, type, useTheme } from '@/ui/theme';
 
@@ -35,6 +36,7 @@ export default function Customize() {
   const [values, setValues] = useState<Record<string, string>>({});
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  useAnnounce(error);
 
   useEffect(() => {
     void loadValid(id).then((s) => {
@@ -96,11 +98,11 @@ export default function Customize() {
           <Text style={{ color: t.text, fontSize: type.body, fontWeight: '600' }}>{labelOf(k)}</Text>
           <TextInput
             accessibilityLabel={labelOf(k)} multiline value={values[k] ?? ''} onChangeText={(v) => setValues((s) => ({ ...s, [k]: v }))}
-            style={[styles.input, { color: t.text, backgroundColor: t.surface, borderColor: t.border }]}
+            style={[styles.input, { color: t.text, backgroundColor: t.surface, borderColor: t.outline }]}
           />
         </View>
       ))}
-      {error ? <Text accessibilityRole="alert" style={{ color: t.danger, fontSize: type.body }}>{error}</Text> : null}
+      {error ? <Text style={{ color: t.danger, fontSize: type.body }}>{error}</Text> : null}
       <ActionButton label={busy ? 'Saving…' : 'Save changes'} onPress={() => void save()} disabled={busy} />
     </ScrollView>
   );

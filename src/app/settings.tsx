@@ -32,7 +32,7 @@ export default function SettingsScreen() {
   };
 
   if (!settings) return <View style={{ flex: 1, backgroundColor: t.bg }}><ActivityIndicator accessibilityLabel="Loading settings" color={t.accent} style={{ marginTop: space.lg * 2 }} /></View>;
-  const input = [styles.input, { color: t.text, borderColor: t.border, backgroundColor: t.bg }];
+  const input = [styles.input, { color: t.text, borderColor: t.outline, backgroundColor: t.bg }];
   const choices: [Settings['provider'], string][] = [
     ...(localModel.available ? [['local', 'On-device (works offline)'] as [Settings['provider'], string]] : []),
     ['openrouter', 'OpenRouter (free models)'], ['ollama', 'Ollama (your own computer)'],

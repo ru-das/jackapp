@@ -1,6 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Store } from '@/runtime/store';
+import { useAnnounce } from '@/ui/announce';
 import { useInsets } from '@/ui/insets';
 import { MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/theme';
 
@@ -18,10 +19,13 @@ export function UndoBar({ store }: { store: Store }) {
     return () => clearTimeout(timer);
   }, [removal]);
 
-  if (!removal || hidden === removal) return null;
+  const shown = removal && hidden !== removal ? removal : null;
+  const text = shown ? `Removed ${shown.removed} ${shown.removed === 1 ? 'item' : 'items'}` : '';
+  useAnnounce(shown ? `${text}. Undo is available.` : null);
+  if (!shown) return null;
   return (
-    <View style={[styles.bar, { backgroundColor: t.surface, borderColor: t.border, bottom: 88 + bottom }]} accessibilityLiveRegion="polite">
-      <Text style={[styles.text, { color: t.text }]}>Removed {removal.removed} {removal.removed === 1 ? 'item' : 'items'}</Text>
+    <View style={[styles.bar, { backgroundColor: t.surface, borderColor: t.border, bottom: 88 + bottom }]}>
+      <Text style={[styles.text, { color: t.text }]}>{text}</Text>
       <Pressable accessibilityRole="button" accessibilityLabel="Undo remove" onPress={() => store.undo()} style={(st) => [styles.target, pressed(st)]}>
         <Text style={[styles.undo, { color: t.accent }]}>Undo</Text>
       </Pressable>

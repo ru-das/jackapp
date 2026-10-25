@@ -15,7 +15,7 @@ export function TextInput({ label, value, placeholder, multiline, onChange, onSu
         accessibilityLabel={label} value={value} placeholder={placeholder} placeholderTextColor={t.muted}
         multiline={multiline} onChangeText={onChange}
         onSubmitEditing={multiline ? undefined : onSubmit} returnKeyType={onSubmit ? 'done' : undefined}
-        style={[styles.input, multiline && styles.multi, { color: t.text, backgroundColor: t.bg, borderColor: t.border }]}
+        style={[styles.input, multiline && styles.multi, { color: t.text, backgroundColor: t.bg, borderColor: t.outline }]}
       />
     </View>
   );

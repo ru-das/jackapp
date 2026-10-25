@@ -4,6 +4,7 @@ import { LITERT_MODEL } from '@/ai/models';
 import { localModel } from '@/ai/providers/litert';
 import { confirm } from '@/capabilities';
 import { ActionButton } from '@/ui/ActionButton';
+import { useAnnounce } from '@/ui/announce';
 import { Card } from '@/ui/Card';
 import { space, type, useTheme } from '@/ui/theme';
 
@@ -18,6 +19,7 @@ export function LocalModelCard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [abort, setAbort] = useState<AbortController | null>(null);
+  useAnnounce(error);
 
   useEffect(() => {
     void localModel.isDownloaded().then(setDownloaded);
@@ -95,7 +97,7 @@ export function LocalModelCard() {
         </>
       ) : downloaded === false ? button(`Download (${gb(LITERT_MODEL.size)} GB)`, () => void download()) : null}
       {downloaded === null ? <Text style={{ color: t.muted, fontSize: type.hint }}>Checking for the model…</Text> : null}
-      {error ? <Text accessibilityRole="alert" style={{ color: t.danger, fontSize: type.hint }}>{error}</Text> : null}
+      {error ? <Text style={{ color: t.danger, fontSize: type.hint }}>{error}</Text> : null}
     </Card>
   );
 }

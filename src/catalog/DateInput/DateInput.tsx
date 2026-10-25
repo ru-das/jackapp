@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput as RNTextInput, View } from 'react-native';
+import { useAnnounce } from '@/ui/announce';
 import { MIN_TARGET, pressed, radius, space, useTheme } from '@/ui/theme';
 
 interface Props { label: string; value: string | null; onChange(value: string | null): void; today?: () => string }
 
+const BAD_DAY = 'Use the form YYYY-MM-DD, like 2026-10-25.';
 const ISO = /^(\d{4})-(\d{2})-(\d{2})$/;
 export function validDay(text: string): boolean {
   const m = ISO.exec(text);
@@ -19,6 +21,7 @@ export function DateInput({ label, value, onChange, today = () => new Date().toI
   const [draft, setDraft] = useState<string | null>(null);
   const text = draft ?? value?.slice(0, 10) ?? '';
   const bad = text !== '' && !validDay(text);
+  useAnnounce(bad ? BAD_DAY : null);
   const edit = (next: string) => {
     setDraft(next);
     if (next === '') onChange(null);
@@ -31,14 +34,14 @@ export function DateInput({ label, value, onChange, today = () => new Date().toI
         <RNTextInput
           accessibilityLabel={label} value={text} onChangeText={edit} onBlur={() => setDraft(null)} placeholder="YYYY-MM-DD" placeholderTextColor={t.muted}
           keyboardType="numbers-and-punctuation" maxLength={10}
-          style={[styles.input, { color: t.text, backgroundColor: t.bg, borderColor: bad ? t.danger : t.border }]}
+          style={[styles.input, { color: t.text, backgroundColor: t.bg, borderColor: bad ? t.danger : t.outline }]}
         />
         <Pressable accessibilityRole="button" accessibilityLabel={`Today: ${label}`} onPress={() => { setDraft(null); onChange(today()); }}
           style={(st) => [styles.today, { backgroundColor: t.accentSoft }, pressed(st)]}>
           <Text style={{ color: t.accent, fontSize: 16, fontWeight: '600' }}>Today</Text>
         </Pressable>
       </View>
-      {bad ? <Text accessibilityLiveRegion="polite" style={{ color: t.danger, fontSize: 13 }}>Use the form YYYY-MM-DD, like 2026-10-25.</Text> : null}
+      {bad ? <Text style={{ color: t.danger, fontSize: 13 }}>{BAD_DAY}</Text> : null}
     </View>
   );
 }

@@ -16,6 +16,7 @@ import { dataKey, removeKey, specKey, writeJson } from '@/storage';
 import { notifyAppsChanged } from '@/storage/apps';
 import { ActionButton } from '@/ui/ActionButton';
 import { Card } from '@/ui/Card';
+import { useAnnounce } from '@/ui/announce';
 import { GenerationStages } from '@/ui/GenerationStages';
 import { useInsets } from '@/ui/insets';
 import { MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/theme';
@@ -27,6 +28,7 @@ const EXAMPLES = [
   { label: 'Bill Splitter', prompt: 'Photo of a restaurant bill → split it between friends' },
 ];
 
+const SAVE_FAILED = 'Couldn’t save. Your changes are still open. Try again.';
 const PROVIDER_NAMES = { local: 'On-device', openrouter: 'OpenRouter', ollama: 'Ollama', mock: 'Mock' } as const;
 
 type Session = ReturnType<typeof createSession>;
@@ -51,6 +53,7 @@ export default function Create() {
   const draft = useRef<Draft | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
+  useAnnounce(saveFailed ? SAVE_FAILED : null);
   // A tool type the user picked: the request is built as that type without guessing from its wording.
   const [picked, setPicked] = useState<RecipeId>();
   const [ready, setReady] = useState<{ name: string; ok: boolean } | null>(null);
@@ -183,9 +186,7 @@ export default function Create() {
             onReady={(h) => phase.session.setNavigate(h.navigate)} />
         </View>
         {saveFailed ? (
-          <Text accessibilityLiveRegion="polite" style={[styles.preview, styles.column, { color: t.text }]}>
-            Couldn’t save. Your changes are still open. Try again.
-          </Text>
+          <Text style={[styles.preview, styles.column, { color: t.text }]}>{SAVE_FAILED}</Text>
         ) : null}
         <View style={[styles.barWrap, { borderColor: t.border, backgroundColor: t.surface, paddingBottom: bottom }]}>
           <View style={styles.barInner}>
@@ -204,7 +205,7 @@ export default function Create() {
       <TextInput
         accessibilityLabel="Describe your mini-app" multiline editable={!busy} value={prompt} onChangeText={setPrompt}
         maxLength={1000} placeholder="e.g. Track my daily water intake" placeholderTextColor={t.muted}
-        style={[styles.input, { color: t.text, backgroundColor: t.surface, borderColor: t.border }]}
+        style={[styles.input, { color: t.text, backgroundColor: t.surface, borderColor: t.outline }]}
       />
       <View style={styles.chips}>
         {EXAMPLES.map((e) => (

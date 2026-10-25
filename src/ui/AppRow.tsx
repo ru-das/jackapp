@@ -27,7 +27,7 @@ export function AppRow({ app, onOpen, onRename, onDuplicate, onDelete }: Props) 
       ) : (
         <>
           <TextInput accessibilityLabel={`New name for ${app.name}`} value={name} onChangeText={setName} maxLength={40} autoFocus
-            style={[styles.input, { color: t.text, backgroundColor: t.bg, borderColor: t.border }]} />
+            style={[styles.input, { color: t.text, backgroundColor: t.bg, borderColor: t.outline }]} />
           <View style={styles.actions}>
             <View style={styles.flex}><ActionButton kind="quiet" label="Cancel" onPress={() => setName(null)} /></View>
             <View style={styles.flex}><ActionButton label="Save name" disabled={!name.trim()} onPress={() => { onRename(name); setName(null); }} /></View>
