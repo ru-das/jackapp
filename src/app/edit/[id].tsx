@@ -74,6 +74,8 @@ export default function Customize() {
   const recipe = RECIPES[info.id];
   // Settings the model left out still get a box, so they can be set.
   const keys = [...new Set([...Object.keys(values), ...keysOf(recipe.example.reply)])];
+  // The recipe's own example shows what a line looks like, so the boxes are not blind syntax.
+  const example = readSettings(recipe.example.reply);
 
   const save = async () => {
     setBusy(true);
@@ -110,12 +112,13 @@ export default function Customize() {
         <View key={k} style={{ gap: space.xs }}>
           <Text style={{ color: t.text, fontSize: type.body, fontFamily: font.semibold }}>{labelOf(k)}</Text>
           <TextInput
-            accessibilityLabel={labelOf(k)} multiline value={values[k] ?? ''} onChangeText={(v) => setValues((s) => ({ ...s, [k]: v }))}
+            accessibilityLabel={labelOf(k)} multiline placeholder={(example.get(k) ?? []).join('\n') || undefined} placeholderTextColor={t.muted} value={values[k] ?? ''} onChangeText={(v) => setValues((s) => ({ ...s, [k]: v }))}
             style={[styles.input, { color: t.text, backgroundColor: t.surface, borderColor: t.outline }]}
           />
         </View>
       ))}
       {error ? <Text style={{ color: t.danger, fontSize: type.body }}>{error}</Text> : null}
+      {dirty ? <ActionButton kind="quiet" icon="refresh" label="Undo my changes" onPress={() => setValues(initial)} disabled={busy} /> : null}
       <ActionButton icon="checkmark" label={busy ? 'Saving…' : 'Save changes'} onPress={() => void save()} disabled={busy} />
     </ScrollView>
   );

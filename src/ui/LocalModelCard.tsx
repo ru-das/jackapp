@@ -13,7 +13,8 @@ import { font, space, type, useTheme } from '@/ui/theme';
 const gb = (bytes: number) => (bytes / 1e9).toFixed(1);
 const percent = ({ loaded, total }: { loaded: number; total: number }) => Math.min(100, Math.round((loaded / total) * 100));
 
-export function LocalModelCard() {
+/** `onDownloaded` lets a screen that needs the model (Create) re-check readiness the moment the download ends. */
+export function LocalModelCard({ onDownloaded }: { onDownloaded?: () => void }) {
   const t = useTheme();
   const [downloaded, setDownloaded] = useState<boolean | null>(null);
   const [progress, setProgress] = useState<{ loaded: number; total: number } | null>(null);
@@ -38,6 +39,7 @@ export function LocalModelCard() {
       await localModel.download(setProgress, controller.signal);
       setDownloaded(true);
       setPartial(0);
+      onDownloaded?.();
     } catch (e) {
       // A cancel is the user's own choice, so it shows the paused state, not an error.
       if (!controller.signal.aborted) {

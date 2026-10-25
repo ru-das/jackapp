@@ -11,7 +11,7 @@ export default function Root({ children }: PropsWithChildren) {
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="theme-color" content="#CFE8C8" />
+        <meta name="theme-color" content="#F7F3EC" />
         <link rel="manifest" href={`${base}/manifest.webmanifest`} />
         <link rel="apple-touch-icon" href={`${base}/icons/icon-192.png`} />
         <ScrollViewStyleReset />

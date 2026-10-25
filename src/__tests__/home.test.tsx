@@ -25,7 +25,7 @@ test('dev menu lists the three fixtures', async () => {
 
 test('empty Home invites a first build and offers templates with Make similar', async () => {
   await render(<Home />);
-  expect(await screen.findByText('No mini-apps yet')).toBeTruthy();
+  expect(await screen.findByText('Say what you need.')).toBeTruthy();
   for (const name of ['Fridge Snap', 'Plant Pal', 'Bill Splitter']) {
     expect(screen.getByLabelText(`Try ${name}`)).toBeTruthy();
     expect(screen.getByLabelText(`Make similar to ${name}`)).toBeTruthy();
@@ -37,7 +37,7 @@ test('storage failure shows a retry card, never the empty state', async () => {
   jest.spyOn(AsyncStorage, 'getAllKeys').mockRejectedValueOnce(new Error('disk'));
   await render(<Home />);
   expect(await screen.findByText('Couldn’t load your mini-apps')).toBeTruthy();
-  expect(screen.queryByText('No mini-apps yet')).toBeNull();
+  expect(screen.queryByText('Say what you need.')).toBeNull();
   expect(await screen.findByText('Try again')).toBeTruthy();
 });
 
@@ -45,8 +45,7 @@ test('New mini-app comes before the templates, with an AI note on photo template
   await render(<Home />);
   expect(screen.getByText('New mini-app')).toBeTruthy();
   expect(screen.getByText('Start from something')).toBeTruthy();
-  expect(screen.getAllByText(/Reading photos needs AI/)).toHaveLength(2);
-  expect(screen.getAllByText('Works right away.')).toHaveLength(3); // two ready-made apps and Plant Pal
+  expect(screen.getAllByText('Needs AI')).toHaveLength(2);
 });
 
 test.each(['Checklist', 'Tip Calculator'])('ready-made %s saves a valid app and opens it without AI', async (label) => {

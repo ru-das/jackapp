@@ -3,7 +3,7 @@ import { Switch, View } from 'react-native';
 import { Text } from '@/ui/Text';
 import { localModel } from '@/ai/providers/litert';
 import type { LocalTuning } from '@/ai/provider';
-import { MIN_TARGET, space, switchColors, useTheme } from '@/ui/theme';
+import { MIN_TARGET, space, switchColors, type, useTheme } from '@/ui/theme';
 
 const OPTIONS: { label: string; hint: string; read: (t: LocalTuning) => boolean; write: (t: LocalTuning, on: boolean) => void }[] = [
   { label: 'GPU', hint: 'Off = CPU, for comparing speed', read: (t) => t.backend === 'gpu', write: (t, on) => { t.backend = on ? 'gpu' : 'cpu'; } },
@@ -17,12 +17,12 @@ export function LocalOptions({ disabled }: { disabled?: boolean }) {
   if (!localModel.available) return null;
   return (
     <View style={{ gap: space.sm }}>
-      <Text style={{ color: t.muted, fontSize: 14 }}>On-device options</Text>
+      <Text style={{ color: t.muted, fontSize: type.meta }}>On-device options</Text>
       {OPTIONS.map((o) => (
         <View key={o.label} style={{ flexDirection: 'row', alignItems: 'center', minHeight: MIN_TARGET }}>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: t.text, fontSize: 16 }}>{o.label}</Text>
-            <Text style={{ color: t.muted, fontSize: 13 }}>{o.hint}</Text>
+            <Text style={{ color: t.text, fontSize: type.body }}>{o.label}</Text>
+            <Text style={{ color: t.muted, fontSize: type.meta }}>{o.hint}</Text>
           </View>
           <Switch
             accessibilityLabel={o.label} disabled={disabled} value={o.read(state)} {...switchColors(t)}

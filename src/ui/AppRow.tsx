@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text, TextInput } from '@/ui/Text';
 import { Tap } from '@/ui/Tap';
-import { Card } from './Card';
 import type { AppSummary } from '@/storage/apps';
 import { ActionButton } from './ActionButton';
 import { AppTile } from './AppTile';
@@ -24,7 +23,7 @@ export function AppRow({ app, onOpen, onRename, onDuplicate, onDelete }: Props) 
     </View>
   );
   return (
-    <Card style={styles.card}>
+    <View style={[styles.card, { borderColor: t.border }]}>
       {name === null ? (
         <View style={styles.head}>
           <Tap accessibilityRole="button" accessibilityLabel={`Open ${app.name}`} onPress={onOpen} style={(st) => [styles.title, pressed(st)]}>
@@ -55,12 +54,13 @@ export function AppRow({ app, onOpen, onRename, onDuplicate, onDelete }: Props) 
           {small('Delete', 'trash-outline', onDelete, true)}
         </View>
       ) : null}
-    </Card>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { padding: space.md },
+  // A flat row with a hairline under it: a list of apps reads as one list, and bordered cards are kept for moments that need them.
+  card: { paddingVertical: space.sm, borderBottomWidth: StyleSheet.hairlineWidth, gap: space.sm },
   head: { flexDirection: 'row', alignItems: 'center' },
   title: { flex: 1, minHeight: MIN_TARGET, flexDirection: 'row', alignItems: 'center', gap: space.md },
   more: { minWidth: MIN_TARGET, minHeight: MIN_TARGET, alignItems: 'center', justifyContent: 'center' },

@@ -21,9 +21,9 @@ import { font, MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/t
 
 // Photo templates call the AI when used; Plant Pal never does.
 const FIXTURES = [
-  { id: 'fixture-h1', spec: h1, tag: 'Reading photos needs AI (set up in Settings).' },
-  { id: 'fixture-h2', spec: h2, tag: 'Works right away.' },
-  { id: 'fixture-h3', spec: h3, tag: 'Reading photos needs AI (set up in Settings).' },
+  { id: 'fixture-h1', spec: h1, ai: true },
+  { id: 'fixture-h2', spec: h2, ai: false },
+  { id: 'fixture-h3', spec: h3, ai: true },
 ];
 
 // Built with the same recipe builders the AI path uses, so they are valid by construction and need no model.
@@ -107,6 +107,12 @@ export default function Home() {
           <Icon name="settings-outline" size={26} color={t.text} />
         </Tap>
       </View>
+      {apps !== 'error' && apps?.length === 0 ? (
+        <View style={styles.intro}>
+          <Text accessibilityRole="header" style={[styles.lead, { color: t.text }]}>Say what you need.</Text>
+          <Text style={{ color: t.muted, fontSize: type.body }}>One sentence becomes a small app. It is built on your device and stays there.</Text>
+        </View>
+      ) : null}
       <ActionButton icon="add" label="New mini-app" onPress={() => router.push('/create')} />
       {apps === null ? <ActivityIndicator accessibilityLabel="Loading your mini-apps" color={t.accent} /> : null}
       {apps === 'error' ? (
@@ -116,32 +122,23 @@ export default function Home() {
           <ActionButton icon="refresh" label="Try again" onPress={refresh} />
         </Card>
       ) : null}
-      {apps !== 'error' && apps?.length === 0 ? (
-        <Card style={styles.empty}>
-          <AppIcon size={72} />
-          <Text accessibilityRole="header" style={[styles.h, styles.center, { color: t.text }]}>No mini-apps yet</Text>
-          <Text style={{ color: t.muted, fontSize: type.body, textAlign: 'center' }}>
-            Say what you need in a sentence. It gets built on your device and stays there.
-          </Text>
-        </Card>
-      ) : null}
-      {Array.isArray(apps) ? apps.map((a) => (
+      {Array.isArray(apps) && apps.length ? <View>{apps.map((a) => (
         <AppRow
           key={a.id} app={a} onOpen={() => router.push({ pathname: '/run/[id]', params: { id: a.id } })}
           onRename={(n) => void rename(a, n)} onDuplicate={() => void duplicate(a)} onDelete={() => void remove(a)}
         />
-      )) : null}
+      ))}</View> : null}
       {/* Starters are for people with little of their own yet; once three apps exist they only push the user's work down. */}
       {apps !== null && !(Array.isArray(apps) && apps.length >= 3) ? (
         <>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Start from something</Text>
           <Card style={styles.starters}>
             {READY_MADE.map((r) => (
-              <StarterRow key={r.label} name={r.label} line={r.hint} icon={r.icon} note="Works right away." tryLabel={r.label} onTry={() => void tryTemplate(r.spec())} />
+              <StarterRow key={r.label} name={r.label} line={r.hint} icon={r.icon} tryLabel={r.label} onTry={() => void tryTemplate(r.spec())} />
             ))}
-            {FIXTURES.map(({ id, spec, tag }) => (
+            {FIXTURES.map(({ id, spec, ai }) => (
               <StarterRow
-                key={id} name={spec.meta.name} line={spec.meta.description} note={tag} emoji={spec.meta.icon}
+                key={id} name={spec.meta.name} line={spec.meta.description} badge={ai ? 'Needs AI' : undefined} emoji={spec.meta.icon}
                 tryLabel={`Try ${spec.meta.name}`} onTry={() => void tryTemplate(spec)}
                 similarLabel={`Make similar to ${spec.meta.name}`} onSimilar={() => remix(spec)}
               />
@@ -180,15 +177,14 @@ const styles = StyleSheet.create({
   content: { padding: space.lg, gap: space.md, maxWidth: 640, width: '100%', alignSelf: 'center' },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   brand: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  title: { fontSize: type.title, fontFamily: font.display },
+  title: { fontSize: type.title, fontFamily: font.brand, lineHeight: 40 },
   gear: { minWidth: MIN_TARGET, minHeight: MIN_TARGET, alignItems: 'center', justifyContent: 'center' },
-  empty: { alignItems: 'center' },
-  center: { textAlign: 'center' },
+  intro: { gap: space.xs },
+  lead: { fontSize: 26, lineHeight: 32, fontFamily: font.display },
   starters: { paddingVertical: space.sm, gap: space.none },
   h: { fontSize: type.h, fontFamily: font.display, marginBottom: space.sm },
   row: { minHeight: MIN_TARGET + 12, flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.control },
   icon: { fontSize: 28 },
-  tpl: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   flex: { flex: 1 },
   name: { fontSize: type.body, fontFamily: font.semibold },
 });

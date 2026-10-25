@@ -3,11 +3,11 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Text } from '@/ui/Text';
 import type { GenerationProgress } from '@/ai/generator/generate';
 import { Icon } from './Icon';
-import { space, type, useTheme } from './theme';
+import { font, space, type, useTheme } from './theme';
 
 const STAGES = [['building', 'Building'], ['checking', 'Checking']] as const;
 
-/** Building → Checking, with "Fixing mistakes (try n)" appended while the generator is fixing its output. */
+/** Building → Checking, with "Adjusting (try n)" appended while the generator is correcting its output. */
 /** Seconds since mount; a slow phone model needs visible proof that it is still going. */
 export function useElapsed(): number {
   const [s, setS] = useState(0);
@@ -22,7 +22,7 @@ export function GenerationStages({ progress }: { progress: Pick<GenerationProgre
   const t = useTheme();
   const repairing = progress.stage === 'repairing';
   const steps = [...STAGES.map(([id, label]) => ({ id: id as string, label })),
-    ...(repairing ? [{ id: 'repairing', label: `Fixing mistakes (try ${progress.attempt})` }] : [])];
+    ...(repairing ? [{ id: 'repairing', label: `Adjusting (try ${progress.attempt})` }] : [])];
   const elapsed = useElapsed();
   const current = steps.findIndex((s) => s.id === progress.stage);
   return (
@@ -32,7 +32,7 @@ export function GenerationStages({ progress }: { progress: Pick<GenerationProgre
         {steps.map((s, i) => (
           <View key={s.id} style={styles.step}>
             {i > 0 ? <Icon name="chevron-forward" size={16} color={t.muted} /> : null}
-            <Text style={{ fontSize: type.body, color: i === current ? t.accent : i < current ? t.text : t.muted, fontWeight: i === current ? '700' : '400' }}>{s.label}</Text>
+            <Text style={{ fontSize: type.body, color: i === current ? t.accent : i < current ? t.text : t.muted, fontFamily: i === current ? font.bold : font.body }}>{s.label}</Text>
           </View>
         ))}
       </View>
@@ -41,7 +41,7 @@ export function GenerationStages({ progress }: { progress: Pick<GenerationProgre
       </Text>
       {progress.freeForm ? (
         <Text accessibilityLiveRegion="polite" style={{ color: t.muted, fontSize: type.meta }}>
-          {(progress.freeFormReason === 'unusable' ? 'This doesn’t fit one of the ready-made kinds of mini-app, so ' : 'No ready-made kind of mini-app fits this one, so ')
+          {(progress.freeFormReason === 'unusable' ? 'This doesn’t fit one of the ready-made types of mini-app, so ' : 'No ready-made type of mini-app fits this one, so ')
             + 'the AI is building it from scratch. That can take a few minutes and may not work.'}
         </Text>
       ) : null}
