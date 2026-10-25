@@ -1,11 +1,25 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { DateInput, validDay } from '../DateInput/DateInput';
+import { DateInput, formatDay, validDay } from '../DateInput/DateInput';
 import { clock, Timer } from '../Timer/Timer';
 
 test.each([['2026-10-25', true], ['2024-02-29', true], ['2026-02-29', false], ['2026-13-01', false], ['2026-1-5', false], ['soon', false], ['', false]])(
   'validDay(%j) is %s', (text, ok) => expect(validDay(text)).toBe(ok));
 
+test.each([['20261025', '2026-10-25'], ['2026-10-25', '2026-10-25'], ['2026', '2026'], ['20261', '2026-1'], ['202610', '2026-10'], ['2026-', '2026'], ['26/10/2026', '2610-20-26'], ['abc', ''], ['2026102599', '2026-10-25']])(
+  'formatDay(%j) is %j', (typed, shown) => expect(formatDay(typed)).toBe(shown));
+
 describe('DateInput', () => {
+  test('digits are enough: they get their hyphens, on a digits-only keypad', async () => {
+    const onChange = jest.fn();
+    await render(<DateInput label="Due" value={null} onChange={onChange} />);
+    const field = screen.getByLabelText('Due');
+    expect(field.props.keyboardType).toBe('number-pad');
+    await fireEvent.changeText(field, '20261');
+    expect(screen.getByDisplayValue('2026-1')).toBeTruthy();
+    await fireEvent.changeText(field, '20261025');
+    expect(screen.getByDisplayValue('2026-10-25')).toBeTruthy();
+    expect(onChange).toHaveBeenLastCalledWith('2026-10-25');
+  });
   test('a typed valid date is written, an invalid one is flagged and not written, clearing writes null', async () => {
     const onChange = jest.fn();
     await render(<DateInput label="Due" value={null} onChange={onChange} />);

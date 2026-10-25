@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M7 — Ship: features done and device-tested; cleaning and polishing; T-70..74 (log, video, README, DEV post, publish) open |
-| Last updated | 2026-10-25 by Claude Code (T-129) |
+| Last updated | 2026-10-25 by Claude Code (T-130) |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-130 adapt, third audit (Claude Code, 2026-10-25, human-requested; no Codex-owned files touched):** ADR-047. (1) `DateInput`: `number-pad` plus `formatDay()` (digits in, hyphens added; `formatDay` tests, a typing test). (2) `app.json` `expo-notifications`: `icon` `./assets/notification-icon.png` (new, 3 KB, white silhouette of the card from the monochrome launcher icon) and `color` `#2B7364` instead of the pale `#CFE8C8`; `appConfig.test.ts` keeps the colour equal to the light accent and checks the icon is a 96 x 96 RGBA PNG. `npm run check` green. **Native config: the phone needs a fresh Android build to show the icon and colour. Not tried on a device.** **Human next:** build, open an app with a reminder, "Send a test in 2 minutes" and look at the notification shade (small icon is a white card, tinted green in the header, not a grey blob; light and dark shade); Customize or run a log with a date field on Android: the keypad is digits only, typing 20261025 shows 2026-10-25, Today still works. **Still open from audit 3:** ripple on press, overflow-menu modality for TalkBack (`polish`).
+>
 > **T-129 harden, third audit (Claude Code, 2026-10-25, human-requested; no Codex-owned files touched):** (1) `LocalModelCard`: the 8 px bar is now the progressbar (`accessible`, label, `accessibilityValue` min 0 / max 100 / now / "1.3 of 2.6 GB"); before, the role sat on a container with the Cancel button inside. (2) `create.tsx`: the leave guard covers `loading` and `working` too ("Stop building?" / **Stop building**), next to the preview's "Discard this mini-app?". (3) `ReminderStatus`: live region removed; `useAnnounce` speaks a problem when the app opens, any later change, and the "Test reminder arrives at …" or failure note; opening an app whose reminders work is quiet; the decorative bell is not read. `useAnnounce(text, { onMount })` in `src/ui/announce.ts`. `npm run check` green (new `reminderStatus.test.tsx`, model-card and Create tests). **Not tried on a device.** **Human next (TalkBack on):** start the model download and focus the bar (it says a percentage and GB); press the system Back while a build is running (dialog; Cancel keeps building); open an app with reminders after turning notifications off in system settings (spoken), turn them on and come back (spoken), tap "Send a test in 2 minutes" (spoken). **Still open from audit 3:** date field keyboard and the notification colour/icon (`adapt`, needs a rebuild), ripple and overflow-menu modality (`polish`).
 >
 > **T-128 audit polish (Claude Code, 2026-10-25, human-requested; closes the re-audit; no Codex-owned files touched):** `inverse(theme)` in `src/ui/theme.ts` is the snackbar surface for `Toaster` and `UndoBar` (the Undo bar was a cream card with a 1.2:1 hairline over cream content); text and the Undo action are at least 4.5:1 in both themes (`theme.test.ts`). Settings: unselected provider rows and currency chips use `outline`, grouped as radiogroups. `Timer` digits and `Stat` values `maxFontSizeMultiplier={1.5}` (`fontScale.test.tsx`). `npm run check` green; detector clean. **Not tried on a device.** **Human next (Android):** remove a list row in light and dark mode: the Undo bar is a dark (light in dark mode) pill with a readable green Undo; Settings: unselected AI rows and currency chips have a visible edge; set system font size to the largest and open a timer and a stat card: the digits stop growing and still fit. **Re-audit items all handled except the unverified-on-device ones (the AT-16 list).**
@@ -241,6 +243,7 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-130 | Adapt: digits keypad + auto hyphens for dates; own notification icon and accent colour (needs a new build); ADR-047. | see git |
 | 2026-10-25 | Claude Code | T-129 | Harden: download progress value, guard the running build, announce reminder status. | see git |
 | 2026-10-25 | Claude Code | T-128 | Audit polish: shared inverse snackbar surface (toast, Undo bar), outline + radiogroups in Settings, font-scale caps on Timer/Stat. | see git |
 | 2026-10-25 | Claude Code | T-127 | Adapt: status bar icons follow the theme; portrait lock kept (large screens checked); toast width capped; ADR-046. | see git |

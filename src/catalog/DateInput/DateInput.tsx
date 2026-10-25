@@ -7,6 +7,12 @@ interface Props { label: string; value: string | null; onChange(value: string | 
 
 const BAD_DAY = 'Use the form YYYY-MM-DD, like 2026-10-25.';
 const ISO = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/** Keeps only digits and puts the hyphens in, so a digits-only keypad is enough (Android has no "numbers and punctuation" keyboard) and 20261025 reads 2026-10-25. */
+export function formatDay(text: string): string {
+  const d = text.replace(/\D/g, '').slice(0, 8);
+  return [d.slice(0, 4), d.slice(4, 6), d.slice(6, 8)].filter(Boolean).join('-');
+}
 export function validDay(text: string): boolean {
   const m = ISO.exec(text);
   if (!m) return false;
@@ -22,7 +28,8 @@ export function DateInput({ label, value, onChange, today = () => new Date().toI
   const text = draft ?? value?.slice(0, 10) ?? '';
   const bad = text !== '' && !validDay(text);
   useAnnounce(bad ? BAD_DAY : null);
-  const edit = (next: string) => {
+  const edit = (typed: string) => {
+    const next = formatDay(typed);
     setDraft(next);
     if (next === '') onChange(null);
     else if (validDay(next)) onChange(next);
@@ -33,7 +40,7 @@ export function DateInput({ label, value, onChange, today = () => new Date().toI
       <View style={styles.row}>
         <RNTextInput
           accessibilityLabel={label} value={text} onChangeText={edit} onBlur={() => setDraft(null)} placeholder="YYYY-MM-DD" placeholderTextColor={t.muted}
-          keyboardType="numbers-and-punctuation" maxLength={10}
+          keyboardType="number-pad" maxLength={10}
           style={[styles.input, { color: t.text, backgroundColor: t.bg, borderColor: bad ? t.danger : t.outline }]}
         />
         <Pressable accessibilityRole="button" accessibilityLabel={`Today: ${label}`} onPress={() => { setDraft(null); onChange(today()); }}
