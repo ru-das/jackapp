@@ -17,6 +17,20 @@ test('a toast is spoken once, not only shown', async () => {
   expect(announce).toHaveBeenCalledWith('Couldn’t export.');
 });
 
+test('the same toast twice is spoken twice and restarts its timer', async () => {
+  jest.useFakeTimers();
+  await render(<Toaster />);
+  await act(async () => { toast('Couldn’t save.'); });
+  await act(async () => { jest.advanceTimersByTime(2000); });
+  await act(async () => { toast('Couldn’t save.'); });
+  expect(announce).toHaveBeenCalledTimes(2);
+  await act(async () => { jest.advanceTimersByTime(2000); }); // 4 s since the first, 2 s since the second
+  expect(screen.getByText('Couldn’t save.')).toBeTruthy();
+  await act(async () => { jest.advanceTimersByTime(1000); });
+  expect(screen.queryByText('Couldn’t save.')).toBeNull();
+  jest.useRealTimers();
+});
+
 test('a field error is spoken when it appears', async () => {
   await render(<NumberInput label="Tip" min={0} max={100} step={1} mode="field" value={10} onChange={() => {}} />);
   expect(announce).not.toHaveBeenCalled();

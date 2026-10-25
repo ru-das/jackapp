@@ -138,6 +138,7 @@ The docs-sync test compares registry names bidirectionally with P0 headings unti
 
 ### AT-16 Accessibility basics (W + A)
 Every input has a label read by TalkBack or the browser's screen reader. Touch targets ≥ 48 px. Layout survives 130% font scale. Contrast is OK in light and dark.
+Android pass (ADR-042..045, not yet seen on a device): Save / Build again, the toast and the Undo bar clear the nav bar in 3-button and gesture navigation; the last Customize field stays visible with the keyboard up; system Back on a mini-app's second screen goes back one screen, then leaves; inputs and an off Switch have a visible edge; with TalkBack, the build stage is announced without a clock, and toasts, Undo and errors are spoken; More menus (Home rows, run header) open, close on outside tap and Back; delete dialogs name their action; a 100+ row log keeps up while typing.
 
 ## 4. Device matrix (fill in)
 

@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M7 — Ship: features done and device-tested; cleaning and polishing; T-70..74 (log, video, README, DEV post, publish) open |
-| Last updated | 2026-10-25 by Claude Code (T-124) |
+| Last updated | 2026-10-25 by Claude Code (T-125) |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-125 polish (Claude Code, 2026-10-25, human-requested; closes the Android audit T-119..124):** read the whole session diff for defects; fixed one: `Toaster` kept the toast as a string, so the same text twice neither re-spoke nor restarted the 2.5 s timer (now an object; test added). Lint clean, detector clean, `npm run check` green. AT-16 in `TESTING.md` now lists every Android check from this audit in one place. **Nothing from T-119..125 has been seen on a device**: that run through AT-16 is the human's next step, then re-run `$impeccable audit` (it scored 12/20 before). There is no DESIGN.md/PRODUCT.md for the impeccable skill (`$impeccable init` would record the look in `src/ui/theme.ts` for later passes).
+>
 > **T-124 clarify (Claude Code, 2026-10-25, human-requested after the audit; no Codex-owned files touched):** ADR-045. `confirm(message, { title, confirmLabel, destructive })`. **Delete** (app), **Delete model** and **Save and keep copy** (Customize) are named on the button; a mini-app's own confirm (counter reset, log/splitter delete, checklist clear) shows its question as the Android dialog title with a plain OK. Decorative 🦥 hidden from TalkBack in the Home and List empty states and the "out of my reach" header. `npm run check` green (new `confirm.native.test.ts`). **Not tried on a device.** **Human next (Android):** delete an app from Home (More, Delete): title, "Its data goes too", red/named Delete; delete the model in Settings; change a log's field key in Customize to see "Some saved data will be hidden"; reset a counter (question as title, OK); web: the same dialogs read as one sentence. **Open for Codex/human:** optional `confirmLabel` on the spec `confirm` op so mini-app dialogs can say "Reset" / "Delete" too (contract change). **All audit items now done or noted.**
 >
 > **T-123 list performance (Claude Code, 2026-10-25, human-requested after the audit; **edits Codex-owned `src/spec/values.ts` and `src/spec/__tests__/values.test.ts` with the human's yes: please review `cached()` and the three call sites in `format()`**):** ADR-044. Measured before changing anything (desktop Node, so a phone is slower): one keystroke at 200 / 1,000 log rows took 421 / 1,825 ms, now 28 / 78 ms. `List` rows are memoised (`src/catalog/List/List.tsx`); `format()` reuses Intl formatters. New tests `catalog/__tests__/listRows.test.tsx` (unchanged rows do not render again, latest handlers run, handler presence changes a row) and one in `values.test.ts`. `npm run check` green. **Not tried on a device.** **Human next:** a log with 100+ rows (e.g. a Spend log from the copy of "Receipt Photo to Expense Tracker" with many rows): typing in the "What" field should keep up; ticking and deleting rows still work; money and date text in rows still shows in your locale. **Still slow:** the first open of a very long list (about 1.7 ms per row on desktop); needs a `FlatList` in the Renderer, only if a phone shows it. **Audit items still open:** confirm button labels (`clarify`), decorative 🦥 read aloud.
@@ -231,6 +233,7 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-125 | Polish: repeated toast fix, AT-16 Android checklist. | see git |
 | 2026-10-25 | Claude Code | T-124 | Clarify: confirm dialogs name the action (Delete, Delete model, Save and keep copy); mini-app questions become the title; sloth hidden from TalkBack; ADR-045. | see git |
 | 2026-10-25 | Claude Code | T-123 | List performance: memoised rows + Intl formatter cache in values.ts (Codex file, human OK); keystroke at 1,000 rows 1,825 to 78 ms (desktop); ADR-044. | see git |
 | 2026-10-25 | Claude Code | T-122 | Run header: one More button + overflow menu (Customize, Export data); shared MoreIcon. | see git |
