@@ -179,6 +179,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-104 | Number field keeps draft text, commits valid numbers, explains invalid ones. | see git |
 | 2026-10-25 | Claude Code | T-103 | `ai.run` flags unreadable essential fields instead of defaulting; empty read keeps old list with a specific toast; splitter shows ⚠ lines. | see git |
 | 2026-10-25 | Claude Code | T-98 | Preview describes the built spec and lists what was not included (recipe notes + keyword omissions); scope hint on Create. | (this commit) |
 | 2026-10-25 | Claude Code | T-95 | Storage no longer swallows errors (`StorageError` unavailable/unreadable); Create keeps draft + shows "Couldn't save…" and blocks double Save; autosave failures stay pending and retry on next flush/change; Home shows a retry card instead of the empty state; Run refuses to open (and overwrite data) when storage is unavailable. | (this commit) |

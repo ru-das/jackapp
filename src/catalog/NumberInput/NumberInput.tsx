@@ -1,9 +1,53 @@
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
 import type { NumberInputProps } from './props';
 
 interface Props extends Pick<NumberInputProps, 'label' | 'min' | 'max' | 'step' | 'mode'> {
   value: number; onChange(v: number): void;
+}
+
+/** Parses what the user typed; the reason is short enough to show under the field. */
+export function checkNumber(text: string, min?: number, max?: number): { value: number } | { error: string } {
+  const s = text.trim();
+  if (s === '') return { error: 'Enter a number' };
+  const n = Number(s);
+  if (!Number.isFinite(n)) return { error: 'Numbers only, like 12.5' };
+  if (min !== undefined && n < min) return { error: `At least ${min}` };
+  if (max !== undefined && n > max) return { error: `At most ${max}` };
+  return { value: n };
+}
+
+// Keeps the typed text while editing so "", "-" and "1." survive; only a valid number is committed.
+function NumberField({ label, min, max, value, onChange }: Pick<Props, 'label' | 'min' | 'max' | 'value' | 'onChange'>) {
+  const t = useTheme();
+  const [text, setText] = useState(String(value));
+  const [error, setError] = useState('');
+  const committed = useRef(value);
+  useEffect(() => {
+    if (value !== committed.current) { committed.current = value; setText(String(value)); setError(''); }
+  }, [value]);
+  const type = (s: string) => {
+    setText(s);
+    const r = checkNumber(s, min, max);
+    if ('value' in r) { setError(''); committed.current = r.value; onChange(r.value); }
+    else setError(/^[-+.]?$/.test(s.trim()) ? '' : r.error); // a lone "-" or "." is mid-typing, not wrong
+  };
+  const leave = () => {
+    const r = checkNumber(text, min, max);
+    if ('value' in r) return;
+    setText(String(value));
+    setError(`${r.error}. Kept ${value}.`);
+  };
+  return (
+    <View style={{ gap: 4 }}>
+      <TextInput
+        accessibilityLabel={label} keyboardType={min !== undefined && min >= 0 ? 'decimal-pad' : 'default'} value={text} onChangeText={type} onBlur={leave}
+        style={[styles.field, { color: t.text, backgroundColor: t.bg, borderColor: error ? t.danger : t.border }]}
+      />
+      {error ? <Text accessibilityLiveRegion="polite" style={{ color: t.danger, fontSize: 14 }}>{error}</Text> : null}
+    </View>
+  );
 }
 
 export function NumberInput({ label, min, max, step, mode, value, onChange }: Props) {
@@ -34,13 +78,7 @@ export function NumberInput({ label, min, max, step, mode, value, onChange }: Pr
       </View>
     </View>
   );
-  const field = (
-    <TextInput
-      accessibilityLabel={label} keyboardType="numeric" value={String(value)}
-      onChangeText={(s) => { if (s.trim() !== '' && !Number.isNaN(Number(s))) set(Number(s)); }}
-      style={[styles.field, { color: t.text, backgroundColor: t.bg, borderColor: t.border }]}
-    />
-  );
+  const field = <NumberField label={label} min={min} max={max} value={value} onChange={onChange} />;
   return (
     <View style={styles.wrap}>
       <Text style={[styles.label, { color: t.muted }]}>{label}</Text>

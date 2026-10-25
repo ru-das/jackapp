@@ -97,6 +97,9 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 - [ ] T-92 Tinker fine-tune for spec generation, compared against the eval baseline
 - [ ] T-93 Audio input component (Gemma 4 E2B/E4B audio)
 - [ ] T-94 Spec v0.2: conditions (`when`), nested screens
+- [x] **T-104 (P0, human-requested) Number field keeps typed text.** Done 2026-10-25 (Claude Code; not run on a device). `NumberInput` field mode holds a draft: empty, `-`, `1.` stay as typed; only a valid number in range is committed; invalid text shows a short reason, and on blur reverts with "Kept N."
+- [ ] **T-105 (P0, human-requested) Currency preference** (Settings; no locale inference).
+- [ ] **T-106 (P0, human-requested) Required text on `state.append`** (blank names rejected).
 - [x] **T-103 (P0, human-requested) Stop uncertain AI output from looking verified.** Done 2026-10-25 (Claude Code, in Codex-owned `src/spec/{schema,validation-actions,validation-elements}.ts`, `runtime/actions.ts`, `recipes/{splitter,ai}.ts`; ask Codex to review; not run on a device). `ai.run` essential fields + `flag`, `List.flagField`, empty read keeps the old list. ADR-035.
 - [x] **T-100 (P0, human-requested) Bill Splitter: fix lines, type the total, choose currency, tax/service/tip, share.** Done 2026-10-25 (Claude Code, in Codex-owned `recipes/splitter.ts`, `catalog/Stat/props.ts`, `validation-elements.ts`; ask Codex to review; not run on a device). Equal split only. ADR-034.
 - [x] **T-101 (P0, human-requested) Plant Pal: discoverable "Watered now", clear last-watered, undo, earlier date.** Done 2026-10-25 (Claude Code, in Codex-owned `recipes/log.ts`; ask Codex to review; not run on a device). Applies to every `log` app with `tap date`. Reminder flow unchanged (T-79/T-99; T-52 still needs the phone run). ADR-034.
