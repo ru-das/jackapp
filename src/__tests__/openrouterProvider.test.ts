@@ -5,7 +5,7 @@ import { saveSettings } from '@/storage/settings';
 jest.mock('@react-native-async-storage/async-storage', () =>
   jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'));
 
-const settings = { provider: 'openrouter' as const, openrouterKey: ' sk-or-test ', ollamaUrl: 'http://localhost:11434', ollamaModel: '' };
+const settings = { provider: 'openrouter' as const, openrouterKey: ' sk-or-test ', ollamaUrl: 'http://localhost:11434', ollamaModel: '', currency: 'USD' };
 const ok = (content: unknown) => ({ ok: true, status: 200, headers: new Headers(), json: async () => ({ choices: [{ message: { content } }] }) });
 const fail = (status: number, headers: Record<string, string> = {}, message = 'x') =>
   ({ ok: false, status, headers: new Headers(headers), json: async () => ({ error: { message } }) });

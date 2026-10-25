@@ -14,7 +14,7 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 beforeEach(async () => {
   mockReplace.mockClear();
   mockPush.mockClear();
-  await saveSettings({ provider: 'mock', openrouterKey: '', ollamaUrl: 'http://localhost:11434', ollamaModel: '' });
+  await saveSettings({ provider: 'mock', openrouterKey: '', ollamaUrl: 'http://localhost:11434', ollamaModel: '', currency: 'USD' });
   jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 afterEach(() => jest.restoreAllMocks());

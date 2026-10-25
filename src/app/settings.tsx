@@ -62,7 +62,7 @@ export default function SettingsScreen() {
 
       <View style={card}>
         <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Money</Text>
-        <Text style={{ color: t.muted, fontSize: 15 }}>The currency used to show amounts. It does not change the app's language.</Text>
+        <Text style={{ color: t.muted, fontSize: 15 }}>The currency used to show amounts. It does not change the language of the app.</Text>
         <View style={styles.chips}>
           {CURRENCIES.map((code) => {
             const on = settings.currency === code;

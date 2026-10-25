@@ -4,7 +4,7 @@ import { saveSettings } from '@/storage/settings';
 jest.mock('@react-native-async-storage/async-storage', () =>
   jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'));
 
-const settings = { provider: 'ollama' as const, openrouterKey: '', ollamaUrl: 'http://192.168.1.5:11434/', ollamaModel: ' llama3 ' };
+const settings = { provider: 'ollama' as const, openrouterKey: '', ollamaUrl: 'http://192.168.1.5:11434/', ollamaModel: ' llama3 ', currency: 'USD' };
 const ok = (content: unknown) => ({ ok: true, status: 200, json: async () => ({ message: { content } }) });
 
 let fetchMock: jest.Mock;
