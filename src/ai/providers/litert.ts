@@ -16,6 +16,8 @@ export const localModel: LocalModel = {
   tuning: { backend: 'gpu', speculative: false, constrained: true },
   warmUp: async () => {},
   isDownloaded: async () => false,
+  isLoaded: () => false,
+  partialBytes: async () => 0,
   download: async () => { throw new Error(UNAVAILABLE); },
   remove: async () => {},
 };

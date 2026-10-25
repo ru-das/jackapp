@@ -49,8 +49,12 @@ export interface LocalModel {
   /** Loads the model into memory ahead of the first request. Never throws. */
   warmUp(): Promise<void>;
   isDownloaded(): Promise<boolean>;
-  /** Throws a friendly error; leaves no partial file behind. */
-  download(onProgress: (p: { loaded: number; total: number }) => void): Promise<void>;
+  /** True once the engine has the model in memory this session; downloaded is a separate, weaker state. */
+  isLoaded(): boolean;
+  /** Bytes of an interrupted download kept on disk, 0 if none. The next `download` resumes from them. */
+  partialBytes(): Promise<number>;
+  /** Keeps the partial file on interruption or abort so the next call resumes; throws a friendly error (`aborted` on abort). */
+  download(onProgress: (p: { loaded: number; total: number }) => void, signal?: AbortSignal): Promise<void>;
   remove(): Promise<void>;
 }
 

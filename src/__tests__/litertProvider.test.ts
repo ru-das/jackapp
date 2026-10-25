@@ -17,6 +17,7 @@ jest.mock('expo-file-system/legacy', () => ({
   createDownloadResumable: jest.fn(),
   moveAsync: jest.fn(async () => {}),
   deleteAsync: jest.fn(async () => {}),
+  getFreeDiskStorageAsync: jest.fn(async () => 50e9),
 }));
 
 const fs = FileSystem as jest.Mocked<typeof FileSystem>;
@@ -103,29 +104,112 @@ test('a missing model asks for a download and never reaches the mockNative modul
   expect(mockNative.generate).not.toHaveBeenCalled();
 });
 
-test('download: pinned URL, progress, and the .part file is moved only when the size matches', async () => {
+const PART = `file:///data/models/${LITERT_MODEL.file}.${LITERT_MODEL.revision.slice(0, 8)}.part`;
+// First getInfoAsync is hasModel (no model), the rest report the .part size.
+const sizes = (...parts: (number | null)[]) => {
   fs.getInfoAsync.mockResolvedValueOnce({ exists: false } as never);
+  parts.forEach((n) => fs.getInfoAsync.mockResolvedValueOnce((n === null ? { exists: false } : { exists: true, size: n }) as never));
+};
+
+test('download: pinned URL, progress, and the .part file is moved only when the size matches', async () => {
+  sizes(null, LITERT_MODEL.size);
   let onProgress: (d: { totalBytesWritten: number }) => void = () => {};
   fs.createDownloadResumable.mockImplementation(((_url: string, _to: string, _o: unknown, cb: typeof onProgress) => {
     onProgress = cb;
     return { downloadAsync: async () => { onProgress({ totalBytesWritten: 1000 }); } };
   }) as never);
-  present(LITERT_MODEL.size);
   const seen: number[] = [];
   await localModel.download((p) => seen.push(p.loaded));
   expect(fs.createDownloadResumable.mock.calls[0][0]).toBe(
     `https://huggingface.co/${LITERT_MODEL.repo}/resolve/${LITERT_MODEL.revision}/${LITERT_MODEL.file}`);
+  expect(fs.createDownloadResumable.mock.calls[0][4]).toBeUndefined();
   expect(seen).toEqual([1000]);
-  expect(fs.moveAsync).toHaveBeenCalledWith({ from: `file:///data/models/${LITERT_MODEL.file}.part`, to: `file:///data/models/${LITERT_MODEL.file}` });
+  expect(fs.moveAsync).toHaveBeenCalledWith({ from: PART, to: `file:///data/models/${LITERT_MODEL.file}` });
 });
 
-test('download: a short file is deleted and reported, never moved into place', async () => {
-  fs.getInfoAsync.mockResolvedValueOnce({ exists: false } as never);
+test('download: resumes from the bytes already on disk, progress includes them', async () => {
+  sizes(1000, LITERT_MODEL.size);
+  let cb: (d: { totalBytesWritten: number }) => void = () => {};
+  fs.createDownloadResumable.mockImplementation(((_u: string, _t: string, _o: unknown, c: typeof cb) => {
+    cb = c;
+    return { downloadAsync: async () => { cb({ totalBytesWritten: 500 }); } };
+  }) as never);
+  const seen: number[] = [];
+  await localModel.download((p) => seen.push(p.loaded));
+  expect(fs.createDownloadResumable.mock.calls[0][4]).toBe('1000');
+  expect(seen).toEqual([1500]);
+});
+
+test('download: a complete leftover part is moved without downloading', async () => {
+  sizes(LITERT_MODEL.size, LITERT_MODEL.size);
+  await localModel.download(() => {});
+  expect(fs.createDownloadResumable).not.toHaveBeenCalled();
+  expect(fs.moveAsync).toHaveBeenCalled();
+});
+
+test('download: a part larger than the model is deleted and the download starts fresh', async () => {
+  sizes(LITERT_MODEL.size + 5, LITERT_MODEL.size);
   fs.createDownloadResumable.mockReturnValue({ downloadAsync: async () => {} } as never);
-  present(5);
-  await expect(localModel.download(() => {})).rejects.toThrow('did not finish');
-  expect(fs.deleteAsync).toHaveBeenCalledWith(`file:///data/models/${LITERT_MODEL.file}.part`, { idempotent: true });
+  await localModel.download(() => {});
+  expect(fs.deleteAsync).toHaveBeenCalledWith(PART, { idempotent: true });
+  expect(fs.createDownloadResumable.mock.calls[0][4]).toBeUndefined();
+});
+
+test('download: an oversize result (server ignored Range) is deleted with a clear message', async () => {
+  sizes(1000, LITERT_MODEL.size + 1000);
+  fs.createDownloadResumable.mockReturnValue({ downloadAsync: async () => {} } as never);
+  await expect(localModel.download(() => {})).rejects.toThrow('corrupted');
+  expect(fs.deleteAsync).toHaveBeenCalledWith(PART, { idempotent: true });
   expect(fs.moveAsync).not.toHaveBeenCalled();
+});
+
+test('download: a short file is kept for resume, never moved into place', async () => {
+  sizes(null, 5);
+  fs.createDownloadResumable.mockReturnValue({ downloadAsync: async () => {} } as never);
+  await expect(localModel.download(() => {})).rejects.toThrow('Download stopped at 0.0 of');
+  expect(fs.deleteAsync).not.toHaveBeenCalled();
+  expect(fs.moveAsync).not.toHaveBeenCalled();
+});
+
+test('download: a network error keeps the part and says where it stopped', async () => {
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+  sizes(null, 1_200_000_000);
+  fs.createDownloadResumable.mockReturnValue({ downloadAsync: async () => { throw new Error('Network request failed'); } } as never);
+  await expect(localModel.download(() => {})).rejects.toThrow(/stopped at 1\.2 of .* tap Resume/);
+  expect(fs.deleteAsync).not.toHaveBeenCalled();
+});
+
+test('download: low free space fails before any download starts', async () => {
+  sizes(null);
+  fs.getFreeDiskStorageAsync.mockResolvedValueOnce(1e9);
+  await expect(localModel.download(() => {})).rejects.toThrow(/Needs .* GB free but this phone has 1\.0 GB/);
+  expect(fs.createDownloadResumable).not.toHaveBeenCalled();
+});
+
+test('download: abort pauses the task, keeps the part and throws aborted', async () => {
+  sizes(null);
+  const pauseAsync = jest.fn(async () => ({}));
+  const ctl = new AbortController();
+  fs.createDownloadResumable.mockReturnValue({ pauseAsync, downloadAsync: async () => { ctl.abort(); } } as never);
+  await expect(localModel.download(() => {}, ctl.signal)).rejects.toThrow('aborted');
+  expect(pauseAsync).toHaveBeenCalled();
+  expect(fs.deleteAsync).not.toHaveBeenCalled();
+});
+
+test('partialBytes reads the part size, 0 when absent', async () => {
+  fs.getInfoAsync.mockResolvedValueOnce({ exists: true, size: 42 } as never);
+  expect(await localModel.partialBytes()).toBe(42);
+  fs.getInfoAsync.mockResolvedValueOnce({ exists: false } as never);
+  expect(await localModel.partialBytes()).toBe(0);
+});
+
+test('isLoaded turns true after warm-up and false after remove', async () => {
+  await localModel.remove();
+  expect(localModel.isLoaded()).toBe(false);
+  await localModel.warmUp();
+  expect(localModel.isLoaded()).toBe(true);
+  await localModel.remove();
+  expect(localModel.isLoaded()).toBe(false);
 });
 
 test('remove releases the engine and deletes the file and any partial', async () => {

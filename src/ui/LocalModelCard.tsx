@@ -11,26 +11,52 @@ export function LocalModelCard({ style }: { style: object }) {
   const t = useTheme();
   const [downloaded, setDownloaded] = useState<boolean | null>(null);
   const [progress, setProgress] = useState<{ loaded: number; total: number } | null>(null);
+  const [partial, setPartial] = useState(0);
+  const [loaded, setLoaded] = useState(() => localModel.isLoaded());
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [abort, setAbort] = useState<AbortController | null>(null);
 
-  useEffect(() => { void localModel.isDownloaded().then(setDownloaded); }, []);
+  useEffect(() => {
+    void localModel.isDownloaded().then(setDownloaded);
+    void localModel.partialBytes().then(setPartial);
+  }, []);
 
   const download = async () => {
     setError('');
-    setProgress({ loaded: 0, total: LITERT_MODEL.size });
+    setProgress({ loaded: partial, total: LITERT_MODEL.size });
+    const controller = new AbortController();
+    setAbort(controller);
     try {
-      await localModel.download(setProgress);
+      await localModel.download(setProgress, controller.signal);
       setDownloaded(true);
+      setPartial(0);
     } catch (e) {
-      console.error('settings: model download failed', e);
-      setError(e instanceof Error ? e.message : 'Download failed. Check your connection and try again.');
+      // A cancel is the user's own choice, so it shows the paused state, not an error.
+      if (!controller.signal.aborted) {
+        console.error('settings: model download failed', e);
+        setError(e instanceof Error ? e.message : 'Download failed. Check your connection and try again.');
+      }
+      setPartial(await localModel.partialBytes());
     }
+    setAbort(null);
     setProgress(null);
+  };
+  const load = async () => {
+    setError('');
+    setLoading(true);
+    await localModel.warmUp();
+    const ok = localModel.isLoaded();
+    setLoaded(ok);
+    if (!ok) setError("Couldn't load the model. It will try again when you build.");
+    setLoading(false);
   };
   const remove = async () => {
     if (!(await confirm('Delete the downloaded model? You can download it again later.'))) return;
     await localModel.remove();
     setDownloaded(false);
+    setLoaded(false);
+    setPartial(0);
   };
 
   const button = (label: string, onPress: () => void, danger = false) => (
@@ -54,10 +80,20 @@ export function LocalModelCard({ style }: { style: object }) {
             <View style={{ height: 8, borderRadius: 4, backgroundColor: t.accent, width: `${Math.min(100, (progress.loaded / progress.total) * 100)}%` }} />
           </View>
           <Text style={{ color: t.muted, fontSize: 14 }}>{gb(progress.loaded)} of {gb(progress.total)} GB</Text>
+          {button('Cancel download', () => abort?.abort(), true)}
         </View>
       ) : downloaded ? (
         <>
-          <Text style={{ color: t.text, fontSize: 16 }}>Ready on this phone.</Text>
+          <Text style={{ color: t.text, fontSize: 16 }}>
+            {loaded ? 'Downloaded and loaded. Ready offline.' : 'Downloaded. It loads into memory on your first build (10 to 20 seconds).'}
+          </Text>
+          {loaded ? null : button(loading ? 'Loading…' : 'Load now', () => void (loading || load()))}
+          {button('Delete model', () => void remove(), true)}
+        </>
+      ) : downloaded === false && partial > 0 ? (
+        <>
+          <Text style={{ color: t.text, fontSize: 16 }}>Paused at {gb(partial)} of {gb(LITERT_MODEL.size)} GB.</Text>
+          {button('Resume download', () => void download())}
           {button('Delete model', () => void remove(), true)}
         </>
       ) : downloaded === false ? button(`Download (${gb(LITERT_MODEL.size)} GB)`, () => void download()) : null}
