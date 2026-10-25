@@ -5,7 +5,7 @@ import { Tap } from '@/ui/Tap';
 import { Card } from './Card';
 import type { AppSummary } from '@/storage/apps';
 import { ActionButton } from './ActionButton';
-import { AppIcon } from './AppIcon';
+import { AppTile } from './AppTile';
 import { Icon, type IconName } from './Icon';
 import { font, MIN_TARGET, pressed, radius, space, type, useTheme } from './theme';
 
@@ -28,7 +28,7 @@ export function AppRow({ app, onOpen, onRename, onDuplicate, onDelete }: Props) 
       {name === null ? (
         <View style={styles.head}>
           <Tap accessibilityRole="button" accessibilityLabel={`Open ${app.name}`} onPress={onOpen} style={(st) => [styles.title, pressed(st)]}>
-            {app.icon ? <Text style={styles.icon}>{app.icon}</Text> : <AppIcon size={32} />}
+            <AppTile emoji={app.icon || undefined} seed={app.id} />
             <Text style={[styles.name, { color: t.text }]}>{app.name}</Text>
           </Tap>
           <Tap
@@ -64,7 +64,6 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center' },
   title: { flex: 1, minHeight: MIN_TARGET, flexDirection: 'row', alignItems: 'center', gap: space.md },
   more: { minWidth: MIN_TARGET, minHeight: MIN_TARGET, alignItems: 'center', justifyContent: 'center' },
-  icon: { fontSize: 28 },
   name: { flex: 1, fontSize: type.h, fontFamily: font.display },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   flex: { flex: 1 },

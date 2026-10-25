@@ -49,7 +49,7 @@ function Btn({ label, onPress, disabled }: { label: string; onPress: () => void;
       accessibilityRole="button" accessibilityState={{ disabled: !!disabled }} disabled={disabled} onPress={onPress}
       style={[styles.btn, { backgroundColor: t.accent, opacity: disabled ? 0.5 : 1 }]}
     >
-      <Text style={{ color: t.accentText, fontSize: 16, fontWeight: '600' }}>{label}</Text>
+      <Text style={{ color: t.accentText, fontSize: 16, fontFamily: font.semibold }}>{label}</Text>
     </Pressable>
   );
 }

@@ -18,7 +18,7 @@ export function UnsupportedCard({ unsupported, onBuildSuggestion }: Props) {
       </View>
       <Text style={{ color: t.text, fontSize: type.body }}>{unsupported.reason}</Text>
       <Text style={{ color: t.muted, fontSize: type.hint }}>I’d need: {unsupported.missing.join(', ')}</Text>
-      <Text style={{ color: t.text, fontSize: type.body, fontWeight: '600' }}>But I could do this</Text>
+      <Text style={{ color: t.text, fontSize: type.body, fontFamily: font.semibold }}>But I could do this</Text>
       <Text style={{ color: t.text, fontSize: type.body }}>{unsupported.suggestion}</Text>
       <ActionButton icon="bulb-outline" label="Build the suggestion" onPress={onBuildSuggestion} />
     </Card>

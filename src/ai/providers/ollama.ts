@@ -52,3 +52,22 @@ export const ollamaProvider: LLMProvider = {
     return text.trim();
   },
 };
+
+/** Asks the user's own Ollama which models it has, so Settings can say "works" or what to fix before a long build fails. */
+export async function checkOllama(url: string, model: string): Promise<{ ok: boolean; message: string }> {
+  const base = url.trim().replace(/\/+$/, '');
+  let res: Response;
+  try {
+    res = await fetch(`${base}/api/tags`);
+  } catch (e) {
+    console.error('[ollama] check failed', e);
+    return { ok: false, message: `Can’t reach Ollama at ${base}. Is it running, and is the address right?` };
+  }
+  const json: any = await res.json().catch(() => null); // JSON parse boundary
+  const names: unknown = json?.models;
+  if (!res.ok || !Array.isArray(names)) return { ok: false, message: 'That address answered, but it doesn’t look like Ollama.' };
+  const want = model.trim();
+  const has = names.some((m: any) => typeof m?.name === 'string' && (m.name === want || m.name.startsWith(`${want}:`)));
+  if (!want) return { ok: true, message: 'Ollama is running. Add a model name to finish.' };
+  return has ? { ok: true, message: `Ollama is running and has “${want}”.` } : { ok: false, message: `Ollama is running but has no model called “${want}”. Check “ollama list”.` };
+}

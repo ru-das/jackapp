@@ -20,6 +20,8 @@ import { ActionButton } from '@/ui/ActionButton';
 import { Card } from '@/ui/Card';
 import { useAnnounce } from '@/ui/announce';
 import { GenerationStages } from '@/ui/GenerationStages';
+import { Icon } from '@/ui/Icon';
+import { Reveal } from '@/ui/Reveal';
 import { useInsets } from '@/ui/insets';
 import { font, MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/theme';
 import { UnsupportedCard } from '@/ui/UnsupportedCard';
@@ -59,6 +61,8 @@ export default function Create() {
   // A tool type the user picked: the request is built as that type without guessing from its wording.
   const [picked, setPicked] = useState<RecipeId>();
   const [ready, setReady] = useState<{ name: string; ok: boolean } | null>(null);
+  const [typesOpen, setTypesOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   // Re-checked on every focus so coming back from Settings shows the new state; the typed prompt lives in this screen's state and survives the trip.
   useFocusEffect(useCallback(() => {
@@ -180,22 +184,30 @@ export default function Create() {
     return (
       <View style={[styles.fill, { backgroundColor: t.bg }]}>
         <View style={styles.column}>
-        <Text accessibilityRole="header" style={[styles.preview, { color: t.muted }]}>
-          Preview · {phase.spec.meta.icon} {phase.spec.meta.name}
-        </Text>
-        <View accessibilityLiveRegion="polite" style={styles.about}>
-          <Text style={{ color: t.text, fontSize: type.hint }}>
-            {phase.spec.meta.name} is ready. {describeSpec(phase.spec)}
-          </Text>
-          {phase.notes.length ? (
-            <Text style={{ color: t.muted, fontSize: type.hint }}>Good to know: {phase.notes.join(' ')}</Text>
-          ) : null}
+          <View style={styles.banner}>
+            <View style={[styles.pill, { backgroundColor: t.accentSoft }]}>
+              <Text style={{ color: t.text, fontSize: type.meta, fontFamily: font.semibold }}>Preview · not saved yet</Text>
+            </View>
+            <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>{phase.spec.meta.icon} {phase.spec.meta.name}</Text>
+          </View>
+          <View accessibilityLiveRegion="polite" style={styles.about}>
+            <Tap accessibilityRole="button" accessibilityLabel={aboutOpen ? 'Show less' : 'Show all'} accessibilityHint="What this mini-app does" onPress={() => setAboutOpen(!aboutOpen)}>
+              <Text numberOfLines={aboutOpen ? undefined : 3} style={{ color: t.text, fontSize: type.hint }}>{describeSpec(phase.spec)}</Text>
+            </Tap>
+            {phase.notes.length ? (
+              <View style={[styles.callout, { backgroundColor: t.surface, borderColor: t.outline }]}>
+                <Icon name="information-circle-outline" size={22} color={t.text} />
+                <Text style={[styles.flex, { color: t.text, fontSize: type.hint }]}>
+                  <Text style={{ fontFamily: font.semibold }}>Good to know: </Text>{phase.notes.join(' ')}
+                </Text>
+              </View>
+            ) : null}
+          </View>
         </View>
-        </View>
-        <View style={styles.fill}>
+        <Reveal style={styles.fill}>
           <Renderer spec={phase.spec} store={phase.session.store} engine={phase.session.engine}
             onReady={(h) => phase.session.setNavigate(h.navigate)} />
-        </View>
+        </Reveal>
         {saveFailed ? (
           <Text style={[styles.preview, styles.column, { color: t.text }]}>{SAVE_FAILED}</Text>
         ) : null}
@@ -211,13 +223,24 @@ export default function Create() {
 
   return (
     <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={[styles.content, { paddingBottom: space.lg + bottom }]} keyboardShouldPersistTaps="handled">
-      <Text style={[styles.label, { color: t.text }]}>What should your mini-app do?</Text>
-      <Text style={{ color: t.muted, fontSize: type.hint }}>Works best for a tracker, checklist, counter, calculator, timer, reminder, or photo-to-list tool.</Text>
+      <Text accessibilityRole="header" style={[styles.label, { color: t.text }]}>What should your mini-app do?</Text>
       <TextInput
         accessibilityLabel="Describe your mini-app" multiline editable={!busy} value={prompt} onChangeText={setPrompt}
         maxLength={1000} placeholder="e.g. Track my daily water intake" placeholderTextColor={t.muted}
         style={[styles.input, { color: t.text, backgroundColor: t.surface, borderColor: t.outline }]}
       />
+      <Text style={{ color: t.muted, fontSize: type.hint }}>Works best for a tracker, checklist, counter, calculator, timer, reminder, or photo-to-list tool.</Text>
+      {busy ? <ActionButton kind="quiet" icon="close" label="Cancel" onPress={cancel} />
+        : ready && !ready.ok ? (
+          <>
+            <Text accessibilityLiveRegion="polite" style={{ color: t.muted, fontSize: type.hint }}>
+              AI isn’t set up yet. JackApp builds with a model on your phone (a one-time download of about 2.6 GB) or on your own Ollama computer.
+            </Text>
+            <ActionButton icon="settings-outline" label="Set up AI" onPress={() => router.push('/settings')} />
+          </>
+        )
+        : <ActionButton icon="sparkles-outline" label="Build" disabled={!prompt.trim()} onPress={() => void build(prompt)} />}
+      <Text style={[styles.sub, { color: t.text }]}>Need ideas?</Text>
       <View style={styles.chips}>
         {EXAMPLES.map((e) => (
           <Tap key={e.label} accessibilityRole="button" accessibilityLabel={`Example: ${e.label}`} disabled={busy}
@@ -226,36 +249,34 @@ export default function Create() {
           </Tap>
         ))}
       </View>
-      <Text style={{ color: t.muted, fontSize: type.hint }}>Or pick a kind of mini-app:</Text>
-      <View style={styles.chips}>
-        {(Object.keys(RECIPES) as RecipeId[]).map((id) => (
-          <Tap key={id} accessibilityRole="button" accessibilityLabel={`Kind: ${RECIPES[id].title}`} accessibilityState={{ selected: picked === id }} disabled={busy}
-            onPress={() => setPicked(picked === id ? undefined : id)}
-            style={(st) => [styles.chip, { backgroundColor: picked === id ? t.accent : t.accentSoft }, pressed(st)]}>
-            <Text style={{ color: picked === id ? t.accentText : t.text, fontSize: type.hint }}>{RECIPES[id].title}</Text>
-          </Tap>
-        ))}
-      </View>
-      {ready ? (
-        <Text accessibilityLiveRegion="polite" style={{ color: t.muted, fontSize: type.hint }}>
-          AI: {ready.name} · {ready.ok ? 'ready' : 'not set up yet'}
-        </Text>
+      <Tap accessibilityRole="button" accessibilityState={{ expanded: typesOpen }} disabled={busy} onPress={() => setTypesOpen(!typesOpen)}
+        style={(st) => [styles.disclosure, pressed(st)]}>
+        <Text style={{ color: t.text, fontSize: type.hint }}>{picked ? `Type: ${RECIPES[picked].title}` : 'Or pick a type of mini-app'}</Text>
+        <Icon name={typesOpen ? 'chevron-up' : 'chevron-down'} size={20} color={t.text} />
+      </Tap>
+      {typesOpen ? (
+        <View style={styles.chips}>
+          {(Object.keys(RECIPES) as RecipeId[]).map((id) => (
+            <Tap key={id} accessibilityRole="button" accessibilityLabel={`Type: ${RECIPES[id].title}`} accessibilityState={{ selected: picked === id }} disabled={busy}
+              onPress={() => setPicked(picked === id ? undefined : id)}
+              style={(st) => [styles.chip, { backgroundColor: picked === id ? t.accent : t.accentSoft }, pressed(st)]}>
+              <Text style={{ color: picked === id ? t.accentText : t.text, fontSize: type.hint }}>{RECIPES[id].title}</Text>
+            </Tap>
+          ))}
+        </View>
       ) : null}
-      {busy ? <ActionButton kind="quiet" icon="close" label="Cancel" onPress={cancel} />
-        : ready && !ready.ok ? <ActionButton icon="settings-outline" label="Set up AI" onPress={() => router.push('/settings')} />
-        : <ActionButton icon="sparkles-outline" label="Build" disabled={!prompt.trim()} onPress={() => void build(prompt)} />}
 
       {phase.kind === 'loading' ? (
         <View accessibilityLiveRegion="polite" style={styles.wait}>
           <ActivityIndicator color={t.accent} />
-          <Text style={{ color: t.muted, fontSize: type.body }}>Getting started…</Text>
+          <Text style={{ color: t.muted, fontSize: type.body }}>Getting ready…</Text>
         </View>
       ) : null}
       {phase.kind === 'working' ? <GenerationStages progress={phase.progress} /> : null}
       {phase.kind === 'needsModel' ? (
         <Card>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Set up AI first</Text>
-          <Text style={{ color: t.muted, fontSize: type.body }}>JackApp needs the on-device model or an Ollama model to build mini-apps.</Text>
+          <Text style={{ color: t.muted, fontSize: type.body }}>JackApp builds with a model on your phone (a one-time download of about 2.6 GB) or on your own Ollama computer.</Text>
           <ActionButton icon="settings-outline" label="Open settings" onPress={() => router.push('/settings')} />
         </Card>
       ) : null}
@@ -289,15 +310,20 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   flex: { flex: 1 },
   content: { padding: space.lg, gap: space.md, maxWidth: 640, width: '100%', alignSelf: 'center' },
-  label: { fontSize: type.h, fontFamily: font.display },
-  input: { minHeight: 110, padding: space.md, borderRadius: radius.control, borderWidth: 1, fontSize: type.body, textAlignVertical: 'top' },
+  label: { fontSize: 30, lineHeight: 36, fontFamily: font.display },
+  sub: { fontSize: type.body, fontFamily: font.semibold },
+  input: { minHeight: 140, padding: space.md, borderRadius: radius.control, borderWidth: 1, fontSize: 20, fontFamily: font.display, textAlignVertical: 'top' },
+  disclosure: { minHeight: MIN_TARGET, flexDirection: 'row', alignItems: 'center', gap: space.sm },
   wait: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   chip: { minHeight: MIN_TARGET, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill },
   h: { fontSize: type.h, fontFamily: font.display },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center' },
   preview: { fontSize: type.meta, paddingHorizontal: space.lg, paddingTop: space.sm },
+  banner: { paddingHorizontal: space.lg, paddingTop: space.md, gap: space.xs, alignItems: 'flex-start' },
+  pill: { paddingHorizontal: space.md, paddingVertical: space.xs, borderRadius: radius.pill },
   about: { paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.sm },
+  callout: { flexDirection: 'row', gap: space.sm, padding: space.md, borderRadius: radius.control, borderWidth: 1 },
   barWrap: { borderTopWidth: StyleSheet.hairlineWidth },
   barInner: { flexDirection: 'row', gap: space.sm, padding: space.md, width: '100%', maxWidth: 640, alignSelf: 'center' },
 });

@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 import Home from '@/app/index';
+import { h2 } from '@/spec/fixtures';
 import { listApps } from '@/storage/apps';
 
 const mockPush = jest.fn();
@@ -26,8 +27,8 @@ test('empty Home invites a first build and offers templates with Make similar', 
   await render(<Home />);
   expect(await screen.findByText('No mini-apps yet')).toBeTruthy();
   for (const name of ['Fridge Snap', 'Plant Pal', 'Bill Splitter']) {
-    expect(screen.getByText(`Try ${name}`)).toBeTruthy();
-    expect(screen.getByText(`Make similar to ${name}`)).toBeTruthy();
+    expect(screen.getByLabelText(`Try ${name}`)).toBeTruthy();
+    expect(screen.getByLabelText(`Make similar to ${name}`)).toBeTruthy();
   }
 });
 
@@ -43,9 +44,9 @@ test('storage failure shows a retry card, never the empty state', async () => {
 test('New mini-app comes before the templates, with an AI note on photo templates', async () => {
   await render(<Home />);
   expect(screen.getByText('New mini-app')).toBeTruthy();
-  expect(screen.getByText('Try a ready-made mini-app')).toBeTruthy();
+  expect(screen.getByText('Start from something')).toBeTruthy();
   expect(screen.getAllByText(/Reading photos needs AI/)).toHaveLength(2);
-  expect(screen.getByText('Works right away.')).toBeTruthy();
+  expect(screen.getAllByText('Works right away.')).toHaveLength(3); // two ready-made apps and Plant Pal
 });
 
 test.each(['Checklist', 'Tip Calculator'])('ready-made %s saves a valid app and opens it without AI', async (label) => {
@@ -62,4 +63,17 @@ test('Settings is an icon button in the header row, found by its label', async (
   await fireEvent.press(screen.getByRole('button', { name: 'Settings' }));
   expect(mockPush).toHaveBeenCalledWith('/settings');
   expect(screen.queryByText('Settings')).toBeNull();
+});
+
+test('saved apps come first and starters go away once there are three', async () => {
+  await AsyncStorage.clear();
+  await render(<Home />);
+  await fireEvent.press(await screen.findByText('Checklist'));
+  await waitFor(async () => expect(await listApps()).toHaveLength(1));
+  await AsyncStorage.clear();
+  const spec = h2;
+  for (const id of ['app-a', 'app-b', 'app-c']) await AsyncStorage.setItem(`jackapp:spec:${id}`, JSON.stringify(spec));
+  await render(<Home />);
+  await waitFor(() => expect(screen.queryByText('Start from something')).toBeNull());
+  expect(screen.getAllByLabelText(/^Open /).length).toBeGreaterThanOrEqual(3);
 });

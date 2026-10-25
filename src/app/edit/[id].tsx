@@ -13,7 +13,7 @@ import { duplicateApp, loadValid, notifyAppsChanged } from '@/storage/apps';
 import { ActionButton } from '@/ui/ActionButton';
 import { useAnnounce } from '@/ui/announce';
 import { useInsets } from '@/ui/insets';
-import { MIN_TARGET, radius, space, type, useTheme } from '@/ui/theme';
+import { font, MIN_TARGET, radius, space, type, useTheme } from '@/ui/theme';
 
 const keysOf = (text: string) => [...readSettings(text).keys()];
 
@@ -108,7 +108,7 @@ export default function Customize() {
       <Text style={{ color: t.muted, fontSize: type.body }}>Change the settings this mini-app was built from. Your saved data stays unless a change would hide it; you’ll be asked first.</Text>
       {keys.map((k) => (
         <View key={k} style={{ gap: space.xs }}>
-          <Text style={{ color: t.text, fontSize: type.body, fontWeight: '600' }}>{labelOf(k)}</Text>
+          <Text style={{ color: t.text, fontSize: type.body, fontFamily: font.semibold }}>{labelOf(k)}</Text>
           <TextInput
             accessibilityLabel={labelOf(k)} multiline value={values[k] ?? ''} onChangeText={(v) => setValues((s) => ({ ...s, [k]: v }))}
             style={[styles.input, { color: t.text, backgroundColor: t.surface, borderColor: t.outline }]}

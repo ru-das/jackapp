@@ -13,6 +13,7 @@ import { deleteApp, duplicateApp, listApps, newAppId, notifyAppsChanged, subscri
 import { ActionButton } from '@/ui/ActionButton';
 import { AppRow } from '@/ui/AppRow';
 import { Card } from '@/ui/Card';
+import { StarterRow } from '@/ui/StarterRow';
 import { useInsets } from '@/ui/insets';
 import { AppIcon } from '@/ui/AppIcon';
 import { Icon } from '@/ui/Icon';
@@ -106,18 +107,7 @@ export default function Home() {
           <Icon name="settings-outline" size={26} color={t.text} />
         </Tap>
       </View>
-      <Text style={{ color: t.muted, fontSize: type.body }}>
-        Describe a small mini-app and it gets built. Or try a ready-made one: it works right away, no AI needed.
-      </Text>
       <ActionButton icon="add" label="New mini-app" onPress={() => router.push('/create')} />
-      <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Try a ready-made mini-app</Text>
-      <View style={styles.tpl}>
-        {READY_MADE.map((r) => (
-          <View key={r.label} style={styles.flex}>
-            <ActionButton kind="quiet" icon={r.icon} label={r.label} onPress={() => void tryTemplate(r.spec())} />
-          </View>
-        ))}
-      </View>
       {apps === null ? <ActivityIndicator accessibilityLabel="Loading your mini-apps" color={t.accent} /> : null}
       {apps === 'error' ? (
         <Card>
@@ -129,9 +119,9 @@ export default function Home() {
       {apps !== 'error' && apps?.length === 0 ? (
         <Card style={styles.empty}>
           <AppIcon size={72} />
-          <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>No mini-apps yet</Text>
+          <Text accessibilityRole="header" style={[styles.h, styles.center, { color: t.text }]}>No mini-apps yet</Text>
           <Text style={{ color: t.muted, fontSize: type.body, textAlign: 'center' }}>
-            Describe a small mini-app and it gets built on your device.
+            Say what you need in a sentence. It gets built on your device and stays there.
           </Text>
         </Card>
       ) : null}
@@ -141,23 +131,24 @@ export default function Home() {
           onRename={(n) => void rename(a, n)} onDuplicate={() => void duplicate(a)} onDelete={() => void remove(a)}
         />
       )) : null}
-      <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Examples to try</Text>
-      {FIXTURES.map(({ id, spec, tag }) => (
-        <Card key={id}>
-          <View style={styles.tpl}>
-            <Text style={styles.icon}>{spec.meta.icon}</Text>
-            <View style={styles.flex}>
-              <Text style={[styles.name, { color: t.text }]}>{spec.meta.name}</Text>
-              <Text style={{ color: t.muted, fontSize: type.meta }}>{spec.meta.description}</Text>
-              <Text style={{ color: t.muted, fontSize: type.meta }}>{tag}</Text>
-            </View>
-          </View>
-          <View style={styles.tpl}>
-            <View style={styles.flex}><ActionButton icon="play" label={`Try ${spec.meta.name}`} onPress={() => void tryTemplate(spec)} /></View>
-            <View style={styles.flex}><ActionButton kind="quiet" icon="copy-outline" label={`Make similar to ${spec.meta.name}`} onPress={() => remix(spec)} /></View>
-          </View>
-        </Card>
-      ))}
+      {/* Starters are for people with little of their own yet; once three apps exist they only push the user's work down. */}
+      {apps !== null && !(Array.isArray(apps) && apps.length >= 3) ? (
+        <>
+          <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Start from something</Text>
+          <Card style={styles.starters}>
+            {READY_MADE.map((r) => (
+              <StarterRow key={r.label} name={r.label} line={r.hint} icon={r.icon} note="Works right away." tryLabel={r.label} onTry={() => void tryTemplate(r.spec())} />
+            ))}
+            {FIXTURES.map(({ id, spec, tag }) => (
+              <StarterRow
+                key={id} name={spec.meta.name} line={spec.meta.description} note={tag} emoji={spec.meta.icon}
+                tryLabel={`Try ${spec.meta.name}`} onTry={() => void tryTemplate(spec)}
+                similarLabel={`Make similar to ${spec.meta.name}`} onSimilar={() => remix(spec)}
+              />
+            ))}
+          </Card>
+        </>
+      ) : null}
       {__DEV__ ? (
         <Card>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Dev: load a fixture</Text>
@@ -192,10 +183,12 @@ const styles = StyleSheet.create({
   title: { fontSize: type.title, fontFamily: font.display },
   gear: { minWidth: MIN_TARGET, minHeight: MIN_TARGET, alignItems: 'center', justifyContent: 'center' },
   empty: { alignItems: 'center' },
+  center: { textAlign: 'center' },
+  starters: { paddingVertical: space.sm, gap: space.none },
   h: { fontSize: type.h, fontFamily: font.display, marginBottom: space.sm },
   row: { minHeight: MIN_TARGET + 12, flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.control },
   icon: { fontSize: 28 },
   tpl: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   flex: { flex: 1 },
-  name: { fontSize: type.body, fontWeight: '600' },
+  name: { fontSize: type.body, fontFamily: font.semibold },
 });

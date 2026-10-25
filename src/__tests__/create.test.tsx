@@ -37,7 +37,7 @@ test('chip → Build → live preview → Save writes a valid spec and opens it'
   await render(<Create />);
   await fireEvent.press(screen.getByLabelText('Example: Fridge Snap'));
   await fireEvent.press(screen.getByText('Build'));
-  expect(await screen.findByText(/Preview · 🧊 Fridge Snap/)).toBeTruthy();
+  expect(await screen.findByText(/Preview · not saved yet/)).toBeTruthy();
   await fireEvent.press(screen.getByText('Save'));
   await waitFor(() => expect(mockReplace).toHaveBeenCalled());
   const id = mockReplace.mock.calls[0][0].params.id;
@@ -54,20 +54,21 @@ test('unsupported request shows reason, suggestion and builds the suggestion', a
   await waitFor(() => expect(screen.queryByText('Build the suggestion')).toBeNull());
 });
 
-test('AI not set up: status line and Set up AI replace Build', async () => {
+test('AI not set up: a plain explanation and Set up AI replace Build', async () => {
   jest.spyOn(mockProvider, 'isConfigured').mockResolvedValue(false);
   await render(<Create />);
   await type('A water tracker');
-  expect(await screen.findByText('AI: Mock · not set up yet')).toBeTruthy();
+  expect(await screen.findByText(/AI isn’t set up yet/)).toBeTruthy();
   expect(screen.queryByText('Build')).toBeNull();
   await fireEvent.press(screen.getByText('Set up AI'));
   expect(mockPush).toHaveBeenCalledWith('/settings');
 });
 
-test('AI ready: status line and Build, typed prompt kept', async () => {
+test('AI ready: just Build, typed prompt kept', async () => {
   await render(<Create />);
   await type('A water tracker');
-  expect(await screen.findByText('AI: Mock · ready')).toBeTruthy();
+  expect(await screen.findByText('Build')).toBeTruthy();
+  expect(screen.queryByText(/AI isn’t set up yet/)).toBeNull();
   expect(screen.getByDisplayValue('A water tracker')).toBeTruthy();
   expect(screen.getByText('Build')).toBeTruthy();
 });
@@ -77,7 +78,7 @@ test('failed save keeps the preview and says so; retry saves and the app reopens
   await render(<Create />);
   await fireEvent.press(screen.getByLabelText('Example: Fridge Snap'));
   await fireEvent.press(screen.getByText('Build'));
-  await screen.findByText(/Preview · 🧊 Fridge Snap/);
+  await screen.findByText(/Preview · not saved yet/);
   jest.spyOn(AsyncStorage, 'setItem').mockRejectedValueOnce(new Error('full'));
   await fireEvent.press(screen.getByText('Save'));
   expect(await screen.findByText(/Couldn’t save\. Your changes are still open/)).toBeTruthy();
@@ -131,4 +132,12 @@ test('leaving mid-build asks too, in words about stopping the build', async () =
   } finally {
     delete process.env.EXPO_PUBLIC_MOCK_DELAY_MS;
   }
+});
+
+test('the type picker is folded away until asked for, and a pick shows on the fold', async () => {
+  await render(<Create />);
+  expect(screen.queryByLabelText('Type: Timer')).toBeNull();
+  await fireEvent.press(screen.getByText('Or pick a type of mini-app'));
+  await fireEvent.press(screen.getByLabelText('Type: Timer'));
+  expect(screen.getByLabelText('Type: Timer').props.accessibilityState.selected).toBe(true);
 });

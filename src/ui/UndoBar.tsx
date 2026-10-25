@@ -6,7 +6,7 @@ import { Tap } from '@/ui/Tap';
 import type { Store } from '@/runtime/store';
 import { useAnnounce } from '@/ui/announce';
 import { useInsets } from '@/ui/insets';
-import { inverse, MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/theme';
+import { font, inverse, MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/theme';
 
 const SHOW_MS = 8000;
 
@@ -44,5 +44,5 @@ const styles = StyleSheet.create({
   },
   text: { fontSize: type.body, flexShrink: 1 },
   target: { minHeight: MIN_TARGET, minWidth: MIN_TARGET, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: space.md, justifyContent: 'center' },
-  undo: { fontSize: type.body, fontWeight: '600' },
+  undo: { fontSize: type.body, fontFamily: font.semibold },
 });

@@ -5,7 +5,8 @@ import { readJson, writeJson } from './index';
 
 export const SETTINGS_KEY = 'jackapp:settings';
 
-const httpUrl = z.string().refine((v) => /^https?:\/\/[^\s/]+/i.test(v));
+export const isHttpUrl = (v: string) => /^https?:\/\/[^\s/]+/i.test(v.trim());
+const httpUrl = z.string().refine(isHttpUrl);
 
 // Fresh Android installs start on-device (ADR-022); web has no on-device model, so it starts on Ollama. Junk saved values (and a saved 'openrouter', removed in ADR-049) fall back to the same default.
 const DEFAULT_PROVIDER = Platform.OS === 'android' ? 'local' : 'ollama';
