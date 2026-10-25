@@ -252,7 +252,7 @@ test('malformed action Values map to BAD_VALUE before BAD_ACTION/SHAPE', () => {
 });
 test('valid formatters and aggregate variants', () => {
   const state = { ...h1.state, n: { type: 'number', default: 0 }, when: { type: 'date', default: null } };
-  const text = '{{notes|upper}} {{notes|lower}} {{items|count}} {{n|currency}} {{n|fixed2}} {{when|date}} {{when|time}} {{when|ago}}';
+  const text = '{{notes|upper}} {{notes|lower}} {{items|count}} {{n|currency}} {{n|fixed2}} {{when|date}} {{when|time}} {{when|ago}} {{items|lines}}';
   expect(validate({ ...stat(text, 'text'), state })).toEqual([]);
   for (const op of ['sum', 'avg', 'min', 'max', 'count']) expect(validate({ ...stat({ $agg: {
     op, of: 'items', ...(op === 'count' ? {} : { field: 'n' }), where: { field: 'when', equals: null },

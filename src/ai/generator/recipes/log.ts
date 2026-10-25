@@ -108,7 +108,7 @@ export function buildLog(c: LogConfig): Obj {
     } : {}),
     ...(record ? { record: { steps: [{ op: 'state.update', path: 'items', index: ref('$index'), set: record }] } } : {}),
     ...(c.checkbox ? { clearDone: { steps: [{ op: 'state.remove', path: 'items', where: { field: 'done', equals: true } }] } } : {}),
-    ...(c.share ? { share: { steps: [{ op: 'share', text: `${c.name}: {{items|count}} ${c.noun}s` }] } } : {}),
+    ...(c.share ? { share: { steps: [{ op: 'share', text: `${c.name}: {{items|count}} ${c.noun}s\n{{items|lines}}` }] } } : {}),
   };
   return assemble({ name: c.name, description: c.description, icon: c.icon }, state, root, t.elements, actions,
     c.reminder ? [reminderTrigger(c.name, c.reminder)] : [], itemScreen);

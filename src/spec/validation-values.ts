@@ -17,7 +17,7 @@ export function referenceType(ctx: ValidationContext, ref: string, path: string,
   return ctx.state(ref, path);
 }
 const formatTypes: Record<string, readonly string[]> = {
-  count: ['list'], upper: ['string'], lower: ['string'], currency: ['number'], fixed2: ['number'],
+  count: ['list'], lines: ['list'], upper: ['string'], lower: ['string'], currency: ['number'], fixed2: ['number'],
   date: ['date'], time: ['date'], ago: ['date'],
 };
 export function template(ctx: ValidationContext, text: string, path: string, item?: ItemContext) {

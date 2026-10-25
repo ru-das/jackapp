@@ -66,6 +66,7 @@ export function buildSplitter(c: SplitterConfig): Obj {
     editIndex: { type: 'number', default: 0, persist: false }, editName: { type: 'string', default: '', persist: false },
     editPrice: { type: 'number', default: 0, persist: false }, editKind: { type: 'string', default: 'item', persist: false }, editCheck: { type: 'string', default: '', persist: false },
     summary: { type: 'string', default: '', persist: false },
+    grandTotal: { type: 'number', default: 0, persist: false }, eachPays: { type: 'number', default: 0, persist: false },
   }, root, t.elements, {
     readBill: { steps: [aiStep, ...recalc, { op: 'toast', message: 'Check the lines and the bill total. Fix any line marked ⚠.' }] },
     recalc: { steps: recalc },
@@ -78,7 +79,9 @@ export function buildSplitter(c: SplitterConfig): Obj {
       ...recalc, { op: 'navigate', screen: 'main' }] },
     deleteLine: { steps: [{ op: 'confirm', message: 'Delete this line?' }, { op: 'state.remove', path: 'lines', index: ref('editIndex') }, ...recalc, { op: 'navigate', screen: 'main' }] },
     share: { steps: [
-      { op: 'state.set', path: 'summary', value: `${c.name}: {{billTotal|fixed2}} + tip {{tip|fixed2}} {{currency}} between {{people}} people` },
+      { op: 'state.set', path: 'grandTotal', value: grand },
+      { op: 'state.set', path: 'eachPays', value: math('round', math('/', grand, ref('people')), 2) },
+      { op: 'state.set', path: 'summary', value: `${c.name}: bill {{billTotal|fixed2}} + tip {{tip|fixed2}} = {{grandTotal|fixed2}} {{currency}}\n{{people}} people, {{eachPays|fixed2}} {{currency}} each` },
       { op: 'share', text: '{{summary}}' }] },
   }, [], [{ id: 'line', title: 'Fix a line', root: lineRoot }]);
 }

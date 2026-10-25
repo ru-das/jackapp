@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-107 share text (Claude Code, 2026-10-25, human-requested; edits Codex-owned `src/spec/{values,validation-values}.ts`, `recipes/{ai,compare,log,splitter}.ts`; ask Codex to review the `lines` formatter):** ADR-037. Checklist/log/shopping Share lists items; splitter Share has bill, tip, total, people, each. Money fields print as plain numbers. **Not tried on a device.** Next: T-108 undo, T-109 edit entry, T-110 CSV export (TASKS.md).
+>
 > **T-104..106 data entry (Claude Code, 2026-10-25, human-requested; T-106 edits Codex-owned `src/spec/{schema,validation-actions}.ts`, `runtime/actions.ts`, `recipes/log.ts`; ask Codex to review the `required` contract):** ADR-036. Number field keeps typed text, commits valid numbers, explains invalid ones. Settings → Money picks the currency (no locale guessing). `state.append` `required` stops blank names. `npm run check` green (53 suites / 2,588 tests). **Not tried on a device.** **Human next:** clear and retype an amount (`12.`, `-3`), blur on `abc`; Add an expense with a blank name; Settings → INR, reopen an app. Limits: `state.update` edits unchecked; per-app currency only on the splitter.
 >
 > **T-103 uncertain AI output (Claude Code, 2026-10-25, human-requested; edits Codex-owned `src/spec/*`, `runtime/actions.ts`, `recipes/{splitter,ai}.ts`; ask Codex to review the `flag` contract):** ADR-035. `ai.run`: fields not in `defaults` are essential; blank/missing/wrong type = unreadable; rows with nothing readable are dropped; new `flag` field marks partly read rows ("Couldn't read the price"); empty result throws a `FriendlyError` toast and leaves the old list. Splitter shows ⚠ on flagged lines (new `List.flagField`), "Lines to check", and keeps them out of the total until fixed. `npm run check` green (51 suites / 2,580 tests). **Not tried on a device.** **Human next:** read a blurry receipt, see ⚠ lines and the count, fix one, re-read with a blank photo (old lines must stay). Limits: unknown `kind` values are not flagged; no add-a-line action.
@@ -181,6 +183,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-107 | `lines` formatter; Share sends item rows; splitter Share sends bill, tip, total, each. | see git |
 | 2026-10-25 | Claude Code | T-106 | `state.append` `required` text fields; log Add refuses a blank title. | see git |
 | 2026-10-25 | Claude Code | T-105 | Currency setting (Settings → Money) replaces fixed USD in Renderer and session. | see git |
 | 2026-10-25 | Claude Code | T-104 | Number field keeps draft text, commits valid numbers, explains invalid ones. | see git |

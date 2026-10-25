@@ -41,6 +41,6 @@ export function buildCompare(c: { name: string; icon: string; description: strin
     addSeen: append('seen', 'newSeen'), addStaple: append('staples', 'newStaple'),
     makeList: { steps: [{ op: 'state.diff', path: 'items', from: 'staples', without: 'seen', field: 'name' }, { op: 'toast', message: '{{items|count}} usual items not seen' }] },
     clearDone: { steps: [{ op: 'state.remove', path: 'items', where: { field: 'done', equals: true } }] },
-    ...(c.share ? { share: { steps: [{ op: 'share', text: `${c.name}: {{items|count}} items to buy` }] } } : {}),
+    ...(c.share ? { share: { steps: [{ op: 'share', text: `${c.name}: to buy\n{{items|lines}}` }] } } : {}),
   });
 }

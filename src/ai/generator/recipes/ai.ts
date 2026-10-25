@@ -57,7 +57,7 @@ export function buildAi(c: AiConfig): Obj {
       ...(c.history && !checklist ? [{ op: 'state.append', path: 'history', value: { answer: ref('result'), when: NOW } }] : []),
       ...(checklist ? [{ op: 'toast', message: '{{items|count}} items on your list' }] : [])] },
     ...(checklist ? { clearDone: { steps: [{ op: 'state.remove', path: 'items', where: { field: 'done', equals: true } }] } } : {}),
-    ...(c.share ? { share: { steps: [{ op: 'share', text: checklist ? `${c.name}: {{items|count}} items` : '{{result}}' }] } } : {}),
+    ...(c.share ? { share: { steps: [{ op: 'share', text: checklist ? `${c.name}:\n{{items|lines}}` : '{{result}}' }] } } : {}),
   };
   return assemble({ name: c.name, description: c.description, icon: c.icon }, state, root, t.elements, actions);
 }

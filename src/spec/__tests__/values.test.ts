@@ -108,7 +108,7 @@ describe('value resolution', () => {
     expect(resolveTemplate('<b>{{html}}</b>', { ...context, state: { html } })).toBe(`<b>${html}</b>`);
   });
   test.each([
-    ['{{name|upper}}', 'MILK'], ['{{name|lower}}', 'milk'], ['{{items|count}}', '2'],
+    ['{{name|upper}}', 'MILK'], ['{{items|lines}}', '- Milk · 40\n- Eggs · 60'], ['{{name|lower}}', 'milk'], ['{{items|count}}', '2'],
     ['{{people|fixed2}}', '2.00'], ['{{people|currency}}', '$2.00'],
     ['{{since|date}}', 'Oct 19, 2026'], ['{{since|time}}', '12:00 PM'], ['{{since|ago}}', '3 days ago'],
   ])('formatter %s', (template, expected) => expect(resolveTemplate(template, context)).toBe(expected));
@@ -150,7 +150,7 @@ describe('value resolution', () => {
   });
   test('null and missing substitutions are empty with all formatters', () => {
     const onWarning = jest.fn();
-    for (const formatter of ['count', 'date', 'time', 'ago', 'upper', 'lower', 'currency', 'fixed2']) {
+    for (const formatter of ['count', 'date', 'time', 'ago', 'upper', 'lower', 'currency', 'fixed2', 'lines']) {
       expect(resolveTemplate(`{{nil|${formatter}}}{{missing|${formatter}}}`, { ...context, onWarning })).toBe('');
     }
     expect(onWarning).not.toHaveBeenCalled();

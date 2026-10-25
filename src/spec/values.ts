@@ -114,6 +114,13 @@ function format(value: unknown, formatter: string | undefined, context: ValueCon
       case 'count':
         if (Array.isArray(value)) return String(value.length);
         break;
+      case 'lines':
+        // One "- a · b" row per item for sharing; empty and boolean fields are skipped.
+        if (Array.isArray(value)) return value.map((row) => `- ${Object.values(row && typeof row === 'object' ? row : {})
+          .filter((v) => (typeof v === 'string' && v !== '') || finite(v))
+          .map((v) => (typeof v === 'string' && IsoDateSchema.safeParse(v).success ? format(v, 'date', context) : String(v)))
+          .join(' · ')}`).join('\n');
+        break;
       case 'upper':
         if (typeof value === 'string') return value.toLocaleUpperCase(context.locale);
         break;

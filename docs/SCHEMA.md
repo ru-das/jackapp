@@ -83,7 +83,7 @@ A prop that accepts a **Value** can be any of these:
 
 **`$math`**: `[op, a, b]` with `op` in `+ - * / pow min max`, `["round", a, digits]`, or `["days", from, to]`. Operands are Values. Max nesting depth 3. Division by zero → `0` plus a runtime warning. `pow` is exponentiation (`sqrt(x)` is `pow(x, 0.5)`); a non-finite result is `0` plus a warning. `days` takes dates (a date state, `{"$now":true}` or an ISO date literal) and returns the whole calendar days from `from` to `to` (negative if `to` is earlier); only the date part counts (ADR-029).
 
-**Formatters** (templates only): `count` (list length), `date`, `time`, `ago` ("3 days ago"), `upper`, `lower`, `currency` (locale default currency, 2 decimals), `fixed2`.
+**Formatters** (templates only): `count` (list length), `date`, `time`, `ago` ("3 days ago"), `upper`, `lower`, `currency` (locale default currency, 2 decimals), `fixed2`, `lines` (list only: one `- a · b` row per item, empty and boolean fields skipped, dates as `date`; used by Share).
 
 Templates render **plain text only**. Write `\{{` for a literal `{{`.
 
