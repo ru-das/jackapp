@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { KeyboardAvoidingView } from 'react-native';
 import { onNotificationOpen, registerOffline } from '@/capabilities';
 import { Toaster } from '@/ui/Toaster';
-import { useTheme } from '@/ui/theme';
+import { palettes, useTheme } from '@/ui/theme';
 
 export default function RootLayout() {
   const t = useTheme();
@@ -17,6 +17,8 @@ export default function RootLayout() {
       <Stack screenOptions={{
         headerStyle: { backgroundColor: t.bg }, headerTintColor: t.text, headerShadowVisible: false,
         contentStyle: { backgroundColor: t.bg },
+        // Android's default is light (white) icons, which vanish on the cream light background; 'auto' is iOS-only there.
+        statusBarStyle: t === palettes.dark ? 'light' : 'dark',
       }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="create" options={{ title: 'New mini-app' }} />

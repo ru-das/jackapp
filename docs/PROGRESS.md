@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M7 — Ship: features done and device-tested; cleaning and polishing; T-70..74 (log, video, README, DEV post, publish) open |
-| Last updated | 2026-10-25 by Claude Code (T-126) |
+| Last updated | 2026-10-25 by Claude Code (T-127) |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-127 adapt: status bar and portrait lock (Claude Code, 2026-10-25, human-requested after the second audit; no Codex-owned files touched):** ADR-046. `statusBarStyle` on the root `Stack` (`dark` icons on the light theme, `light` on the dark one; the library's Android default is white icons, which would vanish on the cream background); `layout.test.tsx` checks both. Portrait lock **kept** for phones (landscape would leave the Create preview about 100 dp); the app targets Android 16, which ignores the lock on 600 dp+ screens, so I read every screen for wide windows: all are one centred column of at most 640 dp; only the toast pill was uncapped (now 608). `npm run check` green. **Not tried on a device.** **Human next:** (1) light mode: clock and battery in the status bar are dark on Home, Create, Settings; dark mode: they are light; switch system theme while the app is open. (2) If you have a tablet or foldable (or the Android 16 large-screen emulator): rotate it; Home, a mini-app and the Create preview should be a centred column, no stretched controls. If the status bar icons look right already, nothing else to do. **Not done:** navigation bar icon colour (system decides), list-detail or two-pane layouts for tablets.
+>
 > **T-126 leave guards (Claude Code, 2026-10-25, human-requested after the second audit; no Codex-owned files touched):** `usePreventRemove` (from `expo-router`, no new dependency) in `src/app/create.tsx` while the phase is `preview`, and in `src/app/edit/[id].tsx` while any setting differs from what was loaded. Both ask through `confirm` ("Discard this mini-app?" / "Discard your changes?", button **Discard**); Save calls the returned `disablePrevention()` before `router.replace` / `router.back`, so saving never asks. Putting an edited value back to the original is not a change. On web it also warns before closing the tab. `npm run check` green; new tests in `create.test.tsx` and `customize.test.tsx`. **Not tried on a device.** **Human next:** build something and press Back / swipe from the edge on the preview (dialog; Cancel keeps it, Discard leaves); Save still goes straight to the app; Customize: change a field and press Back (dialog), change it back (no dialog), Save changes (no dialog). **Not guarded (say if wanted):** leaving while a build is still running (Create's Cancel button is the way; Back aborts the build), and Customize's own data-risk dialog is unchanged.
 >
 > **T-125 polish (Claude Code, 2026-10-25, human-requested; closes the Android audit T-119..124):** read the whole session diff for defects; fixed one: `Toaster` kept the toast as a string, so the same text twice neither re-spoke nor restarted the 2.5 s timer (now an object; test added). Lint clean, detector clean, `npm run check` green. AT-16 in `TESTING.md` now lists every Android check from this audit in one place. **Nothing from T-119..125 has been seen on a device**: that run through AT-16 is the human's next step, then re-run `$impeccable audit` (it scored 12/20 before). There is no DESIGN.md/PRODUCT.md for the impeccable skill (`$impeccable init` would record the look in `src/ui/theme.ts` for later passes).
@@ -235,6 +237,7 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-127 | Adapt: status bar icons follow the theme; portrait lock kept (large screens checked); toast width capped; ADR-046. | see git |
 | 2026-10-25 | Claude Code | T-126 | Leave guards: confirm before discarding an unsaved Create preview or edited Customize settings (usePreventRemove). | see git |
 | 2026-10-25 | Claude Code | T-125 | Polish: repeated toast fix, AT-16 Android checklist. | see git |
 | 2026-10-25 | Claude Code | T-124 | Clarify: confirm dialogs name the action (Delete, Delete model, Save and keep copy); mini-app questions become the title; sloth hidden from TalkBack; ADR-045. | see git |

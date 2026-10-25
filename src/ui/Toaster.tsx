@@ -30,7 +30,7 @@ export function Toaster() {
 }
 
 const styles = StyleSheet.create({
-  wrap: { position: 'absolute', left: space.md, right: space.md, alignItems: 'center' },
+  wrap: { position: 'absolute', left: space.md, right: space.md, maxWidth: 608, alignSelf: 'center', alignItems: 'center' },
   text: {
     paddingHorizontal: space.md, paddingVertical: 12,
     borderRadius: radius.control, overflow: 'hidden', fontSize: type.body,
