@@ -14,7 +14,7 @@ export function List({ rows, emptyText, onToggle, onDelete, onPress }: Props) {
   // The parent builds fresh rows and closures on every keystroke anywhere in the mini-app; rows read the latest handlers from here, so an unchanged row is not rendered again.
   const handlers = useRef<Handlers>({});
   useLayoutEffect(() => { handlers.current = { onToggle, onDelete, onPress }; });
-  if (rows.length === 0) return <Text style={[styles.empty, { color: t.muted }]}>🦥 {emptyText}</Text>;
+  if (rows.length === 0) return <Text accessibilityLabel={emptyText} style={[styles.empty, { color: t.muted }]}>🦥 {emptyText}</Text>;
   return (
     <View>
       {rows.map((r, i) => (

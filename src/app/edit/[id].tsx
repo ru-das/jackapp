@@ -74,7 +74,8 @@ export default function Customize() {
       const saved = await readJson(dataKey(id)).catch(() => null);
       const risk = dataAtRisk(spec, result.spec, saved && typeof saved === 'object' ? (saved as Record<string, unknown>) : {});
       if (risk.length) {
-        const ok = await confirm(`Saved data for ${risk.join(', ')} won’t show in the new version. OK saves the old version as a copy first.`);
+        const ok = await confirm(`Saved data for ${risk.join(', ')} won’t show in the new version. Your current version stays as a copy, with its data.`,
+          { title: 'Some saved data will be hidden', confirmLabel: 'Save and keep copy' });
         if (!ok) return;
         if (!(await duplicateApp(id, (n) => `${n.slice(0, 33)} (old)`, true))) return setError("Couldn’t keep a copy, so nothing was changed.");
       }

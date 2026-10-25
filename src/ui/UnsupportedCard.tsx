@@ -10,7 +10,7 @@ export function UnsupportedCard({ unsupported, onBuildSuggestion }: Props) {
   const t = useTheme();
   return (
     <Card>
-      <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>🦥 That one’s out of my reach (for now)</Text>
+      <Text accessibilityRole="header" accessibilityLabel="That one’s out of my reach, for now" style={[styles.h, { color: t.text }]}>🦥 That one’s out of my reach (for now)</Text>
       <Text style={{ color: t.text, fontSize: type.body }}>{unsupported.reason}</Text>
       <Text style={{ color: t.muted, fontSize: type.hint }}>I’d need: {unsupported.missing.join(', ')}</Text>
       <Text style={{ color: t.text, fontSize: type.body, fontWeight: '600' }}>But I could do this</Text>

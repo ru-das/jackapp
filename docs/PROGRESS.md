@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M7 — Ship: features done and device-tested; cleaning and polishing; T-70..74 (log, video, README, DEV post, publish) open |
-| Last updated | 2026-10-25 by Claude Code (T-123) |
+| Last updated | 2026-10-25 by Claude Code (T-124) |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-124 clarify (Claude Code, 2026-10-25, human-requested after the audit; no Codex-owned files touched):** ADR-045. `confirm(message, { title, confirmLabel, destructive })`. **Delete** (app), **Delete model** and **Save and keep copy** (Customize) are named on the button; a mini-app's own confirm (counter reset, log/splitter delete, checklist clear) shows its question as the Android dialog title with a plain OK. Decorative 🦥 hidden from TalkBack in the Home and List empty states and the "out of my reach" header. `npm run check` green (new `confirm.native.test.ts`). **Not tried on a device.** **Human next (Android):** delete an app from Home (More, Delete): title, "Its data goes too", red/named Delete; delete the model in Settings; change a log's field key in Customize to see "Some saved data will be hidden"; reset a counter (question as title, OK); web: the same dialogs read as one sentence. **Open for Codex/human:** optional `confirmLabel` on the spec `confirm` op so mini-app dialogs can say "Reset" / "Delete" too (contract change). **All audit items now done or noted.**
+>
 > **T-123 list performance (Claude Code, 2026-10-25, human-requested after the audit; **edits Codex-owned `src/spec/values.ts` and `src/spec/__tests__/values.test.ts` with the human's yes: please review `cached()` and the three call sites in `format()`**):** ADR-044. Measured before changing anything (desktop Node, so a phone is slower): one keystroke at 200 / 1,000 log rows took 421 / 1,825 ms, now 28 / 78 ms. `List` rows are memoised (`src/catalog/List/List.tsx`); `format()` reuses Intl formatters. New tests `catalog/__tests__/listRows.test.tsx` (unchanged rows do not render again, latest handlers run, handler presence changes a row) and one in `values.test.ts`. `npm run check` green. **Not tried on a device.** **Human next:** a log with 100+ rows (e.g. a Spend log from the copy of "Receipt Photo to Expense Tracker" with many rows): typing in the "What" field should keep up; ticking and deleting rows still work; money and date text in rows still shows in your locale. **Still slow:** the first open of a very long list (about 1.7 ms per row on desktop); needs a `FlatList` in the Renderer, only if a phone shows it. **Audit items still open:** confirm button labels (`clarify`), decorative 🦥 read aloud.
 >
 > **T-122 run header layout (Claude Code, 2026-10-25, human-requested after the audit; no Codex-owned files touched):** the run-screen header shows the mini-app name and one 48 dp "More actions" button (drawn dots, `expanded` state). It opens `OverflowMenu` (`src/ui/OverflowMenu.tsx`): Customize (only for apps with `meta.recipe`) and Export data; a full-screen backdrop and system Back close it; choosing an item closes it first. Built from views because RN has no menu component; no new dependency. `MoreIcon` is shared with Home rows. `npm run check` green (new `overflowMenu.test.tsx`); no run-screen test exists, so the wiring in `run/[id].tsx` is covered by typecheck only. **Not tried on a device.** **Human next:** open a mini-app with a long name (title keeps more room), tap the dots: Customize and Export data appear under the corner, tap outside / press Back closes, Export still shares, Customize still opens; a Home template (no Customize) shows only Export data; TalkBack reads "More actions, collapsed/expanded" and "menu item" roles. **Audit items still open:** list virtualization (`optimize`), confirm button labels (`clarify`), decorative 🦥 read aloud.
@@ -229,6 +231,7 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-124 | Clarify: confirm dialogs name the action (Delete, Delete model, Save and keep copy); mini-app questions become the title; sloth hidden from TalkBack; ADR-045. | see git |
 | 2026-10-25 | Claude Code | T-123 | List performance: memoised rows + Intl formatter cache in values.ts (Codex file, human OK); keystroke at 1,000 rows 1,825 to 78 ms (desktop); ADR-044. | see git |
 | 2026-10-25 | Claude Code | T-122 | Run header: one More button + overflow menu (Customize, Export data); shared MoreIcon. | see git |
 | 2026-10-25 | Claude Code | T-121 | Distill: Home app rows collapse to open + More; Rename/Duplicate/Delete inline on demand. | see git |

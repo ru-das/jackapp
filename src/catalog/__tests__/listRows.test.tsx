@@ -39,3 +39,8 @@ test('adding or removing a handler changes the row it belongs to', async () => {
   await view.rerender(<List rows={rows(2)} emptyText="none" onDelete={() => {}} />);
   expect(screen.getByLabelText('Delete Item 0')).toBeTruthy();
 });
+
+test('the empty state is read without the decorative sloth', async () => {
+  await render(<List rows={[]} emptyText="Nothing yet" />);
+  expect(screen.getByLabelText('Nothing yet')).toBeTruthy();
+});

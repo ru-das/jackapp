@@ -56,7 +56,7 @@ export function LocalModelCard() {
     setLoading(false);
   };
   const remove = async () => {
-    if (!(await confirm('Delete the downloaded model? You can download it again later.'))) return;
+    if (!(await confirm('You can download it again later.', { title: 'Delete the downloaded model?', confirmLabel: 'Delete model', destructive: true }))) return;
     await localModel.remove();
     setDownloaded(false);
     setLoaded(false);

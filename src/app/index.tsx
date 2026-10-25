@@ -62,7 +62,7 @@ export default function Home() {
     refresh();
   };
   const remove = async (a: AppSummary) => {
-    if (!(await confirm(`Delete “${a.name}” and its data? This can’t be undone.`))) return;
+    if (!(await confirm('Its data goes too. This can’t be undone.', { title: `Delete “${a.name}”?`, confirmLabel: 'Delete', destructive: true }))) return;
     try {
       await deleteApp(a.id);
     } catch {
@@ -122,7 +122,7 @@ export default function Home() {
       ) : null}
       {apps !== 'error' && apps?.length === 0 ? (
         <Card style={styles.empty}>
-          <Text style={styles.icon}>🦥</Text>
+          <Text style={styles.icon} importantForAccessibility="no" accessibilityElementsHidden>🦥</Text>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>No mini-apps yet</Text>
           <Text style={{ color: t.muted, fontSize: type.body, textAlign: 'center' }}>
             Describe a small mini-app and it gets built on your device.
