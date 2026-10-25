@@ -3,9 +3,9 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import type { GenerationProgress } from '@/ai/generator/generate';
 import { space, useTheme } from './theme';
 
-const STAGES = [['planning', 'Planning'], ['building', 'Building'], ['checking', 'Checking']] as const;
+const STAGES = [['building', 'Building'], ['checking', 'Checking']] as const;
 
-/** Planning → Building → Checking, with "Repairing n" appended while the generator is fixing its output. */
+/** Building → Checking, with "Repairing n" appended while the generator is fixing its output. */
 /** Seconds since mount; a slow phone model needs visible proof that it is still going. */
 export function useElapsed(): number {
   const [s, setS] = useState(0);
@@ -34,7 +34,7 @@ export function GenerationStages({ progress }: { progress: Pick<GenerationProgre
         ))}
       </View>
       <Text style={{ color: t.muted, fontSize: 14 }}>
-        {elapsed} s · Sloth pace: this can take a minute or two on a phone.
+        {elapsed} s · Usually under half a minute. The first build after opening the app takes longer.
       </Text>
       {progress.freeForm ? (
         <Text accessibilityLiveRegion="polite" style={{ color: t.muted, fontSize: 14 }}>

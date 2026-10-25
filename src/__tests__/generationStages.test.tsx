@@ -13,3 +13,10 @@ test.each([
   await render(<GenerationStages progress={{ stage: 'building', attempt: 0, freeForm }} />);
   expect(screen.getByText(text)).toBeTruthy();
 });
+
+test('shows the real stages and a measured time, never Planning or "a minute or two"', async () => {
+  await render(<GenerationStages progress={{ stage: 'building', attempt: 0 }} />);
+  expect(screen.queryByText(/Planning/)).toBeNull();
+  expect(screen.getByText(/Usually under half a minute/)).toBeTruthy();
+  expect(screen.queryByText(/minute or two/)).toBeNull();
+});

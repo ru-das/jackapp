@@ -10,6 +10,8 @@ test('saves the OpenRouter key and lists the free model per step', async () => {
   await render(<SettingsScreen />);
   await fireEvent.changeText(await screen.findByLabelText('OpenRouter API key'), 'sk-or-abc');
   expect((await loadSettings()).openrouterKey).toBe('sk-or-abc');
+  expect(screen.queryByText(`Building: ${OPENROUTER_MODELS.fill}`)).toBeNull(); // model ids sit behind details
+  await fireEvent.press(screen.getByText(/Model details/));
   expect(screen.getByText(`Building: ${OPENROUTER_MODELS.fill}`)).toBeTruthy();
 });
 

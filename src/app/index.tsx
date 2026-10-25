@@ -1,6 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { RECIPES } from '@/ai/generator/recipes';
+import { readSettings } from '@/ai/generator/recipes/settings';
 import { h1, h2, h3 } from '@/spec/fixtures';
 import { validate } from '@/spec/validate';
 import { confirm, toast } from '@/capabilities';
@@ -10,10 +12,35 @@ import { ActionButton } from '@/ui/ActionButton';
 import { AppRow } from '@/ui/AppRow';
 import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
 
+// Photo templates call the AI when used; Plant Pal never does.
 const FIXTURES = [
-  { id: 'fixture-h1', spec: h1 },
-  { id: 'fixture-h2', spec: h2 },
-  { id: 'fixture-h3', spec: h3 },
+  { id: 'fixture-h1', spec: h1, tag: 'Reading photos needs AI (set up in Settings).' },
+  { id: 'fixture-h2', spec: h2, tag: 'Works right away.' },
+  { id: 'fixture-h3', spec: h3, tag: 'Reading photos needs AI (set up in Settings).' },
+];
+
+// Built with the same recipe builders the AI path uses, so they are valid by construction and need no model.
+const READY_MADE = [
+  {
+    label: 'Checklist', hint: 'Tick things off',
+    spec: () => RECIPES.log.make(readSettings(`name Checklist
+icon ✅
+description Add things to do and tick them off
+noun item
+field name text Item
+checkbox yes`), 'Checklist'),
+  },
+  {
+    label: 'Tip Calculator', hint: 'Split a bill with a tip',
+    spec: () => RECIPES.calculator.make(readSettings(`name Tip Calculator
+icon 💵
+description Work out the tip and what each person pays
+input bill money Bill amount 80
+input tip percent Tip 15
+input people number People 2
+output Tip = bill * tip / 100 as money
+output Each person pays = (bill + bill * tip / 100) / people as money`), 'Tip Calculator'),
+  },
 ];
 
 export default function Home() {
@@ -64,6 +91,20 @@ export default function Home() {
   return (
     <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={styles.content}>
       <Text accessibilityRole="header" style={[styles.title, { color: t.text }]}>JackApp</Text>
+      <Text style={{ color: t.muted, fontSize: 16 }}>
+        Describe a small tool and it gets built. Or try a ready-made one: it works right away, no AI needed.
+      </Text>
+      <Pressable accessibilityRole="button" onPress={() => router.push('/create')} style={[styles.nav, { backgroundColor: t.accent, borderColor: t.border }]}>
+        <Text style={[styles.name, { color: t.accentText }]}>New mini-app</Text>
+      </Pressable>
+      <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Try a ready-made tool</Text>
+      <View style={styles.tpl}>
+        {READY_MADE.map((r) => (
+          <View key={r.label} style={styles.flex}>
+            <ActionButton kind="quiet" label={r.label} onPress={() => void tryTemplate(r.spec())} />
+          </View>
+        ))}
+      </View>
       {apps === 'error' ? (
         <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Couldn’t load your mini-apps</Text>
@@ -76,7 +117,7 @@ export default function Home() {
           <Text style={styles.icon}>🦥</Text>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>No mini-apps yet</Text>
           <Text style={{ color: t.muted, fontSize: 16, textAlign: 'center' }}>
-            Tell me a chore you’d rather not do. I’ll build the app. Slowly.
+            Describe a small tool and it gets built on your device.
           </Text>
         </View>
       ) : null}
@@ -87,13 +128,14 @@ export default function Home() {
         />
       )) : null}
       <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Start from a template</Text>
-      {FIXTURES.map(({ id, spec }) => (
+      {FIXTURES.map(({ id, spec, tag }) => (
         <View key={id} style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
           <View style={styles.tpl}>
             <Text style={styles.icon}>{spec.meta.icon}</Text>
             <View style={styles.flex}>
               <Text style={[styles.name, { color: t.text }]}>{spec.meta.name}</Text>
               <Text style={{ color: t.muted, fontSize: 14 }}>{spec.meta.description}</Text>
+              <Text style={{ color: t.muted, fontSize: 14 }}>{tag}</Text>
             </View>
           </View>
           <View style={styles.tpl}>
@@ -102,14 +144,7 @@ export default function Home() {
           </View>
         </View>
       ))}
-      {([['New mini-app', '/create'], ['Settings', '/settings']] as const).map(([label, to]) => (
-        <Pressable
-          key={to} accessibilityRole="button" onPress={() => router.push(to)}
-          style={[styles.nav, { backgroundColor: to === '/create' ? t.accent : t.surface, borderColor: t.border }]}
-        >
-          <Text style={[styles.name, { color: to === '/create' ? t.accentText : t.text }]}>{label}</Text>
-        </Pressable>
-      ))}
+      <ActionButton kind="quiet" label="Settings" onPress={() => router.push('/settings')} />
       {__DEV__ ? (
         <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Dev: load a fixture</Text>

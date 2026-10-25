@@ -1,5 +1,5 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { generate, type GenerationProgress } from '@/ai/generator/generate';
 import type { Unsupported } from '@/ai/generator/outputSchemas';
@@ -25,6 +25,8 @@ const EXAMPLES = [
   { label: 'Bill Splitter', prompt: 'Photo of a restaurant bill → split it between friends' },
 ];
 
+const PROVIDER_NAMES = { local: 'On-device', openrouter: 'OpenRouter', ollama: 'Ollama', mock: 'Mock' } as const;
+
 type Session = ReturnType<typeof createSession>;
 type Draft = { id: string; spec: Spec; session: Session; notes: string[] };
 type Phase =
@@ -48,6 +50,19 @@ export default function Create() {
   const [saveFailed, setSaveFailed] = useState(false);
   // A tool type the user picked: the request is built as that type without guessing from its wording.
   const [picked, setPicked] = useState<RecipeId>();
+  const [ready, setReady] = useState<{ name: string; ok: boolean } | null>(null);
+
+  // Re-checked on every focus so coming back from Settings shows the new state; the typed prompt lives in this screen's state and survives the trip.
+  useFocusEffect(useCallback(() => {
+    let live = true;
+    void getActiveProvider().then(async ({ provider }) => {
+      const ok = await provider.isConfigured();
+      if (!live) return;
+      setReady({ name: PROVIDER_NAMES[provider.id], ok });
+      if (ok) setPhase((p) => (p.kind === 'needsModel' ? { kind: 'idle' } : p));
+    });
+    return () => { live = false; };
+  }, []));
 
   // An unsaved preview must not leave its data behind.
   const discard = async () => {
@@ -81,7 +96,7 @@ export default function Create() {
       const { provider, model } = await getActiveProvider();
       if (!(await provider.isConfigured())) return live() && setPhase({ kind: 'needsModel' });
       if (!live()) return;
-      setPhase({ kind: 'working', progress: { stage: 'planning', attempt: 0 } });
+      setPhase({ kind: 'working', progress: { stage: 'building', attempt: 0 } });
       const result = await generate({
         prompt: request, provider, model, signal: controller.signal,
         // PLAN costs a whole extra call and made E2B's FILL worse on the phone (ADR-025); FILL can refuse by itself.
@@ -203,7 +218,13 @@ export default function Create() {
           </Pressable>
         ))}
       </View>
+      {ready ? (
+        <Text accessibilityLiveRegion="polite" style={{ color: t.muted, fontSize: 15 }}>
+          AI: {ready.name} · {ready.ok ? 'ready' : 'not set up yet'}
+        </Text>
+      ) : null}
       {busy ? <ActionButton kind="quiet" label="Cancel" onPress={cancel} />
+        : ready && !ready.ok ? <ActionButton label="Set up AI" onPress={() => router.push('/settings')} />
         : <ActionButton label="Build" disabled={!prompt.trim()} onPress={() => void build(prompt)} />}
 
       {phase.kind === 'loading' ? (

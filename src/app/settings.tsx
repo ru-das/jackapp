@@ -9,7 +9,6 @@ import { LocalModelCard } from '@/ui/LocalModelCard';
 import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
 
 const STAGES = [
-  ['Planning', OPENROUTER_MODELS.plan],
   ['Building', OPENROUTER_MODELS.fill],
   ['Fixing mistakes', OPENROUTER_MODELS.repair],
   ['Reading photos', OPENROUTER_MODELS.run],
@@ -18,6 +17,7 @@ const STAGES = [
 export default function SettingsScreen() {
   const t = useTheme();
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [details, setDetails] = useState(false);
 
   useEffect(() => { void loadSettings().then(setSettings); }, []);
 
@@ -32,7 +32,7 @@ export default function SettingsScreen() {
   const card = [styles.card, { backgroundColor: t.surface, borderColor: t.border }];
   const input = [styles.input, { color: t.text, borderColor: t.border, backgroundColor: t.bg }];
   const choices: [Settings['provider'], string][] = [
-    ...(localModel.available ? [['local', 'On-device (Gemma 4 E2B, works offline)'] as [Settings['provider'], string]] : []),
+    ...(localModel.available ? [['local', 'On-device (works offline)'] as [Settings['provider'], string]] : []),
     ['openrouter', 'OpenRouter (free models)'], ['ollama', 'Ollama (your own computer)'],
     ...(__DEV__ ? [['mock', 'Mock (dev, no AI)'] as [Settings['provider'], string]] : []),
   ];
@@ -91,10 +91,12 @@ export default function SettingsScreen() {
             onChangeText={(v) => void update({ openrouterKey: v })}
             secureTextEntry autoCapitalize="none" autoCorrect={false} placeholder="sk-or-…" placeholderTextColor={t.muted}
           />
-          <Text style={{ color: t.muted, fontSize: 15 }}>Free models used:</Text>
-          {STAGES.map(([stage, id]) => (
+          <Pressable accessibilityRole="button" accessibilityState={{ expanded: details }} onPress={() => setDetails(!details)} style={styles.toggle}>
+            <Text style={{ color: t.text, fontSize: 15 }}>{details ? '▾' : '▸'} Model details</Text>
+          </Pressable>
+          {details ? STAGES.map(([stage, id]) => (
             <Text key={stage} style={{ color: t.muted, fontSize: 14 }}>{stage}: {id}</Text>
-          ))}
+          )) : null}
         </View>
       ) : null}
 
@@ -128,5 +130,6 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   chip: { minHeight: MIN_TARGET, minWidth: MIN_TARGET + 12, paddingHorizontal: space.md, borderRadius: radius.control, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   name: { fontSize: 16, fontWeight: '600' },
+  toggle: { minHeight: MIN_TARGET, justifyContent: 'center' },
   input: { minHeight: MIN_TARGET, borderWidth: 1, borderRadius: radius.control, paddingHorizontal: space.md, fontSize: 16 },
 });

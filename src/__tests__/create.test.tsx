@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { useEffect as mockUseEffect } from 'react';
 import Create from '@/app/create';
 import { mockProvider } from '@/ai/providers/mock';
 import { readJson, specKey } from '@/storage';
@@ -7,7 +8,11 @@ import { saveSettings } from '@/storage/settings';
 
 const mockReplace = jest.fn();
 const mockPush = jest.fn();
-jest.mock('expo-router', () => ({ useRouter: () => ({ replace: mockReplace, push: mockPush }), useLocalSearchParams: () => ({}) }));
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ replace: mockReplace, push: mockPush }),
+  useLocalSearchParams: () => ({}),
+  useFocusEffect: (cb: () => void) => mockUseEffect(cb, [cb]),
+}));
 jest.mock('@react-native-async-storage/async-storage', () =>
   jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'));
 
@@ -42,14 +47,22 @@ test('unsupported request shows reason, suggestion and builds the suggestion', a
   await waitFor(() => expect(screen.queryByText('Build the suggestion')).toBeNull());
 });
 
-test('AI not set up: friendly card pointing to settings', async () => {
+test('AI not set up: status line and Set up AI replace Build', async () => {
   jest.spyOn(mockProvider, 'isConfigured').mockResolvedValue(false);
   await render(<Create />);
   await type('A water tracker');
-  await fireEvent.press(screen.getByText('Build'));
-  expect(await screen.findByText('Set up AI first')).toBeTruthy();
-  await fireEvent.press(screen.getByText('Open settings'));
+  expect(await screen.findByText('AI: Mock · not set up yet')).toBeTruthy();
+  expect(screen.queryByText('Build')).toBeNull();
+  await fireEvent.press(screen.getByText('Set up AI'));
   expect(mockPush).toHaveBeenCalledWith('/settings');
+});
+
+test('AI ready: status line and Build, typed prompt kept', async () => {
+  await render(<Create />);
+  await type('A water tracker');
+  expect(await screen.findByText('AI: Mock · ready')).toBeTruthy();
+  expect(screen.getByDisplayValue('A water tracker')).toBeTruthy();
+  expect(screen.getByText('Build')).toBeTruthy();
 });
 
 test('failed save keeps the preview and says so; retry saves and the app reopens intact', async () => {
