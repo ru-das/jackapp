@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M7 — Ship: features done and device-tested; cleaning and polishing; T-70..74 (log, video, README, DEV post, publish) open |
-| Last updated | 2026-10-25 by Claude Code (T-120) |
+| Last updated | 2026-10-25 by Claude Code (T-121) |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-121 distill (Claude Code, 2026-10-25, human-requested after the audit; no Codex-owned files touched):** Home `AppRow` is one compact row: tap opens, a 48 dp "More actions for <name>" button (three drawn dots, `expanded` state) reveals Rename / Duplicate / Delete inline and closes after one is chosen. A damaged app shows only Delete. Inline, not a popup menu: RN has no menu component and `Alert` buttons do nothing on web. `npm run check` green. **Not tried on a device.** **Human next:** Home with 3+ saved apps: rows are short, More opens and closes, Rename still saves, Delete still confirms, TalkBack reads "More actions for <name>, collapsed/expanded". **Audit items still open:** run header actions (`layout`), list virtualization (`optimize`), confirm button labels (`clarify`), decorative 🦥 read aloud.
+>
 > **T-120 harden (Claude Code, 2026-10-25, human-requested after the audit; no Codex-owned files touched):** ADR-043. `outline` colour (3:1) on text/date/number inputs, Create/Customize/Settings/rename fields, unselected Select chips and every Switch's off track; build-progress live region no longer includes the elapsed seconds; `useAnnounce` speaks toasts, the Undo bar and error messages (live-region/alert props removed from those nodes). `npm run check` green. **Not tried on a device or with TalkBack.** **Human next (Android, TalkBack on):** build something and listen to Create (stage change only, no clock every second); trigger a toast (Export with nothing to share, or a failed save) and Remove a list row (Undo is announced); type 500 in a number field with a max of 100; look at an off Switch and a text field in light and dark. **Audit items still open:** AppRow overflow menu, run header actions, list virtualization, confirm button labels, decorative 🦥 read aloud.
 >
 > **T-119 Android adaptation (Claude Code, 2026-10-25, human-requested after the impeccable audit; no Codex-owned files touched):** ADR-042. Bottom insets on the Create preview bar, Toaster, UndoBar and scroll screens (`useInsets`), one root `KeyboardAvoidingView`, `BackHandler` in `Renderer` while a mini-app has more than one screen, `MIN_TARGET` 48. `npm run check` green (new test: system Back). **Not tried on a device.** **Human next (Android):** build something, check Save / Build again clear the nav bar in 3-button and gesture navigation; open Customize and focus the last field with the keyboard up; open `h1` or `h3` and press system Back on its second screen (should go back one screen, then leave); a toast and Undo bar above the nav bar. **Audit items not done:** build-progress live region re-announces every second, faint control borders and Switch off state (need an `outline` token), live-region announcements, AppRow overflow menu, run header actions, list virtualization, confirm button labels.
@@ -223,6 +225,7 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-121 | Distill: Home app rows collapse to open + More; Rename/Duplicate/Delete inline on demand. | see git |
 | 2026-10-25 | Claude Code | T-120 | Harden: `outline` token for controls and Switches, quieter build-progress live region, `useAnnounce` for toasts/Undo/errors; ADR-043. | see git |
 | 2026-10-25 | Claude Code | T-119 | Android adaptation: bottom insets, root keyboard avoidance, system Back through mini-app screens, 48 dp targets; ADR-042. | see git |
 | 2026-10-25 | Claude Code | T-118 | Second pass: UI tokens/Card/danger button/press feedback, Home header with Settings icon, app-wide user text (labels not keys, plurals, provider errors); ADR-041. | see git |

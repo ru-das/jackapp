@@ -12,18 +12,30 @@ type Props = {
 export function AppRow({ app, onOpen, onRename, onDuplicate, onDelete }: Props) {
   const t = useTheme();
   const [name, setName] = useState<string | null>(null);
+  const [more, setMore] = useState(false);
+  // Actions are tucked away until asked for, so ten saved apps are ten rows, not thirty buttons with Delete one tap away.
   const small = (label: string, onPress: () => void, danger?: boolean) => (
     <View style={styles.flex}>
-      <ActionButton kind={danger ? 'danger' : 'quiet'} label={label} accessibilityLabel={`${label} ${app.name}`} onPress={onPress} />
+      <ActionButton kind={danger ? 'danger' : 'quiet'} label={label} accessibilityLabel={`${label} ${app.name}`} onPress={() => { setMore(false); onPress(); }} />
     </View>
   );
   return (
     <Card style={styles.card}>
       {name === null ? (
-        <Pressable accessibilityRole="button" accessibilityLabel={`Open ${app.name}`} onPress={onOpen} style={(st) => [styles.title, pressed(st)]}>
-          <Text style={styles.icon}>{app.icon ?? '🦥'}</Text>
-          <Text style={[styles.name, { color: t.text }]}>{app.name}</Text>
-        </Pressable>
+        <View style={styles.head}>
+          <Pressable accessibilityRole="button" accessibilityLabel={`Open ${app.name}`} onPress={onOpen} style={(st) => [styles.title, pressed(st)]}>
+            <Text style={styles.icon}>{app.icon ?? '🦥'}</Text>
+            <Text style={[styles.name, { color: t.text }]}>{app.name}</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button" accessibilityLabel={`More actions for ${app.name}`} accessibilityState={{ expanded: more }}
+            onPress={() => setMore(!more)} style={(st) => [styles.more, pressed(st)]}
+          >
+            <View style={styles.dots} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+              {[0, 1, 2].map((i) => <View key={i} style={[styles.dot, { backgroundColor: t.muted }]} />)}
+            </View>
+          </Pressable>
+        </View>
       ) : (
         <>
           <TextInput accessibilityLabel={`New name for ${app.name}`} value={name} onChangeText={setName} maxLength={40} autoFocus
@@ -34,21 +46,24 @@ export function AppRow({ app, onOpen, onRename, onDuplicate, onDelete }: Props) 
           </View>
         </>
       )}
-      {name === null && !app.damaged ? (
+      {name === null && more ? (
         <View style={styles.actions}>
-          {small('Rename', () => setName(app.name))}
-          {small('Duplicate', onDuplicate)}
+          {app.damaged ? null : small('Rename', () => setName(app.name))}
+          {app.damaged ? null : small('Duplicate', onDuplicate)}
           {small('Delete', onDelete, true)}
         </View>
       ) : null}
-      {name === null && app.damaged ? <View style={styles.actions}>{small('Delete', onDelete, true)}</View> : null}
     </Card>
   );
 }
 
 const styles = StyleSheet.create({
   card: { padding: space.md },
-  title: { minHeight: MIN_TARGET, flexDirection: 'row', alignItems: 'center', gap: space.md },
+  head: { flexDirection: 'row', alignItems: 'center' },
+  title: { flex: 1, minHeight: MIN_TARGET, flexDirection: 'row', alignItems: 'center', gap: space.md },
+  more: { minWidth: MIN_TARGET, minHeight: MIN_TARGET, alignItems: 'center', justifyContent: 'center' },
+  dots: { gap: 4 },
+  dot: { width: 4, height: 4, borderRadius: 2 },
   icon: { fontSize: 28 },
   name: { flex: 1, fontSize: type.h, fontWeight: '600' },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
