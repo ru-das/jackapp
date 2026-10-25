@@ -70,7 +70,7 @@ describe('plant log with a date tap', () => {
   const make = () => {
     const f = run(buildLog({
       name: 'Plant Pal', icon: '🌱', description: 'd', noun: 'plant', checkbox: false, totals: [], tap: { kind: 'date', field: 'lastWatered' },
-      sort: null, share: false, reminder: null,
+      sort: null, share: false, reminder: null, photo: false,
       fields: [{ key: 'name', label: 'Plant', type: 'text' }, { key: 'lastWatered', label: 'Last watered', type: 'date' }],
     }));
     f.store.setState({ items: [{ name: 'Fern', lastWatered: day('2026-10-01') }, { name: 'Cactus', lastWatered: day('2026-09-01') }] });
@@ -133,7 +133,7 @@ describe('fridge compare', () => {
 
 describe('editing a log entry', () => {
   const config = { name: 'Spend', icon: '💸', description: 'd', noun: 'expense', fields: [{ key: 'name', label: 'What', type: 'text' as const }, { key: 'amount', label: 'Amount', type: 'money' as const }],
-    checkbox: false, totals: [], tap: null, sort: null, share: false, reminder: null };
+    checkbox: false, totals: [], tap: null, sort: null, share: false, reminder: null, photo: false };
   test('tap opens a fix screen; Save updates the row, Delete removes it', async () => {
     const { store, engine, services } = run(buildLog(config));
     store.setState({ items: [{ name: 'Tea', amount: 3 }, { name: 'Cab', amount: 20 }] });

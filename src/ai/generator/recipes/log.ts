@@ -10,12 +10,28 @@ export type LogTap = { kind: 'date' | 'add'; field: string } | null;
 export type LogConfig = {
   name: string; icon: string; description: string; noun: string;
   fields: LogField[]; checkbox: boolean; totals: LogTotal[]; tap: LogTap;
-  sort: { field: string; dir: 'asc' | 'desc' } | null; share: boolean; reminder: Reminder | null;
+  sort: { field: string; dir: 'asc' | 'desc' } | null; share: boolean; reminder: Reminder | null; photo: boolean;
 };
 
 const stateType = { text: 'string', longtext: 'string', choice: 'string', number: 'number', money: 'number', rating: 'number', date: 'date', day: 'date' } as const;
 const cap = (text: string) => text[0].toUpperCase() + text.slice(1);
 const numeric = (f: LogField) => f.type === 'number' || f.type === 'money' || f.type === 'rating';
+
+// The AI reads only what a photo can show: text and numbers. Other fields take their zero value, a choice its first option and a rating 3.
+const photoStep = (c: LogConfig): Obj => {
+  const read = c.fields.filter((f) => f.type === 'text' || f.type === 'number' || f.type === 'money');
+  const defaults: Obj = {
+    ...(c.checkbox ? { done: false } : {}),
+    ...Object.fromEntries(c.fields.filter((f) => f.type === 'choice').map((f) => [f.key, (f.options ?? [''])[0]])),
+    ...Object.fromEntries(c.fields.filter((f) => f.type === 'rating').map((f) => [f.key, 3])),
+  };
+  return {
+    op: 'ai.run', image: ref('photo'), into: 'items', mode: 'append',
+    prompt: `Read the photo (a receipt, a bill or a page). Return one row for each ${c.noun} you can read, with ${read.map((f) => f.label.toLowerCase()).join(', ')}. Use only what is printed. Do not add rows for totals, tax or tips.`,
+    output: { type: 'list', of: Object.fromEntries(read.map((f) => [f.key, f.type === 'text' ? 'string' : 'number'])) },
+    ...(Object.keys(defaults).length ? { defaults } : {}),
+  };
+};
 
 export function buildLog(c: LogConfig): Obj {
   const t = tree();
@@ -32,6 +48,7 @@ export function buildLog(c: LogConfig): Obj {
     ...Object.fromEntries(typed.map((f) => [draft(f), { type: stateType[f.type], default: draftDefault(f), persist: false }])),
     ...(editable ? { editIndex: { type: 'number', default: 0, persist: false },
       ...Object.fromEntries(typed.map((f) => [fix(f), { type: stateType[f.type], default: draftDefault(f), persist: false }])) } : {}),
+    ...(c.photo ? { photo: { type: 'image', default: null, persist: false } } : {}),
     ...(dateTap ? {
       selIndex: { type: 'number', default: 0, persist: false }, selName: { type: 'string', default: '', persist: false },
       selWhen: { type: 'date', default: null, persist: false }, prevWhen: { type: 'date', default: null, persist: false },
@@ -50,6 +67,11 @@ export function buildLog(c: LogConfig): Obj {
   const inputs = typed.map((f) => input(f, draft(f), typed.every((x) => x.type === 'text') ? 'add' : undefined));
   const addButton = t.add('Button', { label: `Add ${c.noun}`, onPress: 'add', variant: 'primary' });
   const addCard = t.add('Card', { title: `New ${c.noun}` }, [...inputs, addButton]);
+  const photoCard = c.photo ? t.add('Card', { title: 'From a photo' }, [
+    t.add('ImageInput', { bind: 'photo', label: `Photo of ${c.noun}s` }),
+    t.add('Button', { label: 'Read photo', onPress: 'readPhoto', variant: 'primary' }),
+    t.add('Text', { value: 'The AI adds what it reads. Tap an item afterwards to fix it.', variant: 'muted' }),
+  ]) : null;
 
   const others = c.fields.filter((f) => f !== title);
   const part = (f: LogField) => {
@@ -77,7 +99,7 @@ export function buildLog(c: LogConfig): Obj {
   if (c.checkbox) listKids.push(t.add('Button', { label: 'Clear done', onPress: 'clearDone', variant: 'secondary' }));
   if (c.share) listKids.push(t.add('Button', { label: 'Share', onPress: 'share', variant: 'secondary' }));
   const listCard = t.add('Card', { title: `${cap(c.noun)} list` }, listKids);
-  const root = t.add('Stack', { gap: 'md' }, [addCard, listCard]);
+  const root = t.add('Stack', { gap: 'md' }, [...(photoCard ? [photoCard] : []), addCard, listCard]);
 
   const dateField = c.fields.find((f) => f.type === 'date');
   const tapField = dateTap ? c.fields.find((f) => f.key === dateTap.field)! : null;
@@ -107,6 +129,7 @@ export function buildLog(c: LogConfig): Obj {
         ...(c.checkbox ? { done: false } : {}) } },
       ...typed.map((f) => ({ op: 'state.reset', path: draft(f) })),
     ] },
+    ...(c.photo ? { readPhoto: { steps: [photoStep(c), { op: 'state.reset', path: 'photo' }, { op: 'toast', message: 'Added from the photo. Check the new items.' }] } } : {}),
     ...(dateTap ? {
       open: { steps: [
         { op: 'state.set', path: 'selIndex', value: ref('$index') }, { op: 'state.set', path: 'selName', value: ref(`$item.${title.key}`) },
@@ -210,6 +233,8 @@ function parseTap(value: string | undefined, fields: LogField[]): { tap: LogTap;
   return fields.length < 4 ? { tap: { kind: 'date', field: 'lastDone' }, fields: [...fields, { key: 'lastDone', label: 'Last done', type: 'date' }] } : { tap: null, fields };
 }
 
+const PHOTO_WORDS = /\b(photos?|photograph\w*|pictures?|receipts?|scan\w*|camera)\b/i;
+
 export function parseLog(s: Settings, request: string, notes: string[] = []): LogConfig {
   const name = cleanText(first(s, 'name'), 40, nameFromRequest(request));
   const noun = cleanText(first(s, 'noun') ?? first(s, 'item'), 24, 'item').toLowerCase();
@@ -229,12 +254,14 @@ export function parseLog(s: Settings, request: string, notes: string[] = []): Lo
     checkbox: flag(first(s, 'checkbox'), false), totals, tap: tapped.tap,
     sort: sortField ? { field: sortField.key, dir: /^(desc|descending|high|newest|latest)/i.test(sortWords[1] ?? '') ? 'desc' : 'asc' } : null,
     share: flag(first(s, 'share'), false), reminder: kept,
+    // A 2B model often leaves the line out, so the wording of the request decides until a `photo` line says otherwise.
+    photo: flag(first(s, 'photo'), PHOTO_WORDS.test(request)),
   };
 }
 
 export const logRecipe: Recipe = {
   id: 'log', version: 1, title: 'List app',
-  hint: 'a list the user adds items to with a small form: checklists, logs, trackers, journals, collections, inventories, budgets',
+  hint: 'a list the user adds items to with a small form (or reads from a photo of a receipt or page): checklists, logs, trackers, journals, collections, inventories, budgets, expense trackers',
   summary: 'A list the user adds items to with a small form. Each item has up to 4 fields. It can have tick boxes, totals, a tap action, sorting, a share button and a reminder. Use it for checklists, logs, trackers, journals, collections and inventories.',
   lines: `name <app name, 2-4 words>
 icon <one emoji>
@@ -246,6 +273,7 @@ total <sum|avg|min|max|count> <field> <label>   (up to 3 lines, or none)
 tap <date|add> <field> | none   (tapping an item sets a date to now, or adds 1 to a number)
 sort <field> <asc|desc> | none
 share <yes|no>
+photo <yes|no>   (yes = the user can also photograph a receipt, bill or page and the AI adds its rows)
 reminder none | daily HH:MM <text> | weekly <0-6> HH:MM <text>`,
   example: {
     request: 'Log expenses with a name and amount and show the total spent.',
@@ -260,7 +288,8 @@ total sum amount Total spent
 tap none
 sort none
 share no
-reminder none`,
+photo no
+reminder none`
   },
   make: (s, request, notes) => buildLog(parseLog(s, request, notes)),
 };

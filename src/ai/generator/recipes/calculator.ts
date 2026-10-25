@@ -103,6 +103,17 @@ export function parseCalculator(s: Settings, request: string, notes: string[] = 
   return { name, icon: icon(first(s, 'icon'), '🧮'), description: cleanText(first(s, 'description'), 140, `${name}: type the numbers, see the result`), inputs, outputs };
 }
 
+const CONVERTER = /\b(convert\w*|conversion|exchange|currency)\b/i;
+
+export const starterConverter = (request: string): CalcConfig => {
+  const name = nameFromRequest(request);
+  return {
+    name, icon: '🧮', description: `${name}: type the amount and the rate, see the result`,
+    inputs: [{ key: 'amount', label: 'Amount', kind: 'number', value: 1 }, { key: 'rate', label: 'Rate (how much one unit is worth)', kind: 'number', value: 1 }],
+    outputs: [{ label: 'Result', formula: 'amount * rate', format: 'number' }],
+  };
+};
+
 export const calculatorRecipe: Recipe = {
   id: 'calculator', version: 1, title: 'Calculator',
   hint: 'type numbers, get results from a formula: converters, tip, loan, interest, BMI, percentages',
@@ -112,7 +123,8 @@ icon <one emoji>
 description <one short sentence>
 input <key> <number|money|percent|date> <label> <starting value>   (1 to 5 lines; key = one word; a date input holds a day and starts empty)
 output <label> = <formula using the input keys> as <number|money|percent>   (1 to 4 lines)
-Formulas: numbers, input keys, + - * / ^ ( ) and round(x, 2), min(a, b), max(a, b), sqrt(x), days(from, to) for whole days between two dates (today = the current day). A percent input is a plain number, so 15% is 15 and you write tip / 100.`,
+Formulas: numbers, input keys, + - * / ^ ( ) and round(x, 2), min(a, b), max(a, b), sqrt(x), days(from, to) for whole days between two dates (today = the current day). A percent input is a plain number, so 15% is 15 and you write tip / 100.
+The app has no internet, so a converter takes its rate from the user: input rate number Rate 0.92, output Euros = amount * rate.`,
   example: {
     request: 'Tip calculator',
     reply: `name Tip Calculator
@@ -124,5 +136,13 @@ input people number People 2
 output Tip = bill * tip / 100 as money
 output Each person pays = (bill + bill * tip / 100) / people as money`,
   },
-  make: (s, request, notes) => buildCalculator(parseCalculator(s, request, notes), notes),
+  make: (s, request, notes = []) => {
+    try { return buildCalculator(parseCalculator(s, request, notes), notes); }
+    catch (error) {
+      // A reply with no usable formula still gives a working converter: the user types the rate. Other calculators cannot guess a formula, so they fall back.
+      if (!(error instanceof RecipeError) || !CONVERTER.test(request)) throw error;
+      notes.push('I couldn’t read a formula, so this multiplies the amount by a rate you type. Change it with Customize.');
+      return buildCalculator(starterConverter(request), notes);
+    }
+  },
 };

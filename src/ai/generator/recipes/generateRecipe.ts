@@ -10,8 +10,8 @@ import { recipePrompt } from './prompt';
 import { RecipeError } from './kit';
 import { readSettings, writeSettings } from './settings';
 
-/** `fallback`: nothing ready-made fits, so the caller should generate freely (cloud model, or this one). */
-export type RecipeOutcome = GenerationResult | { status: 'fallback' };
+/** `fallback`: free-form generation. `none`: nothing ready-made fits. `unusable`: a type fits but the model's reply could not make a working app of it. */
+export type RecipeOutcome = GenerationResult | { status: 'fallback'; reason: 'none' | 'unusable' };
 
 /**
  * The on-device path (ADR-027): refuse in code, pick the app type from the wording, ask the model for a few setting lines, build the app.
@@ -45,7 +45,7 @@ export async function generateRecipe(options: GenerateOptions): Promise<RecipeOu
       // Only an explicit "none" (or nothing readable and no keyword guess) sends the request to free-form generation.
       id = said ?? (/\bnone\b/i.test(answer) ? undefined : match.id);
     }
-    if (!id) return { status: 'fallback' };
+    if (!id) return { status: 'fallback', reason: 'none' };
     const recipe = RECIPES[id];
     const reply = await options.provider.generate({
       system: recipePrompt(recipe), messages: [{ role: 'user', content: `Request: ${options.prompt}` }],
@@ -61,7 +61,7 @@ export async function generateRecipe(options: GenerateOptions): Promise<RecipeOu
     try { spec = recipe.make(settings, options.prompt, notes); }
     catch (error) {
       // The reply cannot make a working app of this type (e.g. no usable formula): let the free-form path try.
-      if (error instanceof RecipeError) return { status: 'fallback' };
+      if (error instanceof RecipeError) return { status: 'fallback', reason: 'unusable' };
       throw error;
     }
     // Metadata is assigned here, never taken from the model, as in the free-form path.

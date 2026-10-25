@@ -40,7 +40,7 @@ describe('log recipe builds a valid spec for every combination', () => {
     for (const checkbox of [false, true]) for (const share of [false, true]) for (const [r, reminder] of reminders.entries()) {
       for (const [ti, totals] of totalSets.entries()) for (const tap of taps) for (const sort of [null, { field: fields[0].key, dir: 'desc' as const }]) {
         cases.push([`fields#${i} cb=${checkbox} share=${share} reminder#${r} totals#${ti} tap=${tap?.kind}:${tap?.field} sort=${sort?.field}`,
-          { name: 'Test App', icon: '📝', description: 'd', noun: 'thing', fields, checkbox, totals, tap, sort, share, reminder }]);
+          { name: 'Test App', icon: '📝', description: 'd', noun: 'thing', fields, checkbox, totals, tap, sort, share, reminder, photo: false }]);
       }
     }
   }
@@ -48,9 +48,32 @@ describe('log recipe builds a valid spec for every combination', () => {
   test.each(cases)('%s', (_, config) => check(buildLog(config)));
 });
 
+describe('log recipe with photo reading', () => {
+  const base = { name: 'Receipts', icon: '🧾', description: 'd', noun: 'expense', totals: [], sort: null, share: false, reminder: null, photo: true };
+  test.each(fieldSets.flatMap((fields, i) => [false, true].flatMap((checkbox) => [null, ...(fields.some((x) => x.type === 'date') ? [{ kind: 'date' as const, field: fields.find((x) => x.type === 'date')!.key }] : [])]
+    .map((tap) => [`fields#${i} cb=${checkbox} tap=${tap?.kind}`, { ...base, fields, checkbox, tap }] as const))))('%s is valid', (_, config) => check(buildLog(config)));
+
+  test('Read photo appends what the AI reads and clears the photo; only text and numbers are asked for', () => {
+    const spec = buildLog({ ...base, fields: [f('name', 'text'), f('amount', 'money'), f('when', 'date'), f('kind', 'choice', ['Food', 'Fuel'])], checkbox: true, tap: null }) as unknown as
+      { state: Record<string, unknown>; elements: Record<string, { type: string }>; actions: { readPhoto: { steps: Record<string, unknown>[] } } };
+    expect(Object.values(spec.elements).some((e) => e.type === 'ImageInput')).toBe(true);
+    expect(spec.state.photo).toEqual({ type: 'image', default: null, persist: false });
+    const [ai, reset] = spec.actions.readPhoto.steps;
+    expect(ai).toMatchObject({ op: 'ai.run', into: 'items', mode: 'append', image: { $ref: 'photo' },
+      output: { type: 'list', of: { name: 'string', amount: 'number' } }, defaults: { done: false, kind: 'Food' } });
+    expect(reset).toEqual({ op: 'state.reset', path: 'photo' });
+  });
+
+  test('without photo there is no image input and no read action', () => {
+    const spec = JSON.stringify(buildLog({ ...base, photo: false, fields: [f('name', 'text')], checkbox: false, tap: null }));
+    expect(spec).not.toContain('ImageInput');
+    expect(spec).not.toContain('readPhoto');
+  });
+});
+
 test('the log add action requires the title text', () => {
   const spec = buildLog({ name: 'Spend', icon: '💸', description: 'd', noun: 'expense', fields: [f('name', 'text'), f('amount', 'money')],
-    checkbox: false, totals: [], tap: null, sort: null, share: false, reminder: null }) as { actions: { add: { steps: { required?: string[] }[] } } };
+    checkbox: false, totals: [], tap: null, sort: null, share: false, reminder: null, photo: false }) as { actions: { add: { steps: { required?: string[] }[] } } };
   expect(spec.actions.add.steps[0].required).toEqual(['name']);
 });
 

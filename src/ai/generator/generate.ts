@@ -22,6 +22,8 @@ export type GenerationProgress = {
   target: TargetStage; attempt: number; errors?: SpecError[];
   /** Set when no ready-made app type fit and the request is being built freely, by the cloud model or on this device (slower, less reliable). */
   freeForm?: 'cloud' | 'device';
+  /** Why: no ready-made type fits, or one fits but the model's reply could not make a working app of it. */
+  freeFormReason?: 'none' | 'unusable';
 };
 export type GenerateOptions = StageRequest & {
   model: string; noPlan?: boolean;
@@ -45,7 +47,7 @@ export async function generate(options: GenerateOptions): Promise<GenerationResu
     const { fallback, ...rest } = options;
     const via = fallback ? 'cloud' : 'device';
     return generate({ ...rest, ...(fallback ?? {}), recipes: false, noPlan: true,
-      onProgress: (event) => options.onProgress?.({ ...event, freeForm: via }) });
+      onProgress: (event) => options.onProgress?.({ ...event, freeForm: via, freeFormReason: outcome.reason }) });
   }
   let repairs = 0;
   let target: TargetStage = options.noPlan ? 'spec' : 'plan';

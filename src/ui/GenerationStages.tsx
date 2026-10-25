@@ -16,7 +16,7 @@ export function useElapsed(): number {
   return s;
 }
 
-export function GenerationStages({ progress }: { progress: Pick<GenerationProgress, 'stage' | 'attempt' | 'freeForm'> }) {
+export function GenerationStages({ progress }: { progress: Pick<GenerationProgress, 'stage' | 'attempt' | 'freeForm' | 'freeFormReason'> }) {
   const t = useTheme();
   const repairing = progress.stage === 'repairing';
   const steps = [...STAGES.map(([id, label]) => ({ id: id as string, label })),
@@ -38,9 +38,9 @@ export function GenerationStages({ progress }: { progress: Pick<GenerationProgre
       </Text>
       {progress.freeForm ? (
         <Text accessibilityLiveRegion="polite" style={{ color: t.muted, fontSize: 14 }}>
-          {progress.freeForm === 'cloud'
-            ? 'None of my ready-made app types fits this one, so the cloud model is building it.'
-            : 'None of my ready-made app types fits this one, so I am building it from scratch. That can take a few minutes and may not work.'}
+          {(progress.freeFormReason === 'unusable' ? 'I could not fit this into one of my ready-made app types, so ' : 'None of my ready-made app types fits this one, so ')
+            + (progress.freeForm === 'cloud' ? 'the cloud model is building it.'
+              : 'I am building it from scratch. That can take a few minutes and may not work.')}
         </Text>
       ) : null}
     </View>

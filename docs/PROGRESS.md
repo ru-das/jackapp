@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M0 — Setup done except T-04 CI; T-14 decisions drafted (ADR-003/005 await human Accept); M1 phone spikes pending |
-| Last updated | 2026-10-25 by Claude Code (T-113) |
+| Last updated | 2026-10-25 by Claude Code (T-116) |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-116 photo logs / converter / free-form message (Claude Code, 2026-10-25, human-requested after two phone failures; edits Codex-owned `src/ai/generator/**`; ask Codex to review):** ADR-040. "Receipt Photo to Expense Tracker" built a log with no photo input; "Currency Converter" went to the cloud. Causes found by running the matcher: no recipe could read a photo into a log; a calculator reply with no formula threw `RecipeError`, reported as "nothing fits". Fixes: `log` `photo` setting (ImageInput + Read photo, `ai.run` append); converter starter (amount x typed rate) instead of a fallback; `freeFormReason` so the message is true. Instant "can't build that yet" card is **a proposal only**. `npm run check` green (57 suites / 2,650 tests). **Not tried on a device.** **Human next:** build "Receipt Photo to Expense Tracker", photograph a receipt, Read photo, check rows and the total; build "Currency Converter" and type a rate; Customize either one. Limits: photo-read rows have empty date fields and no ⚠ for partly read rows.
+>
 > **T-114/115 customize (Claude Code, 2026-10-25, human-requested; edits Codex-owned `src/spec/schema.ts`, `recipes/*`; ask Codex to review `meta.recipe`):** ADR-039. Recipe builds store `meta.recipe`; run header Customize rebuilds from edited setting lines, asks before hiding saved data and keeps an "(old)" copy with data. Home Remix is now "Make similar to X". `npm run check` green (57 suites / 2,625 tests). **Not tried on a device.** **Human next:** build a counter, Customize step 2, Add adds 2 and count stays; log app: rename a field key, expect the copy prompt, copy has old rows. Limits: apps made before this have no `meta.recipe`; Home templates not customizable.
 >
 > **T-113 offline (Claude Code, 2026-10-25, human-requested):** web now has a service worker (ADR-038, supersedes ADR-019's "no SW"): `npm run export:web` stamps `dist/sw.js` with 42 files and a content-hash version (checked on a real export; the served site was HTTP 200 but **no browser was available to test going offline**). AT-10 in TESTING.md is the promise table. `npm run check` green (55 suites / 2,615 tests). **Human next:** deploy, open the site once online, confirm the worker is active, go offline, close and reopen `/jackapp/` and a `/run/<id>` link; then the native rows (kill + reopen, Android build with no network, photo action). Limit: first web visit must be online; a new deploy needs one online visit to update.

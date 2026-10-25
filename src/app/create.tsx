@@ -31,7 +31,7 @@ type Session = ReturnType<typeof createSession>;
 type Draft = { id: string; spec: Spec; session: Session; notes: string[] };
 type Phase =
   | { kind: 'idle' } | { kind: 'loading' } | { kind: 'needsModel' }
-  | { kind: 'working'; progress: Pick<GenerationProgress, 'stage' | 'attempt' | 'freeForm'> }
+  | { kind: 'working'; progress: Pick<GenerationProgress, 'stage' | 'attempt' | 'freeForm' | 'freeFormReason'> }
   | ({ kind: 'preview' } & Draft)
   | { kind: 'unsupported'; unsupported: Unsupported }
   | { kind: 'choose'; choices: [RecipeId, RecipeId] }

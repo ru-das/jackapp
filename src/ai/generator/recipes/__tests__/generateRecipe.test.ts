@@ -80,6 +80,38 @@ test('a reply that cannot make the app (calculator without a formula) falls back
   expect((await run('Tip calculator')).status).toBe('done');
   expect(calls).toHaveBeenCalledTimes(2);
   expect(events.some((e) => e.freeForm === 'device')).toBe(true);
+  expect(events.filter((e) => e.freeForm).every((e) => e.freeFormReason === 'unusable')).toBe(true);
+});
+
+test('a converter whose reply has no formula still builds: amount times a typed rate, with a note', async () => {
+  const { run, calls, events } = setup(['name Currency Converter\nicon 💱']);
+  const result = await run('Currency Converter');
+  expect(calls).toHaveBeenCalledTimes(1);
+  expect(events.some((e) => e.freeForm)).toBe(false);
+  expect(result).toMatchObject({ status: 'done', spec: { meta: { name: 'Currency Converter' } }, notes: [expect.stringContaining('rate you type')] });
+  if (result.status !== 'done') return;
+  expect(JSON.stringify(result.spec)).toContain('"bind":"rate"');
+});
+
+test('a receipt photo tracker is a log that can read photos, even when the reply leaves the photo line out', async () => {
+  const reply = 'name Receipt Tracker\nicon 🧾\nnoun expense\nfield name text Expense\nfield amount money Amount\ntotal sum amount Total spent';
+  const { run, calls } = setup([reply]);
+  const result = await run('Receipt Photo to Expense Tracker');
+  expect(calls).toHaveBeenCalledTimes(1);
+  expect(result.status).toBe('done');
+  if (result.status !== 'done') return;
+  expect(Object.values(result.spec.elements).some((e) => e.type === 'ImageInput')).toBe(true);
+  expect(result.spec.actions.readPhoto.steps[0]).toMatchObject({ op: 'ai.run', mode: 'append', into: 'items' });
+  // An explicit `photo no` wins over the wording of the request.
+  const off = await setup([`${reply}\nphoto no`]).run('Receipt Photo to Expense Tracker');
+  if (off.status !== 'done') throw new Error('expected done');
+  expect(Object.values(off.spec.elements).some((e) => e.type === 'ImageInput')).toBe(false);
+});
+
+test('the UI is told why free-form generation started: nothing fits, or the reply could not make the app', async () => {
+  const { run, events } = setup(['none', freeForm]);
+  await run('I want an app');
+  expect(events.filter((e) => e.freeForm).every((e) => e.freeFormReason === 'none')).toBe(true);
 });
 
 test.each(['', 'sorry I cannot do that', '{"json": true}', 'name\nfield\ntotal nothing\nreminder soon', 'name {{evil}} \u0000'])(
