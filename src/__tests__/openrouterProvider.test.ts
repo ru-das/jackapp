@@ -93,7 +93,7 @@ test('abort during the wait stops retrying', async () => {
 
 test('network failure and empty content give friendly errors', async () => {
   fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'));
-  await expect(openrouterProvider.generate({ system: '', messages: [] })).rejects.toThrow("Can't reach OpenRouter");
+  await expect(openrouterProvider.generate({ system: '', messages: [] })).rejects.toThrow('Can’t reach OpenRouter');
   fetchMock.mockResolvedValueOnce({ ...ok(null), json: async () => ({ model: 'm/x', choices: [{ finish_reason: 'length', message: { content: null } }] }) });
   await expect(openrouterProvider.generate({ system: '', messages: [] })).rejects.toThrow('200, m/x: no text, finish_reason length');
 });
@@ -112,7 +112,7 @@ test('a 200 with an upstream error body (timeout) is retried', async () => {
 test('the daily free quota fails at once, without retries, and says how to fix it', async () => {
   fetchMock.mockResolvedValue(fail(429, {}, 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day'));
   const logs: string[] = [];
-  await expect(openrouterProvider.generate({ system: '', messages: [], onLog: (m) => logs.push(m) })).rejects.toThrow("used today's free OpenRouter requests");
+  await expect(openrouterProvider.generate({ system: '', messages: [], onLog: (m) => logs.push(m) })).rejects.toThrow('used today’s free OpenRouter requests');
   expect(fetchMock).toHaveBeenCalledTimes(1);
   expect(logs[0]).toContain('free-models-per-day');
 });

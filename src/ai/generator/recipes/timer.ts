@@ -9,14 +9,14 @@ export function buildTimer(c: TimerConfig): Obj {
   const timer = t.add('Timer', { seconds: c.seconds, label: c.label, onDone: 'finished' });
   const kids = [timer];
   if (c.count) {
-    kids.push(t.add('Stat', { label: 'Finished', value: ref('finished'), format: 'number' }));
+    kids.push(t.add('Stat', { label: 'Times finished', value: ref('finished'), format: 'number' }));
     kids.push(t.add('Button', { label: 'Reset count', onPress: 'resetCount', variant: 'secondary' }));
   }
   const card = t.add('Card', { title: c.name }, kids);
   const root = t.add('Stack', { gap: 'md' }, [card]);
   return assemble({ name: c.name, description: c.description, icon: c.icon },
     c.count ? { finished: { type: 'number', default: 0 } } : {}, root, t.elements, {
-      finished: { steps: [...(c.count ? [{ op: 'state.increment', path: 'finished', by: 1 }] : []), { op: 'toast', message: `${c.label}: time is up` }] },
+      finished: { steps: [...(c.count ? [{ op: 'state.increment', path: 'finished', by: 1 }] : []), { op: 'toast', message: `${c.label}: time’s up.` }] },
       ...(c.count ? { resetCount: { steps: [{ op: 'state.reset', path: 'finished' }] } } : {}),
     });
 }

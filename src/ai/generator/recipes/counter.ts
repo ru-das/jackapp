@@ -21,7 +21,7 @@ export function parseCounter(s: Settings, request: string): CounterConfig {
   const name = cleanText(first(s, 'name'), 40, nameFromRequest(request));
   const noun = cleanText(first(s, 'noun'), 24, 'count').toLowerCase();
   const step = Math.min(100, Math.max(1, Math.round(Number(/\d+/.exec(first(s, 'step') ?? '')?.[0] ?? 1)) || 1));
-  return { name, icon: icon(first(s, 'icon'), '🔢'), description: cleanText(first(s, 'description'), 140, `Count ${noun}`), noun, step };
+  return { name, icon: icon(first(s, 'icon'), '🔢'), description: cleanText(first(s, 'description'), 140, noun === 'count' ? 'A simple counter' : `Count ${noun}`), noun, step };
 }
 
 export const counterRecipe: Recipe = {

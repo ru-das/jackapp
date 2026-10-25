@@ -120,7 +120,7 @@ describe('value resolution', () => {
     expect(resolveTemplate('{{name|upper}}', { ...context, locale: 'tr', state: { name: 'milk' } })).toBe('MİLK');
   });
   test.each([
-    [0, 'in 0 seconds'], [-59.9, '59 seconds ago'], [-60, '1 minute ago'], [-3599, '59 minutes ago'],
+    [0, 'now'], [-59.9, '59 seconds ago'], [-60, '1 minute ago'], [-3599, '59 minutes ago'],
     [-3600, '1 hour ago'], [-86399, '23 hours ago'], [-86400, '1 day ago'],
     [-29 * 86400, '29 days ago'], [-30 * 86400, '1 month ago'], [-364 * 86400, '12 months ago'],
     [-365 * 86400, '1 year ago'], [90, 'in 1 minute'],

@@ -190,7 +190,7 @@ describe('the repair slice', () => {
     expect(slice!.split('\n')).toEqual([
       'Button #makeBtn label="Make my list" onPress=makeList variant=primary',
       'state items list name:string qty:string done:boolean',
-      'action clearDone', '- confirm message="Remove items you\'ve bought?"', '- state.remove path=items where=done:true',
+      'action clearDone', '- confirm message="Remove items you’ve bought?"', '- state.remove path=items where=done:true',
       'screen main title="Fridge Snap"',
       'app name="Fridge Snap" description="Photo of your fridge → grocery list" icon=🧊',
     ]);

@@ -54,19 +54,19 @@ export default function Home() {
   const refresh = useCallback(() => { void listApps().then(setApps, (e) => { console.error('home: could not list apps', e); setApps('error'); }); }, []);
   useEffect(() => { refresh(); return subscribeApps(refresh); }, [refresh]);
   const duplicate = async (a: AppSummary) => {
-    if (!(await duplicateApp(a.id, (n) => `${n.slice(0, 32)} (copy)`))) toast("Couldn't duplicate that one.");
+    if (!(await duplicateApp(a.id, (n) => `${n.slice(0, 32)} (copy)`))) toast("Couldn’t duplicate that one.");
     refresh();
   };
   const rename = async (a: AppSummary, name: string) => {
-    if (!(await renameApp(a.id, name))) toast("Couldn't rename that one.");
+    if (!(await renameApp(a.id, name))) toast("Couldn’t rename that one.");
     refresh();
   };
   const remove = async (a: AppSummary) => {
-    if (!(await confirm(`Delete “${a.name}” and its data? This can't be undone.`))) return;
+    if (!(await confirm(`Delete “${a.name}” and its data? This can’t be undone.`))) return;
     try {
       await deleteApp(a.id);
     } catch {
-      toast("Couldn't delete that one. Try again.");
+      toast("Couldn’t delete that one. Try again.");
     }
     refresh();
   };
@@ -74,13 +74,13 @@ export default function Home() {
     const errors = validate(spec);
     if (errors.length) {
       console.error('home: fixture invalid', errors);
-      toast("This template is damaged, so we can't open it.");
+      toast("This template is damaged, so we can’t open it.");
       return;
     }
     try {
       await writeJson(specKey(id), spec);
     } catch {
-      toast("Couldn't save. Try again.");
+      toast("Couldn’t save. Try again.");
       return;
     }
     notifyAppsChanged();

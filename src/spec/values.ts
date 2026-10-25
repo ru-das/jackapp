@@ -145,7 +145,8 @@ function format(value: unknown, formatter: string | undefined, context: ValueCon
           if (!finite(seconds)) break;
           const [unit, size] = relativeUnits.find(([, size]) => Math.abs(seconds) >= size) ?? ['second', 1];
           const elapsed = Math.trunc(seconds / size);
-          return new Intl.RelativeTimeFormat(context.locale, { numeric: 'always' }).format(elapsed === 0 ? 0 : elapsed, unit);
+          // "now" (not "in 0 seconds") for the moment it just happened
+          return new Intl.RelativeTimeFormat(context.locale, { numeric: elapsed === 0 ? 'auto' : 'always' }).format(elapsed === 0 ? 0 : elapsed, unit);
         }
         return new Intl.DateTimeFormat(context.locale, {
           timeZone: context.timeZone, ...(formatter === 'date' ? { dateStyle: 'medium' } : { timeStyle: 'short' }),

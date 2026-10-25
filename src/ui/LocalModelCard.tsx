@@ -50,7 +50,7 @@ export function LocalModelCard() {
     await localModel.warmUp();
     const ok = localModel.isLoaded();
     setLoaded(ok);
-    if (!ok) setError("Couldn't load the model. It will try again when you build.");
+    if (!ok) setError("Couldn’t load the model. It will try again when you build.");
     setLoading(false);
   };
   const remove = async () => {

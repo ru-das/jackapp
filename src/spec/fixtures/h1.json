@@ -67,7 +67,7 @@
       "props": {
         "bind": "notes",
         "label": "Anything to add?",
-        "placeholder": "e.g. we're out of eggs"
+        "placeholder": "e.g. we’re out of eggs"
       }
     },
     "makeBtn": {
@@ -132,7 +132,7 @@
         },
         {
           "op": "toast",
-          "message": "{{items|count}} items on your list"
+          "message": "Items on your list: {{items|count}}."
         }
       ]
     },
@@ -140,7 +140,7 @@
       "steps": [
         {
           "op": "confirm",
-          "message": "Remove items you've bought?"
+          "message": "Remove items you’ve bought?"
         },
         {
           "op": "state.remove",

@@ -61,7 +61,7 @@ describe('splitter', () => {
     expect(store.getState().tip).toBe(9);
     store.setState({ people: 3 });
     await engine.run('share');
-    expect(services.share).toHaveBeenCalledWith('Bill Splitter: bill 60.00 + tip 9.00 = 69.00 EUR\n3 people, 23.00 EUR each');
+    expect(services.share).toHaveBeenCalledWith('Bill Splitter: bill 60.00 + tip 9.00 = 69.00 EUR\nPeople: 3, 23.00 EUR each');
   });
 });
 

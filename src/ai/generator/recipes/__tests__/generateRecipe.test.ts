@@ -4,6 +4,7 @@ import { generate, type GenerationProgress } from '../../generate';
 import { toCompact } from '../../compact';
 import { matchSync } from '../match';
 import { h1 } from '@/spec/fixtures';
+import { ProviderError } from '../../../errors';
 import { RECIPES } from '../index';
 
 function setup(responses: (string | Error)[]) {
@@ -133,9 +134,14 @@ test('hostile text in the reply cannot add template expressions or break the app
 
 test('a provider error is a friendly failure; cancellation is reported as cancelled', async () => {
   const failed = await setup([new Error('model not downloaded')]).run('Keep a list of my books');
-  expect(failed).toMatchObject({ status: 'failed', message: expect.stringContaining('couldn’t finish'), errors: [expect.objectContaining({ message: 'model not downloaded' })] });
+  expect(failed).toMatchObject({ status: 'failed', message: expect.stringContaining('Couldn’t finish building'), errors: [expect.objectContaining({ message: 'model not downloaded' })] });
   const controller = new AbortController(); controller.abort();
   expect(await setup([]).run('Keep a list of my books', { signal: controller.signal })).toMatchObject({ status: 'failed', message: 'Generation cancelled.' });
+});
+
+test('a provider error with a user-ready message reaches the user instead of the generic one', async () => {
+  const failed = await setup([new ProviderError('Add your OpenRouter key in Settings first.')]).run('Keep a list of my books');
+  expect(failed).toMatchObject({ status: 'failed', message: 'Add your OpenRouter key in Settings first.' });
 });
 
 // What a model would have to say for each corpus prompt to meet its mustUse / mustOps. Prompts not listed work with an empty reply.

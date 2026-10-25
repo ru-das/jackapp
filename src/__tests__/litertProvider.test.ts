@@ -182,7 +182,7 @@ test('download: a network error keeps the part and says where it stopped', async
 test('download: low free space fails before any download starts', async () => {
   sizes(null);
   fs.getFreeDiskStorageAsync.mockResolvedValueOnce(1e9);
-  await expect(localModel.download(() => {})).rejects.toThrow(/Needs .* GB free but this phone has 1\.0 GB/);
+  await expect(localModel.download(() => {})).rejects.toThrow(/This needs .* GB free, but the phone has 1\.0 GB/);
   expect(fs.createDownloadResumable).not.toHaveBeenCalled();
 });
 

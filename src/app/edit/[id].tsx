@@ -15,7 +15,13 @@ import { MIN_TARGET, radius, space, type, useTheme } from '@/ui/theme';
 const keysOf = (text: string) => [...readSettings(text).keys()];
 
 // Setting keys are written for the builder; these are the words people see.
-const LABELS: Record<string, string> = { name: 'Name', icon: 'Icon', description: 'Description', input: 'Inputs (one per line)', output: 'Results (one per line)' };
+const LABELS: Record<string, string> = {
+  name: 'Name', icon: 'Icon', description: 'Description', noun: 'What one entry is called', field: 'Fields (one per line)', checkbox: 'Tick boxes (yes or no)',
+  total: 'Totals (one per line)', tap: 'When an entry is tapped', sort: 'Sort order', share: 'Share button (yes or no)', photo: 'Read from a photo (yes or no)',
+  reminder: 'Reminders (one per line)', instruction: 'What to ask the AI', usual: 'Usual items (comma separated)', button: 'Button text', history: 'Keep past answers (yes or no)',
+  label: 'Label', minutes: 'Length in minutes', count: 'Count finished timers (yes or no)', step: 'Add this much each time', message: 'Reminder message',
+  done: 'Done button (yes or no)', input: 'Inputs (one per line)', output: 'Results (one per line)',
+};
 const labelOf = (k: string) => LABELS[k] ?? k;
 
 /** Customize (ADR-039): edit the setting lines a recipe app was built from, then rebuild through the same validated builder. */
@@ -64,16 +70,16 @@ export default function Customize() {
       const saved = await readJson(dataKey(id)).catch(() => null);
       const risk = dataAtRisk(spec, result.spec, saved && typeof saved === 'object' ? (saved as Record<string, unknown>) : {});
       if (risk.length) {
-        const ok = await confirm(`Saved data for ${risk.join(', ')} won't show in the new version. OK saves the old version as a copy first.`);
+        const ok = await confirm(`Saved data for ${risk.join(', ')} won’t show in the new version. OK saves the old version as a copy first.`);
         if (!ok) return;
-        if (!(await duplicateApp(id, (n) => `${n.slice(0, 33)} (old)`, true))) return setError("Couldn't keep a copy, so nothing was changed.");
+        if (!(await duplicateApp(id, (n) => `${n.slice(0, 33)} (old)`, true))) return setError("Couldn’t keep a copy, so nothing was changed.");
       }
       await writeJson(specKey(id), result.spec);
       notifyAppsChanged();
       if (result.notes.length) toast(result.notes[0]);
       router.back();
     } catch {
-      setError("Couldn't save. Try again.");
+      setError("Couldn’t save. Try again.");
     } finally {
       setBusy(false);
     }
@@ -82,7 +88,7 @@ export default function Customize() {
   return (
     <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={styles.pad} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: `Customize ${spec.meta.name}` }} />
-      <Text style={{ color: t.muted, fontSize: type.body }}>Change the settings this tool was built from. Your saved data stays unless a change would hide it; you’ll be asked first.</Text>
+      <Text style={{ color: t.muted, fontSize: type.body }}>Change the settings this mini-app was built from. Your saved data stays unless a change would hide it; you’ll be asked first.</Text>
       {keys.map((k) => (
         <View key={k} style={{ gap: space.xs }}>
           <Text style={{ color: t.text, fontSize: type.body, fontWeight: '600' }}>{labelOf(k)}</Text>

@@ -56,7 +56,7 @@ function parseInputs(lines: string[], notes: string[]): CalcInput[] {
   for (const line of lines) {
     const words = line.replace(/[:=,|]/g, ' ').split(/\s+/).filter(Boolean);
     if (!words.length) continue;
-    if (out.length >= 5) { notes.push(`Only 5 inputs fit, so “${words[0]}” was left out.`); continue; }
+    if (out.length >= 5) { notes.push('Only 5 inputs fit, so the rest were left out.'); continue; }
     const kind = words[1] && KINDS.has(words[1].toLowerCase()) ? (words[1].toLowerCase() as CalcInput['kind']) : 'number';
     let rest = words.slice(KINDS.has((words[1] ?? '').toLowerCase()) ? 2 : 1);
     const last = rest[rest.length - 1];
@@ -88,7 +88,7 @@ function parseOutputs(lines: string[], inputs: CalcInput[], notes: string[]): Ca
       out.push({ label: label || 'Result', formula, format });
     } catch (error) {
       if (!(error instanceof FormulaError)) throw error;
-      notes.push(`Left out “${label || 'a result'}”: couldn’t read its formula.`);
+      notes.push(label ? `Left out “${label}”: couldn’t read its formula.` : 'Left out a result: couldn’t read its formula.');
     }
   }
   return out;
@@ -141,7 +141,7 @@ output Each person pays = (bill + bill * tip / 100) / people as money`,
     catch (error) {
       // A reply with no usable formula still gives a working converter: the user types the rate. Other calculators cannot guess a formula, so they fall back.
       if (!(error instanceof RecipeError) || !CONVERTER.test(request)) throw error;
-      notes.push('I couldn’t read a formula, so this multiplies the amount by a rate you type. Change it with Customize.');
+      notes.push('No usable formula was found, so this multiplies the amount by a rate you type. Change it with Customize.');
       return buildCalculator(starterConverter(request), notes);
     }
   },

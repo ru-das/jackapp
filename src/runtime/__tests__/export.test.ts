@@ -12,16 +12,16 @@ const spec = {
 
 test('lists become header + rows; drafts and images are left out', () => {
   const csv = toCsv(spec, { items: [{ name: 'Tea', amount: 3, done: false }], draft: 'x', photo: 'data:image/png;base64,AA', currency: 'EUR' });
-  expect(csv).toBe('items\nname,amount,done\nTea,3,false\n\nsettings\nname,value\ncurrency,EUR');
+  expect(csv).toBe('Items\nName,Amount,Done\nTea,3,no\n\nOther values\nName,Value\nCurrency,EUR');
 });
 
 test('quotes commas, quotes and newlines', () => {
   const csv = toCsv(spec, { items: [{ name: 'a, "b"\nc', amount: 1, done: true }], currency: 'USD' });
-  expect(csv).toContain('"a, ""b""\nc",1,true');
+  expect(csv).toContain('"a, ""b""\nc",1,yes');
 });
 
 test('text that looks like a formula gets a quote prefix; numbers stay numbers', () => {
   const csv = toCsv(spec, { items: [{ name: '=HYPERLINK("x")', amount: -5, done: false }, { name: '@a', amount: 0, done: false }], currency: 'USD' });
-  expect(csv).toContain(`"'=HYPERLINK(""x"")",-5,false`);
-  expect(csv).toContain("'@a,0,false");
+  expect(csv).toContain(`"'=HYPERLINK(""x"")",-5,no`);
+  expect(csv).toContain("'@a,0,no");
 });

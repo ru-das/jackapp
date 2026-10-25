@@ -45,11 +45,11 @@ export default function Run() {
         if (e instanceof StorageError && e.kind === 'unreadable') return {}; // fails validate() below: damaged
         throw e;
       });
-      if (raw === null) return live && setPhase({ kind: 'error', message: "We couldn't find this mini-app." });
+      if (raw === null) return live && setPhase({ kind: 'error', message: "We couldn’t find this mini-app." });
       const errors = validate(raw);
       if (errors.length) {
         console.error(`run/${id}: spec invalid`, errors);
-        return live && setPhase({ kind: 'error', message: "This mini-app is damaged, so we can't open it." });
+        return live && setPhase({ kind: 'error', message: "This mini-app is damaged, so we can’t open it." });
       }
       const spec = SpecSchema.parse(raw);
       const session = createSession(id, spec, abort.signal);
@@ -64,7 +64,7 @@ export default function Run() {
     })().catch((e) => {
       console.error(`run/${id}: load failed`, e);
       const unavailable = e instanceof StorageError;
-      if (live) setPhase({ kind: 'error', message: unavailable ? "We couldn't reach your saved data, so nothing was opened. Close the app and try again." : 'Something went wrong opening this mini-app.' });
+      if (live) setPhase({ kind: 'error', message: unavailable ? "We couldn’t reach your saved data, so nothing was opened. Close the app and try again." : 'Something went wrong opening this mini-app.' });
     });
     const sub = AppState.addEventListener('change', (s) => { if (s !== 'active') void store?.flush().catch(() => {}); else void resync(); }); // coming back may follow turning notifications on in system settings
     return () => { live = false; abort.abort(); sub.remove(); void store?.flush().catch(() => {}); };

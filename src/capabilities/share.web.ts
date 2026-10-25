@@ -10,5 +10,5 @@ export async function share(text: string): Promise<void> {
     return;
   }
   await navigator.clipboard.writeText(text);
-  toast('Copied to clipboard');
+  toast('Copied to clipboard.');
 }

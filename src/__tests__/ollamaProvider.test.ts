@@ -40,7 +40,7 @@ test('no model name: not configured, friendly error, no request', async () => {
 
 test('unreachable server and unknown model give friendly errors', async () => {
   fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'));
-  await expect(ollamaProvider.generate({ system: '', messages: [] })).rejects.toThrow("Can't reach Ollama at http://192.168.1.5:11434");
+  await expect(ollamaProvider.generate({ system: '', messages: [] })).rejects.toThrow('Can’t reach Ollama at http://192.168.1.5:11434');
   fetchMock.mockResolvedValueOnce({ ok: false, status: 404, json: async () => ({ error: 'model not found' }) });
   await expect(ollamaProvider.generate({ system: '', messages: [] })).rejects.toThrow('no model called');
 });

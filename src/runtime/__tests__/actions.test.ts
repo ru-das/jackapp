@@ -213,7 +213,7 @@ test.each(['throw', 'reject'] as const)('service %s preserves earlier writes, st
   await f.engine.run('run');
   expect(f.store.getState()).toMatchObject({ count: 3, flag: false });
   expect(log).toHaveBeenCalledWith('Action failed', expect.objectContaining({ actionId: 'run', stepIndex: 1, error }));
-  expect(f.services.toast).toHaveBeenCalledWith('Something went wrong. Please try again.');
+  expect(f.services.toast).toHaveBeenCalledWith('Something went wrong. Try again.');
   expect(f.engine.isBusy('run')).toBe(false);
 });
 
@@ -230,7 +230,7 @@ test.each(['ai.run', 'notify'] as const)('missing %s handler stops with friendly
   const services: ActionServices = { ...f.services, ai: undefined, notify: undefined };
   const engine = createActionEngine({ ...f, services });
   await engine.run('run');
-  expect(f.services.toast).toHaveBeenCalledWith(expect.stringContaining('unavailable'));
+  expect(f.services.toast).toHaveBeenCalledWith(expect.stringContaining('available right now'));
   expect(f.store.getState().flag).toBe(false);
   expect(engine.isBusy('run')).toBe(false);
 });
@@ -306,7 +306,7 @@ test('append with a required field refuses blank text, keeps the rest, and accep
   const blank = setup([add('   ')]);
   await blank.engine.run('run');
   expect(blank.store.getState().items).toEqual([row]);
-  expect(blank.services.toast).toHaveBeenCalledWith('Fill in the name first.');
+  expect(blank.services.toast).toHaveBeenCalledWith('Fill in “Name” first.');
   const ok = setup([add('Tea')]);
   await ok.engine.run('run');
   expect(ok.store.getState().items).toHaveLength(2);

@@ -28,11 +28,11 @@ export function buildAi(c: AiConfig): Obj {
       : i.kind === 'choice' ? t.add('Select', { bind: i.key, label: i.label, options: i.options })
         : t.add('TextInput', { bind: i.key, label: i.label, ...(i.kind === 'longtext' ? { multiline: true } : {}) }));
   const run = t.add('Button', { label: c.button, onPress: 'run', variant: 'primary' });
-  const inputCard = t.add('Card', { title: 'Ask' }, [...fields, run]);
+  const inputCard = t.add('Card', { title: 'Your request' }, [...fields, run]);
 
   const out: string[] = [];
   if (checklist) {
-    out.push(t.add('List', { items: 'items', title: '{{$item.name}}', subtitle: '{{$item.qty}}', checkField: 'done', deletable: true, emptyText: 'Your list will appear here' }));
+    out.push(t.add('List', { items: 'items', title: '{{$item.name}}', subtitle: '{{$item.qty}}', checkField: 'done', deletable: true, emptyText: 'Your list appears here' }));
     out.push(t.add('Button', { label: 'Clear done', onPress: 'clearDone', variant: 'secondary' }));
   } else {
     out.push(t.add('Text', { value: '{{result}}', variant: 'body' }));
@@ -55,7 +55,7 @@ export function buildAi(c: AiConfig): Obj {
   const actions: Obj = {
     run: { steps: [aiStep,
       ...(c.history && !checklist ? [{ op: 'state.append', path: 'history', value: { answer: ref('result'), when: NOW } }] : []),
-      ...(checklist ? [{ op: 'toast', message: '{{items|count}} items on your list' }] : [])] },
+      ...(checklist ? [{ op: 'toast', message: 'Items on your list: {{items|count}}.' }] : [])] },
     ...(checklist ? { clearDone: { steps: [{ op: 'state.remove', path: 'items', where: { field: 'done', equals: true } }] } } : {}),
     ...(c.share ? { share: { steps: [{ op: 'share', text: checklist ? `${c.name}:\n{{items|lines}}` : '{{result}}' }] } } : {}),
   };
@@ -104,7 +104,7 @@ export function parseAi(s: Settings, request: string, notes: string[] = []): AiC
   const instruction = cleanText(first(s, 'instruction')?.replace(/[[\]]/g, (c) => (c === '[' ? '\u0001' : '\u0002')), 300)
     .replace(/\u0001(\w+)\u0002/g, '[$1]').replace(/[\u0001\u0002]/g, '')
     || (inputs[0].kind === 'photo' ? 'Describe what you see and list what is useful.' : `Help with this: [${fallbackKey}]`);
-  if (output !== 'compare' && (!first(s, 'instruction') || !cleanText(first(s, 'instruction'), 300))) notes.push('No instruction was set, so the AI gets a general one.');
+  if (output !== 'compare' && (!first(s, 'instruction') || !cleanText(first(s, 'instruction'), 300))) notes.push('No specific instructions were set, so the AI uses a general one.');
   const name = cleanText(first(s, 'name'), 40, nameFromRequest(request));
   return {
     name, icon: icon(first(s, 'icon'), '✨'), description: cleanText(first(s, 'description'), 140, `${name}: ask the AI`), inputs, instruction, output, usual,

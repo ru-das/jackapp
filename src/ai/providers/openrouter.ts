@@ -1,5 +1,6 @@
 import { loadSettings } from '@/storage/settings';
 import { OPENROUTER_FALLBACKS, OPENROUTER_MODELS } from '../models';
+import { ProviderError } from '../errors';
 import type { LLMProvider } from '../provider';
 
 const URL = 'https://openrouter.ai/api/v1/chat/completions';
@@ -11,8 +12,8 @@ const REASONING_HEADROOM = 6144;
 const NEEDS_KEY = 'Add your OpenRouter key in Settings first.';
 const BAD_KEY = 'OpenRouter did not accept your key. Check it in Settings.';
 const BUSY = 'The free models are busy. Try again in a minute.';
-const DAILY = "You've used today's free OpenRouter requests. They reset at midnight UTC, or add $10 of credits for 1000 a day.";
-const OFFLINE = "Can't reach OpenRouter. Check your connection.";
+const DAILY = 'You’ve used today’s free OpenRouter requests. They reset at midnight UTC, or add $10 of credits for 1,000 a day.';
+const OFFLINE = 'Can’t reach OpenRouter. Check your connection.';
 
 type Req = Parameters<LLMProvider['generate']>[0];
 
@@ -38,7 +39,7 @@ function toMessages({ system, messages }: Req) {
 
 async function generate(req: Req): Promise<string> {
   const { openrouterKey } = await loadSettings();
-  if (!openrouterKey.trim()) throw new Error(NEEDS_KEY);
+  if (!openrouterKey.trim()) throw new ProviderError(NEEDS_KEY);
   const primary = OPENROUTER_MODELS[req.stage ?? 'fill'];
   const body = JSON.stringify({
     models: [primary, ...OPENROUTER_FALLBACKS.filter((m) => m !== primary)],
@@ -65,22 +66,22 @@ async function generate(req: Req): Promise<string> {
     } catch (e) {
       if (req.signal?.aborted) throw new Error('aborted');
       console.error('[openrouter] request failed', e);
-      throw new Error(OFFLINE);
+      throw new ProviderError(OFFLINE);
     }
     if (res.status === 429) {
       const body: any = await res.json().catch(() => null); // JSON parse boundary
       const why: string = body?.error?.message ?? 'rate limited';
       req.onLog?.(`429 ${why}`);
       // The daily free quota only resets at midnight UTC, so retrying just burns time.
-      if (/per.?day/i.test(why)) throw new Error(DAILY);
-      if (attempt >= RETRIES) throw new Error(BUSY);
+      if (/per.?day/i.test(why)) throw new ProviderError(DAILY);
+      if (attempt >= RETRIES) throw new ProviderError(BUSY);
       const header = Number(res.headers.get('retry-after'));
       const wait = Math.min(MAX_WAIT_MS, header > 0 ? header * 1000 : 2000 * 2 ** attempt);
       req.onLog?.(`retry ${attempt + 1}/${RETRIES} in ${wait / 1000} s`);
       await sleep(wait, req.signal);
       continue;
     }
-    if (res.status === 401 || res.status === 403) throw new Error(BAD_KEY);
+    if (res.status === 401 || res.status === 403) throw new ProviderError(BAD_KEY);
     const json: any = await res.json().catch(() => null); // JSON parse boundary
     const text = json?.choices?.[0]?.message?.content;
     // Free upstreams sometimes time out with a 200 and an error body; one quick retry is usually enough.
@@ -94,7 +95,7 @@ async function generate(req: Req): Promise<string> {
       // The detail lands in eval diagnostics; the screens show the generic generator message.
       const choice = json?.choices?.[0];
       const why = json?.error?.message ?? (choice ? `no text, finish_reason ${choice.finish_reason}` : 'no choices');
-      throw new Error(`The AI service had a problem (${res.status}, ${json?.model ?? 'model unknown'}: ${why}). Please try again.`);
+      throw new Error(`The AI service had a problem (${res.status}, ${json?.model ?? 'model unknown'}: ${why}). Try again.`);
     }
     return text.trim();
   }

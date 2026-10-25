@@ -1,3 +1,4 @@
+import { ProviderError } from '../errors';
 import type { LLMProvider, LocalModel } from '../provider';
 
 // Web build: the on-device model only exists in the Android app (ADR-022).
@@ -8,7 +9,7 @@ export const localProvider: LLMProvider = {
   label: 'On-device (Android app only)',
   caps: { vision: true, jsonSchema: false, contextTokens: 8192 },
   isConfigured: async () => false,
-  generate: async () => { throw new Error(UNAVAILABLE); },
+  generate: async () => { throw new ProviderError(UNAVAILABLE); },
 };
 
 export const localModel: LocalModel = {
@@ -18,6 +19,6 @@ export const localModel: LocalModel = {
   isDownloaded: async () => false,
   isLoaded: () => false,
   partialBytes: async () => 0,
-  download: async () => { throw new Error(UNAVAILABLE); },
+  download: async () => { throw new ProviderError(UNAVAILABLE); },
   remove: async () => {},
 };

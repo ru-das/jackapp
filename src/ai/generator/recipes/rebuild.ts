@@ -10,7 +10,7 @@ export type Rebuilt = { ok: true; spec: Spec; notes: string[] } | { ok: false; m
 /** Customize: rebuild an app from edited setting lines through the same builder and validator as a first build. */
 export function rebuild(spec: Spec, text: string): Rebuilt {
   const info = spec.meta.recipe;
-  if (!info) return { ok: false, message: 'This mini-app was not built from a ready-made type.' };
+  if (!info) return { ok: false, message: 'This mini-app can’t be customized because it wasn’t built from a ready-made kind.' };
   const settings = readSettings(text);
   const notes: string[] = [];
   let next;
@@ -24,6 +24,6 @@ export function rebuild(spec: Spec, text: string): Rebuilt {
     ...(next.meta as object), ...(sourcePrompt !== undefined ? { sourcePrompt } : {}), ...(generatedBy ? { generatedBy } : {}),
     recipe: { id: info.id, version: RECIPES[info.id].version, settings: writeSettings(settings).slice(0, 2000) },
   };
-  if (validate(next).length) return { ok: false, message: 'Those settings do not make a working app. Try simpler values.' };
+  if (validate(next).length) return { ok: false, message: 'Those settings don’t make a working mini-app. Try simpler values.' };
   return { ok: true, spec: SpecSchema.parse(next), notes };
 }

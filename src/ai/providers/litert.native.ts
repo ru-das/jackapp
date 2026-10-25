@@ -1,10 +1,11 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import { LiteRtLm } from '../../../modules/litert-lm';
 import { LITERT_MODEL } from '../models';
+import { ProviderError } from '../errors';
 import type { LLMProvider, LocalModel, LocalTuning } from '../provider';
 
 const NEEDS_MODEL = 'Download the on-device model in Settings first.';
-const UNAVAILABLE = 'On-device AI is not part of this build.';
+const UNAVAILABLE = 'On-device AI isn’t available in this version of the app.';
 
 const dir = () => `${FileSystem.documentDirectory ?? ''}models/`;
 const path = () => `${dir()}${LITERT_MODEL.file}`;
@@ -61,7 +62,7 @@ export const localModel: LocalModel = {
     if (have < total) {
       const free = await FileSystem.getFreeDiskStorageAsync();
       if (free < total - have + HEADROOM) {
-        throw new Error(`Needs ${gb(total - have + HEADROOM)} GB free but this phone has ${gb(free)} GB. Free up space and try again.`);
+        throw new ProviderError(`This needs ${gb(total - have + HEADROOM)} GB free, but the phone has ${gb(free)} GB. Free up space and try again.`);
       }
       const url = `https://huggingface.co/${LITERT_MODEL.repo}/resolve/${LITERT_MODEL.revision}/${LITERT_MODEL.file}`;
       // expo-file-system sends `Range: bytes=<resumeData>-` and appends, so the bytes already on disk are all the state we need.
@@ -77,7 +78,7 @@ export const localModel: LocalModel = {
       } catch (e) {
         if (signal?.aborted) throw new Error('aborted');
         console.error('[local] model download interrupted', e);
-        throw new Error(`Download stopped at ${gb(await partSize())} of ${gb(total)} GB. Connect to Wi-Fi and tap Resume to continue.`);
+        throw new ProviderError(`Download stopped at ${gb(await partSize())} of ${gb(total)} GB. Connect to Wi-Fi and tap Resume to continue.`);
       } finally {
         signal?.removeEventListener('abort', stop);
       }
@@ -87,10 +88,10 @@ export const localModel: LocalModel = {
     if (size > total) {
       // The server ignored the Range header and the bytes were appended to the old ones.
       await FileSystem.deleteAsync(part, { idempotent: true });
-      throw new Error('The download was corrupted, so it was deleted. Tap Download to start again.');
+      throw new ProviderError('The download was corrupted, so it was deleted. Tap Download to start again.');
     }
     if (size < total) {
-      throw new Error(`Download stopped at ${gb(size)} of ${gb(total)} GB. Connect to Wi-Fi and tap Resume to continue.`);
+      throw new ProviderError(`Download stopped at ${gb(size)} of ${gb(total)} GB. Connect to Wi-Fi and tap Resume to continue.`);
     }
     await FileSystem.moveAsync({ from: part, to: path() });
   },
@@ -119,9 +120,9 @@ export const localProvider: LLMProvider = {
   isConfigured: async () => LiteRtLm !== null && (await hasModel()),
   generate(req) {
     const run = async () => {
-      if (!LiteRtLm) throw new Error(UNAVAILABLE);
+      if (!LiteRtLm) throw new ProviderError(UNAVAILABLE);
       if (req.signal?.aborted) throw new Error('aborted');
-      if (!(await hasModel())) throw new Error(NEEDS_MODEL);
+      if (!(await hasModel())) throw new ProviderError(NEEDS_MODEL);
       const native = LiteRtLm;
       const images = req.messages.flatMap((m) => m.images ?? []).map(bare);
       const partial = req.onPartial ? native.addListener('onPartial', (e) => req.onPartial?.(e.chars)) : null;

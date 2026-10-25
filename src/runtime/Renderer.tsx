@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { pickImage } from '@/capabilities';
+import { PhotoError, pickImage, toast } from '@/capabilities';
 import { Button } from '@/catalog/Button/Button';
 import { Card } from '@/catalog/Card/Card';
 import { Divider } from '@/catalog/Divider/Divider';
@@ -100,7 +100,7 @@ function Built({ id, ctx, scope }: { id: string; ctx: Ctx; scope?: Scope }): Rea
     case 'ImageInput':
       node = <ImageInput label={p.label} source={p.source}
         value={typeof state[p.bind] === 'string' ? (state[p.bind] as string) : null}
-        onPick={(source) => { void pickImage({ source }).then((uri) => { if (uri) set(p.bind)(uri); }).catch((e) => console.warn('pickImage failed', e)); }} />;
+        onPick={(source) => { void pickImage({ source }).then((uri) => { if (uri) set(p.bind)(uri); }).catch((e) => { console.warn('pickImage failed', e); toast(e instanceof PhotoError ? e.message : 'Couldn’t get that photo. Try again.'); }); }} />;
       break;
     case 'DateInput':
       node = <DateInput label={p.label} value={typeof state[p.bind] === 'string' ? (state[p.bind] as string) : null} onChange={set(p.bind)} />;

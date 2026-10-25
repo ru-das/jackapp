@@ -21,7 +21,7 @@ export function buildReminder(c: ReminderConfig): Obj {
   const root = t.add('Stack', { gap: 'md' }, kids);
   return assemble({ name: c.name, description: c.description, icon: c.icon },
     c.done ? { count: { type: 'number', default: 0 }, last: { type: 'date', default: null } } : {}, root, t.elements,
-    c.done ? { markDone: { steps: [{ op: 'state.increment', path: 'count', by: 1 }, { op: 'state.set', path: 'last', value: NOW }, { op: 'toast', message: 'Nice, logged' }] } } : {},
+    c.done ? { markDone: { steps: [{ op: 'state.increment', path: 'count', by: 1 }, { op: 'state.set', path: 'last', value: NOW }, { op: 'toast', message: 'Logged.' }] } } : {},
     c.reminders.map((r, i) => ({ ...reminderTrigger(c.name, r), id: `reminder${i + 1}` })));
 }
 
@@ -29,7 +29,7 @@ export function parseReminder(s: Settings, request: string, notes: string[] = []
   const name = cleanText(first(s, 'name'), 40, nameFromRequest(request));
   const parsed = (s.get('reminder') ?? []).map((line) => ({ line, r: reminder(line, name) }));
   const reminders = parsed.map((p) => p.r).filter((r): r is Reminder => r !== null).slice(0, 3);
-  for (const p of parsed) if (!p.r) notes.push(`Couldn’t read the reminder “${p.line}”.`);
+  for (const p of parsed) if (!p.r) notes.push('Couldn’t read one of the reminder times, so it was left out.');
   if (parsed.filter((p) => p.r).length > 3) notes.push('Only 3 reminders fit, so the rest were left out.');
   if (!reminders.length) throw new RecipeError('The reminder has no usable schedule.');
   const message = cleanText(first(s, 'message'), 60, reminders[0].body);

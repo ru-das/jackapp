@@ -119,7 +119,7 @@ test('fixture save validates before writing or navigating, with friendly feedbac
     await fireEvent.press(screen.getByLabelText('Open Fridge Snap'));
     expect(await AsyncStorage.getItem('jackapp:spec:fixture-h1')).toBeNull();
     expect(mockPush).not.toHaveBeenCalled();
-    expect(toast).toHaveBeenCalledWith(expect.stringContaining("can't open"));
+    expect(toast).toHaveBeenCalledWith(expect.stringContaining('can’t open'));
   } finally { h1.elements.root.children = original; }
 });
 

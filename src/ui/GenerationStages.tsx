@@ -5,7 +5,7 @@ import { space, type, useTheme } from './theme';
 
 const STAGES = [['building', 'Building'], ['checking', 'Checking']] as const;
 
-/** Building → Checking, with "Repairing n" appended while the generator is fixing its output. */
+/** Building → Checking, with "Fixing mistakes (try n)" appended while the generator is fixing its output. */
 /** Seconds since mount; a slow phone model needs visible proof that it is still going. */
 export function useElapsed(): number {
   const [s, setS] = useState(0);
@@ -38,9 +38,9 @@ export function GenerationStages({ progress }: { progress: Pick<GenerationProgre
       </Text>
       {progress.freeForm ? (
         <Text accessibilityLiveRegion="polite" style={{ color: t.muted, fontSize: type.meta }}>
-          {(progress.freeFormReason === 'unusable' ? 'I could not fit this into one of my ready-made app types, so ' : 'None of my ready-made app types fits this one, so ')
-            + (progress.freeForm === 'cloud' ? 'the cloud model is building it.'
-              : 'I am building it from scratch. That can take a few minutes and may not work.')}
+          {(progress.freeFormReason === 'unusable' ? 'This doesn’t fit one of the ready-made kinds of mini-app, so ' : 'No ready-made kind of mini-app fits this one, so ')
+            + (progress.freeForm === 'cloud' ? 'the cloud AI is building it.'
+              : 'the AI is building it from scratch. That can take a few minutes and may not work.')}
         </Text>
       ) : null}
     </View>

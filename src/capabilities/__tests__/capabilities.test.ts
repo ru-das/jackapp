@@ -63,7 +63,7 @@ describe('pickImage', () => {
 
   test('permission denied throws a friendly error', async () => {
     picker.requestCameraPermissionsAsync.mockResolvedValue({ granted: false } as never);
-    await expect(pickImage({ source: 'camera' })).rejects.toThrow('Camera access is off.');
+    await expect(pickImage({ source: 'camera' })).rejects.toThrow('Camera access is off. Turn it on in system settings.');
   });
 });
 
@@ -92,7 +92,7 @@ describe('share (web)', () => {
     await share('hi');
     off();
     expect(writeText).toHaveBeenCalledWith('hi');
-    expect(seen).toEqual(['Copied to clipboard']);
+    expect(seen).toEqual(['Copied to clipboard.']);
   });
 });
 

@@ -3,6 +3,7 @@ import type { SpecError } from '@/spec/types';
 import { validate } from '@/spec/validate';
 import { checkCancellation } from '../fill';
 import type { GenerateOptions, GenerationResult } from '../generate';
+import { ProviderError } from '../../errors';
 import { RECIPES } from './index';
 import { classifyPrompt, parseClassification } from './classify';
 import { matchRecipe, refusalGate } from './match';
@@ -82,6 +83,6 @@ export async function generateRecipe(options: GenerateOptions): Promise<RecipeOu
     const errors: SpecError[] = [{ code: 'SHAPE', path: 'recipe', message: error instanceof Error ? error.message : String(error),
       hint: cancelled ? 'Start again when ready.' : 'Check the loaded provider and try again.' }];
     progress('failed', errors);
-    return { status: 'failed', repairs: 0, errors, message: cancelled ? 'Generation cancelled.' : 'The model couldn’t finish. Please try again.' };
+    return { status: 'failed', repairs: 0, errors, message: cancelled ? 'Generation cancelled.' : error instanceof ProviderError ? error.message : 'Couldn’t finish building. Try again.' };
   }
 }

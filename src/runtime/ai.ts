@@ -1,13 +1,15 @@
+import { ProviderError } from '@/ai/errors';
 import type { LLMProvider } from '@/ai/provider';
 import { IsoDateSchema, StateDeclSchema } from '@/spec/schema';
 import type { Spec } from '@/spec/types';
 import { FriendlyError, type ActionServices, type ResolvedAiStep } from './actions';
+import { fieldLabel, inline, joinWords } from './labels';
 import type { Store } from './store';
 
 export const AI_TIMEOUT_MS = 120_000;
 const PROMPT_LIMIT = 2000;
 const ATTEMPTS = 2;
-const EMPTY_PHOTO = "Couldn't read anything in the photo. Try again with a closer, brighter photo.";
+const EMPTY_PHOTO = 'Couldn’t read anything in the photo. Try again with a closer, brighter photo.';
 const EMPTY_TEXT = 'The AI gave an empty answer. Try again or add more detail.';
 
 type FieldType = 'string' | 'number' | 'boolean' | 'date';
@@ -57,7 +59,7 @@ const read = (type: FieldType, v: unknown) => {
   return typeof c === 'string' && c.trim() === '' ? undefined : c;
 };
 
-function interpret(step: ResolvedAiStep, target: Spec['state'][string], key: string, raw: string): unknown {
+function interpret(spec: Spec, step: ResolvedAiStep, target: Spec['state'][string], key: string, raw: string): unknown {
   const body = (parse(raw) as Record<string, unknown> | null)?.[key];
   if (step.output.type !== 'list') {
     const value = coerce(step.output.type as FieldType, body);
@@ -80,7 +82,7 @@ function interpret(step: ResolvedAiStep, target: Spec['state'][string], key: str
       const fallback = coerce(type as FieldType, step.defaults?.[field]);
       return [field, model ?? fallback ?? ZERO[type as FieldType]];
     }));
-    if (step.flag) out[step.flag] = missing.length ? `Couldn't read the ${missing.join(' and ')}` : '';
+    if (step.flag) out[step.flag] = missing.length ? `Couldn’t read the ${joinWords(missing.map((f) => inline(fieldLabel(spec, f))))}.` : '';
     return [out];
   });
   if (!rows.length) throw new FriendlyError(step.image ? EMPTY_PHOTO : EMPTY_TEXT);
@@ -107,8 +109,8 @@ export function createAiService({ spec, store, getProvider, signal }: AiServiceO
       throw new Error('ai.run image must be a data:image URL.');
     }
     const { provider } = await getProvider();
-    if (image && !provider.caps.vision) throw new Error('This model cannot read images.');
-    if (!(await provider.isConfigured())) throw new Error('Set up AI in Settings.');
+    if (image && !provider.caps.vision) throw new FriendlyError('This AI can’t read photos. Pick another in Settings.');
+    if (!(await provider.isConfigured())) throw new FriendlyError('Set up AI in Settings first.');
 
     const { key, schema } = jsonSchema(step.output);
     const system = `Reply with JSON only, no prose, matching this JSON Schema: ${JSON.stringify(schema)}`;
@@ -126,10 +128,10 @@ export function createAiService({ spec, store, getProvider, signal }: AiServiceO
         const raw = await provider.generate({
           system, messages, signal: abort.signal, temperature: attempt ? 0 : 0.2, maxTokens: 1024, stage: 'run',
           ...(provider.caps.jsonSchema ? { jsonSchema: schema } : {}),
-        });
+        }).catch((e: unknown) => { throw e instanceof ProviderError ? new FriendlyError(e.message) : e; });
         if (abort.signal.aborted) throw new Error('ai.run was cancelled or timed out.');
         try {
-          const value = interpret(step, target, key, raw);
+          const value = interpret(spec, step, target, key, raw);
           const next = step.mode === 'append' && Array.isArray(value)
             ? [...(store.getState()[step.into] as unknown[]), ...value] : value;
           const checked = StateDeclSchema.safeParse({ ...target, default: next });

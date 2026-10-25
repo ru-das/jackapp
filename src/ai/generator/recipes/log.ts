@@ -68,9 +68,9 @@ export function buildLog(c: LogConfig): Obj {
   const addButton = t.add('Button', { label: `Add ${c.noun}`, onPress: 'add', variant: 'primary' });
   const addCard = t.add('Card', { title: `New ${c.noun}` }, [...inputs, addButton]);
   const photoCard = c.photo ? t.add('Card', { title: 'From a photo' }, [
-    t.add('ImageInput', { bind: 'photo', label: `Photo of ${c.noun}s` }),
+    t.add('ImageInput', { bind: 'photo', label: 'Photo to read' }),
     t.add('Button', { label: 'Read photo', onPress: 'readPhoto', variant: 'primary' }),
-    t.add('Text', { value: 'The AI adds what it reads. Tap an item afterwards to fix it.', variant: 'muted' }),
+    t.add('Text', { value: editable ? 'The AI adds what it reads. Tap an entry afterwards to fix it.' : 'The AI adds what it reads. Check the new entries afterwards.', variant: 'muted' }),
   ]) : null;
 
   const others = c.fields.filter((f) => f !== title);
@@ -87,7 +87,7 @@ export function buildLog(c: LogConfig): Obj {
     ...(c.checkbox ? { checkField: 'done' } : {}), deletable: true, onItemPress: !c.tap ? 'edit' : dateTap ? 'open' : 'record',
     ...(c.sort ? { sort: c.sort } : {}), emptyText: `Add your first ${c.noun}`,
   });
-  const hint = dateTap ? `Tap a ${c.noun} to log it or fix the date.` : editable ? `Tap a ${c.noun} to fix or delete it.` : '';
+  const hint = dateTap ? 'Tap an entry to log it or fix the date.' : editable ? 'Tap an entry to fix or delete it.' : '';
   const listKids = hint ? [t.add('Text', { value: hint, variant: 'muted' }), list] : [list];
   for (const total of c.totals) {
     const field = c.fields.find((f) => f.key === total.field);
@@ -114,7 +114,7 @@ export function buildLog(c: LogConfig): Obj {
     t.add('DateInput', { bind: 'pickDay', label: 'Or pick the day' }),
     t.add('Button', { label: 'Save that day', onPress: 'saveDay', variant: 'secondary' }),
   ])]) }];
-  const editScreen = !editable ? [] : [{ id: 'edit', title: `Fix ${c.noun}`, root: t.add('Stack', { gap: 'md' }, [t.add('Card', { title: `Fix this ${c.noun}` }, [
+  const editScreen = !editable ? [] : [{ id: 'edit', title: `Edit ${c.noun}`, root: t.add('Stack', { gap: 'md' }, [t.add('Card', { title: 'Details' }, [
     ...typed.map((f) => input(f, fix(f))),
     t.add('Button', { label: 'Save changes', onPress: 'saveEdit', variant: 'primary' }),
     t.add('Button', { label: `Delete ${c.noun}`, onPress: 'deleteEdit', variant: 'danger' }),
@@ -136,22 +136,22 @@ export function buildLog(c: LogConfig): Obj {
         { op: 'state.set', path: 'selWhen', value: ref(`$item.${dateTap.field}`) }, { op: 'state.set', path: 'prevWhen', value: ref(`$item.${dateTap.field}`) },
         { op: 'state.set', path: 'pickDay', value: ref(`$item.${dateTap.field}`) }, { op: 'navigate', screen: 'item' }] },
       now: { steps: [{ op: 'state.set', path: 'prevWhen', value: ref('selWhen') }, when(dateTap.field, NOW), { op: 'state.set', path: 'selWhen', value: NOW },
-        { op: 'state.set', path: 'pickDay', value: NOW }, { op: 'toast', message: 'Saved' }] },
+        { op: 'state.set', path: 'pickDay', value: NOW }, { op: 'toast', message: 'Saved.' }] },
       saveDay: { steps: [{ op: 'state.set', path: 'prevWhen', value: ref('selWhen') }, when(dateTap.field, ref('pickDay')),
-        { op: 'state.set', path: 'selWhen', value: ref('pickDay') }, { op: 'toast', message: 'Saved' }] },
-      undo: { steps: [when(dateTap.field, ref('prevWhen')), { op: 'state.set', path: 'selWhen', value: ref('prevWhen') }, { op: 'toast', message: 'Undone' }] },
+        { op: 'state.set', path: 'selWhen', value: ref('pickDay') }, { op: 'toast', message: 'Saved.' }] },
+      undo: { steps: [when(dateTap.field, ref('prevWhen')), { op: 'state.set', path: 'selWhen', value: ref('prevWhen') }, { op: 'toast', message: 'Undone.' }] },
     } : {}),
     ...(editable ? {
       edit: { steps: [{ op: 'state.set', path: 'editIndex', value: ref('$index') },
         ...typed.map((f) => ({ op: 'state.set', path: fix(f), value: ref(`$item.${f.key}`) })), { op: 'navigate', screen: 'edit' }] },
       saveEdit: { steps: [{ op: 'state.update', path: 'items', index: ref('editIndex'), set: Object.fromEntries(typed.map((f) => [f.key, ref(fix(f))])) },
-        { op: 'navigate', screen: 'main' }, { op: 'toast', message: 'Saved' }] },
+        { op: 'navigate', screen: 'main' }, { op: 'toast', message: 'Saved.' }] },
       deleteEdit: { steps: [{ op: 'confirm', message: `Delete this ${c.noun}?` }, { op: 'state.remove', path: 'items', index: ref('editIndex') },
         { op: 'navigate', screen: 'main' }] },
     } : {}),
     ...(record ? { record: { steps: [{ op: 'state.update', path: 'items', index: ref('$index'), set: record }] } } : {}),
     ...(c.checkbox ? { clearDone: { steps: [{ op: 'state.remove', path: 'items', where: { field: 'done', equals: true } }] } } : {}),
-    ...(c.share ? { share: { steps: [{ op: 'share', text: `${c.name}: {{items|count}} ${c.noun}s\n{{items|lines}}` }] } } : {}),
+    ...(c.share ? { share: { steps: [{ op: 'share', text: `${c.name}\nEntries: {{items|count}}\n{{items|lines}}` }] } } : {}),
   };
   return assemble({ name: c.name, description: c.description, icon: c.icon }, state, root, t.elements, actions,
     c.reminder ? [reminderTrigger(c.name, c.reminder)] : [], [...itemScreen, ...editScreen]);
@@ -178,17 +178,19 @@ function options(tokens: string[]): { label: string; options: string[] | undefin
   return { label: tokens.slice(0, at).join(' '), options: [...new Set(list)].slice(0, 12) };
 }
 
+const human = (key: string) => cleanText(cap(key.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()), 30);
+
 function parseFields(lines: string[], notes: string[]): LogField[] {
   const out: LogField[] = [];
   for (const line of lines) {
     const words = line.replace(/[:=]/g, ' ').split(/\s+/).filter(Boolean);
     if (!words.length) continue;
-    if (out.length >= 4) { notes.push(`Only 4 fields fit, so “${words[0]}” was left out.`); continue; }
+    if (out.length >= 4) { notes.push(`Only 4 fields fit, so “${human(words[0])}” was left out.`); continue; }
     const type = typeOf(words[1]?.toLowerCase());
     const { label: rawLabel, options: choices } = options(words.slice(type ? 2 : 1));
     // A 2B model sometimes repeats the type as the label ("water date date"); show the field name instead.
     const given = cleanText(rawLabel, 30);
-    const label = !given || TYPE_WORD.test(given) ? cleanText(cap(words[0].replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()), 30) : given;
+    const label = !given || TYPE_WORD.test(given) ? human(words[0]) : given;
     // A deadline or birthday is something the user types in; an entry date is stamped when the item is added.
     const kind = type === 'date' && /^(due|deadline|birth|dob|start|end|expir|event|appointment)/i.test(words[0]) ? 'day' : (type ?? 'text');
     const key = identifier(words[0], 'name', [...out.map((f) => f.key), 'done', 'items']);
@@ -211,7 +213,7 @@ function parseTotals(lines: string[], fields: LogField[], notes: string[]): LogT
     if (op === 'count' || (!op && /^count/i.test(words[0]))) { out.push({ op: 'count', label: cleanText(rest.join(' '), 30) || 'How many' }); continue; }
     const key = identifier(rest[0], '');
     const field = fields.find((f) => f.key === key && numeric(f)) ?? (rest.length || op ? fields.find(numeric) : undefined);
-    if (!field) { notes.push(`Couldn’t add the total “${line}”: no number field to add up.`); continue; }
+    if (!field) { notes.push('Couldn’t add up a total: there is no number or money field.'); continue; }
     const label = cleanText((fields.some((f) => f.key === key) ? rest.slice(1) : rest).join(' '), 30);
     const chosen = op ?? 'sum';
     out.push({ op: chosen, field: field.key, label: label || `${OP_WORD[chosen]} ${field.label.toLowerCase()}` });
@@ -246,11 +248,11 @@ export function parseLog(s: Settings, request: string, notes: string[] = []): Lo
   fields = tapped.fields;
   const asked = first(s, 'reminder');
   const kept = reminder(asked, name);
-  if (asked && !kept && !/^(none|no|off|false)\b/i.test(asked)) notes.push(`Couldn’t set the reminder “${asked}”.`);
+  if (asked && !kept && !/^(none|no|off|false)\b/i.test(asked)) notes.push('Couldn’t read the reminder schedule, so no reminder was set.');
   const sortWords = (first(s, 'sort') ?? '').split(/\s+/).filter(Boolean);
   const sortField = fields.find((f) => f.key === identifier(sortWords[0], ''));
   return {
-    name, icon: icon(first(s, 'icon'), '📝'), description: cleanText(first(s, 'description'), 140, `Keep track of your ${noun}s`), noun, fields,
+    name, icon: icon(first(s, 'icon'), '📝'), description: cleanText(first(s, 'description'), 140, `Keep track of your ${noun} entries`), noun, fields,
     checkbox: flag(first(s, 'checkbox'), false), totals, tap: tapped.tap,
     sort: sortField ? { field: sortField.key, dir: /^(desc|descending|high|newest|latest)/i.test(sortWords[1] ?? '') ? 'desc' : 'asc' } : null,
     share: flag(first(s, 'share'), false), reminder: kept,

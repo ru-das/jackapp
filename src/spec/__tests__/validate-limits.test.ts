@@ -107,7 +107,7 @@ test('empty-list prompt uses a typed zero item, index zero and deterministic set
   s.state.notes = { type: 'string', default: '', persist: true };
   s.state.date = { type: 'date', default: '2000-01-01T00:00:00Z', persist: true };
   s.elements.root = { type: 'List', props: { items: 'items', title: 'Item', onItemPress: 'test' } };
-  const expanded = '|0|false||0|$0.00|in 0 seconds';
+  const expanded = '|0|false||0|$0.00|now';
   const prompt = '{{$item.name}}|{{$item.n}}|{{$item.flag}}|{{$item.at}}|{{$index}}|{{$item.n|currency}}|{{date|ago}}';
   s.actions.test = { steps: [{ op: 'ai.run', prompt: 'x'.repeat(2000 - expanded.length) + prompt, output: { type: 'string' }, into: 'notes', mode: 'replace' }] };
   expect(validate(s)).toEqual([]);

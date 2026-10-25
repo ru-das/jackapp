@@ -26,7 +26,7 @@ export default function SettingsScreen() {
     if (!settings) return;
     const next = { ...settings, ...patch };
     setSettings(next);
-    await saveSettings(next).catch(() => toast("Couldn't save settings. Try again."));
+    await saveSettings(next).catch(() => toast("Couldn’t save settings. Try again."));
   };
 
   if (!settings) return <View style={{ flex: 1, backgroundColor: t.bg }}><ActivityIndicator accessibilityLabel="Loading settings" color={t.accent} style={{ marginTop: space.lg * 2 }} /></View>;

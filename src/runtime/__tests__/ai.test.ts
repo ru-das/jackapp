@@ -49,7 +49,7 @@ test('bad twice: state unchanged and the user sees a toast', async () => {
   const t = setup(createScriptedMock(['nope', '{"items":"x"}']));
   await t.engine.run('makeList');
   expect(rows(t.get())).toEqual([]);
-  expect(t.toast).toHaveBeenCalledWith('Something went wrong. Please try again.');
+  expect(t.toast).toHaveBeenCalledWith('Something went wrong. Try again.');
 });
 
 test('coerces types: numeric/boolean strings, missing fields get defaults then zero values', async () => {
@@ -132,7 +132,7 @@ describe('T-103: uncertain output is flagged, never trusted', () => {
     const t = bill(['{"items":[{"name":"Pizza","price":12,"kind":"item"},{"name":"Soup","kind":"item"},{"name":"Cola","price":"abc","kind":"item"}]}']);
     await t.engine.run('readBill');
     const lines = t.get().lines as { name: string; price: number; check: string }[];
-    expect(lines.map((l) => l.check)).toEqual(['', "Couldn't read the price", "Couldn't read the price"]);
+    expect(lines.map((l) => l.check)).toEqual(['', 'Couldn’t read the price.', 'Couldn’t read the price.']);
     expect(t.get().billTotal).toBe(12);
     expect(lines.filter((l) => l.check).length).toBe(2);
     expect(t.toast).toHaveBeenLastCalledWith(expect.stringContaining('⚠'));
@@ -163,7 +163,7 @@ describe('T-103: uncertain output is flagged, never trusted', () => {
         ai: createAiService({ spec: s, store, getProvider: async () => ({ provider: createScriptedMock(['{"items":[{},{"name":" "}]}', '{"items":[]}']) }) }) } });
     await engine.run('look');
     expect(state.seen).toEqual([{ name: 'Eggs' }]);
-    expect(toast).toHaveBeenCalledWith(expect.stringContaining("Couldn't read anything"));
+    expect(toast).toHaveBeenCalledWith(expect.stringContaining('Couldn’t read anything'));
   });
 
   test('without flag, a partly read row is still zero-filled (back-compat)', async () => {

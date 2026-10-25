@@ -1,4 +1,5 @@
 import { loadSettings } from '@/storage/settings';
+import { ProviderError } from '../errors';
 import type { LLMProvider } from '../provider';
 
 const NEEDS_MODEL = 'Add your Ollama model name in Settings first.';
@@ -13,7 +14,7 @@ export const ollamaProvider: LLMProvider = {
   isConfigured: async () => (await loadSettings()).ollamaModel.trim() !== '',
   async generate(req) {
     const { ollamaUrl, ollamaModel } = await loadSettings();
-    if (!ollamaModel.trim()) throw new Error(NEEDS_MODEL);
+    if (!ollamaModel.trim()) throw new ProviderError(NEEDS_MODEL);
     const base = ollamaUrl.replace(/\/+$/, '');
     let res: Response;
     try {
@@ -40,13 +41,13 @@ export const ollamaProvider: LLMProvider = {
     } catch (e) {
       if (req.signal?.aborted) throw new Error('aborted');
       console.error('[ollama] request failed', e);
-      throw new Error(`Can't reach Ollama at ${base}. Is it running?`);
+      throw new ProviderError(`Can’t reach Ollama at ${base}. Is it running?`);
     }
     const json: any = await res.json().catch(() => null); // JSON parse boundary
     const text = json?.message?.content;
     if (!res.ok || typeof text !== 'string') {
       console.error('[ollama] bad response', res.status, json);
-      throw new Error(res.status === 404 ? `Ollama has no model called "${ollamaModel}".` : 'Ollama had a problem. Please try again.');
+      throw new ProviderError(res.status === 404 ? `Ollama has no model called “${ollamaModel}”.` : 'Ollama had a problem. Try again.');
     }
     return text.trim();
   },

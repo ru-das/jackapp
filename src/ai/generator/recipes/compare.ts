@@ -10,20 +10,20 @@ export function buildCompare(c: { name: string; icon: string; description: strin
   const t = tree();
   const adder = (bind: string, label: string, action: string) => [
     t.add('TextInput', { bind, label, onSubmit: action }), t.add('Button', { label: 'Add', onPress: action, variant: 'secondary' })];
-  const seen = t.add('Card', { title: '1. What I can see' }, [
+  const seen = t.add('Card', { title: '1. What’s in the photo' }, [
     t.add('ImageInput', { bind: 'photo', label: 'Fridge photo' }),
     t.add('Button', { label: 'Look at the photo', onPress: 'look', variant: 'primary' }),
-    t.add('Text', { value: 'Only items clearly visible. Remove wrong ones and add what I missed.', variant: 'muted' }),
+    t.add('Text', { value: 'Only clearly visible items are listed. Remove wrong ones and add anything that was missed.', variant: 'muted' }),
     t.add('List', { items: 'seen', title: '{{$item.name}}', deletable: true, emptyText: 'Nothing read yet' }),
-    ...adder('newSeen', 'Something I missed', 'addSeen')]);
+    ...adder('newSeen', 'Something missed', 'addSeen')]);
   const staples = t.add('Card', { title: '2. What you usually keep' }, [
     t.add('List', { items: 'staples', title: '{{$item.name}}', deletable: true, emptyText: 'Add the things you always buy' }),
-    ...adder('newStaple', 'Add a usual item', 'addStaple')]);
+    ...adder('newStaple', 'Usual item', 'addStaple')]);
   const list = t.add('Card', { title: '3. Shopping list' }, [
     t.add('Button', { label: c.button, onPress: 'makeList', variant: 'primary' }),
     t.add('Text', { value: 'Usual items not seen in the photo. Food can hide at the back, so check before you buy.', variant: 'muted' }),
-    t.add('List', { items: 'items', title: '{{$item.name}}', checkField: 'done', deletable: true, emptyText: 'Your list will appear here' }),
-    t.add('Button', { label: 'Clear bought', onPress: 'clearDone', variant: 'secondary' }),
+    t.add('List', { items: 'items', title: '{{$item.name}}', checkField: 'done', deletable: true, emptyText: 'Your list appears here' }),
+    t.add('Button', { label: 'Clear done', onPress: 'clearDone', variant: 'secondary' }),
     ...(c.share ? [t.add('Button', { label: 'Share', onPress: 'share', variant: 'secondary' })] : [])]);
   const root = t.add('Stack', { gap: 'md' }, [seen, staples, list]);
   const one = { name: 'string' };
@@ -37,9 +37,9 @@ export function buildCompare(c: { name: string; icon: string; description: strin
   }, root, t.elements, {
     look: { steps: [{ op: 'ai.run', image: ref('photo'), into: 'seen', output: { type: 'list', of: one },
       prompt: 'List the food and drink items you can clearly see in this photo of a fridge. Short names. Do not guess items that are hidden or unclear.' },
-    { op: 'toast', message: '{{seen|count}} items seen. Check the list.' }] },
+    { op: 'toast', message: 'Items found: {{seen|count}}. Check the list.' }] },
     addSeen: append('seen', 'newSeen'), addStaple: append('staples', 'newStaple'),
-    makeList: { steps: [{ op: 'state.diff', path: 'items', from: 'staples', without: 'seen', field: 'name' }, { op: 'toast', message: '{{items|count}} usual items not seen' }] },
+    makeList: { steps: [{ op: 'state.diff', path: 'items', from: 'staples', without: 'seen', field: 'name' }, { op: 'toast', message: 'Usual items not seen: {{items|count}}.' }] },
     clearDone: { steps: [{ op: 'state.remove', path: 'items', where: { field: 'done', equals: true } }] },
     ...(c.share ? { share: { steps: [{ op: 'share', text: `${c.name}: to buy\n{{items|lines}}` }] } } : {}),
   });

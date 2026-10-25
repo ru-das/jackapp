@@ -2,6 +2,7 @@ import { SpecSchema } from '@/spec/schema';
 import type { Spec, SpecError } from '@/spec/types';
 import { validate } from '@/spec/validate';
 import { callStage, checkCancellation, fill, type StageRequest } from './fill';
+import { ProviderError } from '../errors';
 import type { LLMProvider } from '../provider';
 import { PlanSchema, UnsupportedSchema, type Plan, type TargetStage, type Unsupported } from './outputSchemas';
 import { parseCompact, toCompact, toCompactSlice } from './compact';
@@ -115,7 +116,7 @@ export async function generate(options: GenerateOptions): Promise<GenerationResu
   } catch (error) {
     const cancelled = options.signal?.aborted || (error instanceof Error && error.name === 'AbortError');
     return finish({ status: 'failed', repairs,
-      message: cancelled ? 'Generation cancelled.' : 'The model couldn’t finish. Please try again.',
+      message: cancelled ? 'Generation cancelled.' : error instanceof ProviderError ? error.message : 'Couldn’t finish building. Try again.',
       errors: [{ code: 'SHAPE', path: target,
         message: error instanceof Error ? error.message : String(error),
         hint: cancelled ? 'Start again when ready.' : 'Check the loaded provider and try again.' }],

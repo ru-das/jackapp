@@ -1,6 +1,7 @@
 import { StateDeclSchema } from '@/spec/schema';
 import type { ActionStep, Spec, Value } from '@/spec/types';
 import { resolveTemplate, resolveValue, type ValueContext } from '@/spec/values';
+import { fieldLabel } from './labels';
 import type { Store } from './store';
 
 type MaybePromise<T> = T | Promise<T>;
@@ -69,7 +70,7 @@ export function createActionEngine({ spec, store, services, getValueContext }: A
       case 'state.append': {
         const item = fields(step.value);
         for (const key of step.required ?? []) {
-          if (typeof item[key] !== 'string' || item[key].trim() === '') throw new FriendlyError(`Fill in the ${key} first.`);
+          if (typeof item[key] !== 'string' || item[key].trim() === '') throw new FriendlyError(`Fill in “${fieldLabel(spec, key)}” first.`);
         }
         candidate = [...list(), item]; break;
       }
@@ -171,9 +172,9 @@ export function createActionEngine({ spec, store, services, getValueContext }: A
         console.error('Action failed', { actionId, stepIndex, step: spec.actions[actionId]?.steps[stepIndex], error });
         const op = spec.actions[actionId]?.steps[stepIndex]?.op;
         const message = error instanceof FriendlyError ? error.message
-          : op === 'ai.run' && !services.ai ? 'AI is unavailable right now.'
-          : op === 'notify' && !services.notify ? 'Notifications are unavailable right now.'
-            : 'Something went wrong. Please try again.';
+          : op === 'ai.run' && !services.ai ? 'AI isn’t available right now.'
+          : op === 'notify' && !services.notify ? 'Notifications aren’t available right now.'
+            : 'Something went wrong. Try again.';
         try { await services.toast(message); }
         catch (toastError) { console.error('Action error toast failed', { actionId, error: toastError }); }
       } finally {

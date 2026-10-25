@@ -139,7 +139,7 @@ export default function Create() {
   const cancel = () => { run.current++; abort.current?.abort(); setPhase({ kind: 'idle' }); };
   const save = async (d: Draft) => {
     if (saving) return;
-    if (validate(d.spec).length) return toast("This mini-app can't be saved.");
+    if (validate(d.spec).length) return toast("This mini-app can’t be saved.");
     setSaving(true);
     setSaveFailed(false);
     try {
@@ -172,7 +172,7 @@ export default function Create() {
             {phase.spec.meta.name} is ready. {describeSpec(phase.spec)}
           </Text>
           {phase.notes.length ? (
-            <Text style={{ color: t.muted, fontSize: type.hint }}>Not included: {phase.notes.join(' ')}</Text>
+            <Text style={{ color: t.muted, fontSize: type.hint }}>Good to know: {phase.notes.join(' ')}</Text>
           ) : null}
         </View>
         </View>

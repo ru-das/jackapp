@@ -23,12 +23,12 @@ export function buildSplitter(c: SplitterConfig): Obj {
   const read = t.add('Button', { label: 'Read receipt', onPress: 'readBill', variant: 'primary' });
   const capture = t.add('Card', { title: 'The bill' }, [photo, read]);
 
-  const hint = t.add('Text', { value: 'Check each line. Tap one to fix a price or its type; subtotal and total rows are not added twice. Lines marked ⚠ could not be fully read and are left out of the total until you fix them.', variant: 'muted' });
+  const hint = t.add('Text', { value: 'Check each line. Tap one to fix its price or type. Lines marked ⚠ could not be fully read and stay out of the total until you fix them.', variant: 'muted' });
   const list = t.add('List', { items: 'lines', title: '{{$item.name}}', subtitle: '{{$item.kind}}', trailing: '{{$item.price|fixed2}}', flagField: 'check', deletable: true, onItemPress: 'editLine', emptyText: 'Take a photo of the receipt' });
-  const items = t.add('Stat', { label: 'Items', value: sumOf('item'), format: 'currency', currency: '{{currency}}' });
+  const items = t.add('Stat', { label: 'Items total', value: sumOf('item'), format: 'currency', currency: '{{currency}}' });
   const extras = t.add('Stat', { label: 'Tax and service', value: math('+', sumOf('tax'), sumOf('service')), format: 'currency', currency: '{{currency}}' });
   const unread = t.add('Stat', { label: 'Lines to check', value: math('-', { $agg: { op: 'count', of: 'lines' } }, { $agg: { op: 'count', of: 'lines', where: { field: 'check', equals: '' } } }), format: 'number' });
-  const again = t.add('Button', { label: 'Use the lines for the bill total', onPress: 'recalc', variant: 'secondary' });
+  const again = t.add('Button', { label: 'Set bill total from the lines', onPress: 'recalc', variant: 'secondary' });
   const linesCard = t.add('Card', { title: 'What was read' }, [hint, list, unread, items, extras, again]);
 
   const money = t.add('Select', { bind: 'currency', label: 'Currency', options: CURRENCIES });
@@ -52,7 +52,7 @@ export function buildSplitter(c: SplitterConfig): Obj {
   const why = t.add('Text', { value: '{{editCheck}}', variant: 'muted' });
   const save = t.add('Button', { label: 'Save line', onPress: 'saveLine', variant: 'primary' });
   const drop = t.add('Button', { label: 'Delete line', onPress: 'deleteLine', variant: 'danger' });
-  const lineRoot = t.add('Stack', { gap: 'md' }, [t.add('Card', { title: 'Fix this line' }, [why, name, price, kind, save, drop])]);
+  const lineRoot = t.add('Stack', { gap: 'md' }, [t.add('Card', { title: 'Line details' }, [why, name, price, kind, save, drop])]);
 
   const aiStep = { op: 'ai.run', image: ref('bill'), into: 'lines',
     prompt: 'Read the receipt. Return every printed row with its name, its numeric price and kind. kind is one of: item (food or drink), tax, service (service charge), tip, subtotal, total.',
@@ -81,9 +81,9 @@ export function buildSplitter(c: SplitterConfig): Obj {
     share: { steps: [
       { op: 'state.set', path: 'grandTotal', value: grand },
       { op: 'state.set', path: 'eachPays', value: math('round', math('/', grand, ref('people')), 2) },
-      { op: 'state.set', path: 'summary', value: `${c.name}: bill {{billTotal|fixed2}} + tip {{tip|fixed2}} = {{grandTotal|fixed2}} {{currency}}\n{{people}} people, {{eachPays|fixed2}} {{currency}} each` },
+      { op: 'state.set', path: 'summary', value: `${c.name}: bill {{billTotal|fixed2}} + tip {{tip|fixed2}} = {{grandTotal|fixed2}} {{currency}}\nPeople: {{people}}, {{eachPays|fixed2}} {{currency}} each` },
       { op: 'share', text: '{{summary}}' }] },
-  }, [], [{ id: 'line', title: 'Fix a line', root: lineRoot }]);
+  }, [], [{ id: 'line', title: 'Edit line', root: lineRoot }]);
 }
 
 const SYMBOLS: [RegExp, string][] = [[/₹|\b(rupees?|inr)\b/i, 'INR'], [/€|\b(euros?|eur)\b/i, 'EUR'], [/£|\b(pounds?|gbp)\b/i, 'GBP'], [/¥|\b(yen|jpy)\b/i, 'JPY']];

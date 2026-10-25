@@ -105,7 +105,7 @@ test('DateInput and Timer render through the runtime (recipes use both)', async 
   const timer = mount(buildTimer({ name: 'Focus', icon: '🍅', description: 'd', label: 'Focus', seconds: 90, count: true }));
   await render(timer.ui);
   expect(screen.getByLabelText('Focus: 01:30 left')).toBeTruthy();
-  expect(screen.getByLabelText('Finished: 0')).toBeTruthy();
+  expect(screen.getByLabelText('Times finished: 0')).toBeTruthy();
   const calc = mount(buildCalculator({ name: 'Age', icon: '🎂', description: 'd',
     inputs: [{ key: 'birthday', label: 'Birthday', kind: 'date', value: '2000-01-01' }],
     outputs: [{ label: 'Days old', formula: 'days(birthday, today)', format: 'number' }] }));
