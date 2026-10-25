@@ -186,6 +186,8 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 | 2026-10-25 | Offline (AT-10, Android): open saved app after force-stop (data kept); Create → Build with the installed model; photo action (Fridge Snap) | Passed (human-reported). OpenRouter-offline and Ollama-unreachable message rows not reported |
 | 2026-10-25 | Real generation (AT-07, Android, on-device model): Fridge Snap (photo → correct grocery list), Bill Splitter (receipt read correctly), Plant Pal | Passed (human-reported). Not reported: Save step, time from Build to preview (build times in the Gate 4 eval: e01 15.6 s, e09 5.7 s) |
 | 2026-10-25 | Reminders (AT-09, T-99): Plant Pal reminder notification | Passed (human-reported: notification arrived). Not reported: tap opens Plant Pal, delete cancels, denied-permission line |
+| 2026-10-25 | Recent features (Android): T-114/115 Customize, T-111 first-value route, T-106 data entry, T-103/T-100 receipts, T-98/T-97 Create screen, T-110 CSV export | All passed (human-reported, no per-step detail) |
+| 2026-10-25 | Remaining acceptance: AT-05 persistence, AT-11 export/import, AT-12 network log, AT-13 APK on clean phone, AT-16 accessibility, device matrix | All passed (human-reported, no per-step detail). Network-log findings, TalkBack/font-scale results and device model not recorded here |
 
 ---
 
