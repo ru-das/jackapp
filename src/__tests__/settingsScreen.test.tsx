@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import SettingsScreen from '@/app/settings';
 import { loadSettings } from '@/storage/settings';
+import { setThemePreference } from '@/ui/theme';
 
 jest.mock('@react-native-async-storage/async-storage', () =>
   jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'));
@@ -17,4 +18,14 @@ test('switching to Ollama saves the address and model', async () => {
   await fireEvent.changeText(screen.getByLabelText('Ollama server address'), 'http://192.168.1.5:11434');
   await fireEvent.changeText(screen.getByLabelText('Ollama model name'), 'llama3');
   expect(await loadSettings()).toMatchObject({ provider: 'ollama', ollamaUrl: 'http://192.168.1.5:11434', ollamaModel: 'llama3' });
+});
+
+test('Appearance is saved and applied at once', async () => {
+  await render(<SettingsScreen />);
+  await fireEvent.press(await screen.findByLabelText('Appearance Light'));
+  expect((await loadSettings()).theme).toBe('light');
+  await fireEvent.press(screen.getByLabelText('Appearance Dark'));
+  expect((await loadSettings()).theme).toBe('dark');
+  expect(screen.getByLabelText('Appearance Dark').props.accessibilityState.checked).toBe(true);
+  setThemePreference('system');
 });

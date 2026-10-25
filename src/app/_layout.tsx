@@ -3,7 +3,8 @@ import { useEffect } from 'react';
 import { KeyboardAvoidingView } from 'react-native';
 import { onNotificationOpen, registerOffline } from '@/capabilities';
 import { Toaster } from '@/ui/Toaster';
-import { palettes, useTheme } from '@/ui/theme';
+import { loadSettings } from '@/storage/settings';
+import { palettes, setThemePreference, useTheme } from '@/ui/theme';
 
 export default function RootLayout() {
   const t = useTheme();
@@ -11,6 +12,8 @@ export default function RootLayout() {
   // Tapping a reminder opens the mini-app it came from.
   useEffect(() => onNotificationOpen((appId) => router.push({ pathname: '/run/[id]', params: { id: appId } })), [router]);
   useEffect(() => registerOffline(), []);
+  // The saved choice applies once storage answers; until then the app follows the system, which is also the default.
+  useEffect(() => { void loadSettings().then((s) => setThemePreference(s.theme)); }, []);
   // Edge-to-edge Android no longer resizes the window for the keyboard, so every screen's inputs and Save stay reachable through this one wrapper.
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">

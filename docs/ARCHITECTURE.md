@@ -173,7 +173,7 @@ Rules:
 | `jackapp:apps` | index: `[{id, name, icon, updatedAt}]` |
 | `jackapp:spec:<id>` | the spec JSON |
 | `jackapp:data:<id>` | persisted state for that mini-app |
-| `jackapp:settings` | AI provider, keys and addresses, currency |
+| `jackapp:settings` | AI provider, Ollama address and model, currency, appearance (`system` / `light` / `dark`; `setThemePreference` in `src/ui/theme.ts`, ADR-050) |
 
 Storage calls reject with `StorageError` on failure. Reads tell apart missing (`null`), `unreadable` (corrupt) and `unavailable` (storage failed); only the first may be shown as an empty app.
 

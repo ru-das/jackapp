@@ -13,6 +13,7 @@ const SettingsSchema = z.object({
   provider: z.enum(['local', 'ollama', 'mock']).default(DEFAULT_PROVIDER).catch(DEFAULT_PROVIDER),
   ollamaUrl: httpUrl.catch(DEFAULT_OLLAMA_URL),
   ollamaModel: z.string().catch(''),
+  theme: z.enum(['system', 'light', 'dark']).catch('system'),
   // An explicit choice, never guessed from the interface language.
   currency: z.string().regex(/^[A-Z]{3}$/).catch('USD'),
 });

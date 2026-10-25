@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M7 — Ship: features done and device-tested; cleaning and polishing; T-70..74 (log, video, README, DEV post, publish) open |
-| Last updated | 2026-10-25 by Claude Code (T-132) |
+| Last updated | 2026-10-25 by Claude Code (T-133) |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-133 Appearance (Claude Code, 2026-10-25, human-requested; no Codex-owned files touched):** ADR-050. Settings → Appearance: System / Light / Dark, saved as `theme` in settings, applied live through `setThemePreference` (`src/ui/theme.ts`); the root layout applies the saved value on start. `npm run check` green (68 suites / 2,703 tests). **Not tried on a device.** **Human next (Android):** choose Light on a phone set to dark: the app turns light at once, the status bar icons turn dark, and it stays light after force-stopping and reopening; Dark on a light phone likewise; System follows the phone again. **Next:** T-134 (icons, app icon, fonts).
+>
 > **T-132 OpenRouter removed (Claude Code, 2026-10-25, human-requested; edited Codex-owned `src/ai/generator/generate.ts` and its tests, ask Codex to review):** ADR-049. `openrouter.ts`, `OPENROUTER_MODELS`, the key field, the Settings card and `getCloudFallback` are gone; `generate()` has no `fallback` option and `freeForm` is now a boolean (free-form runs on the same provider). Settings provider is `local | ollama | mock`; default is `local` on Android and `ollama` on web; a saved `openrouter` falls back to that default. `'openrouter'` stays in the `generatedBy` enum so old saved apps load. `npm run check` green (68 suites / 2,701 tests). **Next:** T-133 (Appearance), T-134 (icons, fonts).
 >
 > **T-131 polish, third audit (Claude Code, 2026-10-25, human-requested; no Codex-owned files touched):** ADR-048. `src/ui/Tap.tsx` replaces `Pressable` in 16 files (ripple on Android via `android_ripple`, `pressed()` dims only on iOS and web); the menu backdrop stays `Pressable`. In `run/[id].tsx` the content sits in a wrapper hidden from accessibility while the menu is open. New `tap.test.tsx`, `runMenu.test.tsx`; AGENTS.md §5 has the `Tap` rule. `npm run check` green; detector clean. **Not tried on a device.** **Human next (Android):** press any button, row, chip, Select option, stepper: a ripple, no dimming; look at rounded buttons and the pill chips (the ripple should stay inside the corners; if it shows square corners, say so and I will round the ripple with `overflow: 'hidden'`); open the run menu with TalkBack: swiping goes header button, Close menu, Customize, Export data, and does not reach the mini-app; Close menu brings it back. **Audit 3 is fully handled in code; the device checks in AT-16 are what is left.**
@@ -241,6 +243,7 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 
 | Since | Task | Blocker | Tried | Needs |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-133 | Appearance setting (System / Light / Dark), saved and applied live. ADR-050. | see git |
 | — | — | — | — | — |
 
 ## Done log (newest first)

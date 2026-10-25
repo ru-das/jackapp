@@ -4,11 +4,11 @@ import { loadSettings, saveSettings } from '@/storage/settings';
 jest.mock('@react-native-async-storage/async-storage', () =>
   jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'));
 
-const defaults = { provider: 'ollama', ollamaUrl: 'http://localhost:11434', ollamaModel: '', currency: 'USD' };
+const defaults = { provider: 'ollama', ollamaUrl: 'http://localhost:11434', ollamaModel: '', theme: 'system', currency: 'USD' };
 
 test('settings default, round-trip and survive junk', async () => {
   expect(await loadSettings()).toEqual(defaults);
-  const saved = { provider: 'ollama' as const, ollamaUrl: 'http://192.168.1.5:11434', ollamaModel: 'llama3', currency: 'USD' };
+  const saved = { provider: 'ollama' as const, ollamaUrl: 'http://192.168.1.5:11434', ollamaModel: 'llama3', theme: 'dark' as const, currency: 'USD' };
   await saveSettings(saved);
   expect(await loadSettings()).toEqual(saved);
   await saveSettings({ provider: 'http://evil', ollamaUrl: 'javascript:alert(1)', ollamaModel: null } as never);

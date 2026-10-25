@@ -8,7 +8,9 @@ import { loadSettings, saveSettings, type Settings } from '@/storage/settings';
 import { Card } from '@/ui/Card';
 import { useInsets } from '@/ui/insets';
 import { LocalModelCard } from '@/ui/LocalModelCard';
-import { MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/theme';
+import { MIN_TARGET, pressed, radius, setThemePreference, space, type, useTheme } from '@/ui/theme';
+
+const THEMES: [Settings['theme'], string][] = [['system', 'System'], ['light', 'Light'], ['dark', 'Dark']];
 
 export default function SettingsScreen() {
   const t = useTheme();
@@ -21,6 +23,7 @@ export default function SettingsScreen() {
     if (!settings) return;
     const next = { ...settings, ...patch };
     setSettings(next);
+    if (patch.theme) setThemePreference(patch.theme);
     await saveSettings(next).catch(() => toast("Couldn’t save settings. Try again."));
   };
 
@@ -49,6 +52,25 @@ export default function SettingsScreen() {
                 key={id} accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={label}
                 onPress={() => void update({ provider: id })}
                 style={(st) => [styles.row, { backgroundColor: on ? t.accentSoft : 'transparent', borderColor: on ? t.accent : t.outline }, pressed(st)]}
+              >
+                <Text style={[styles.name, { color: t.text }]}>{label}</Text>
+              </Tap>
+            );
+          })}
+        </View>
+      </Card>
+
+      <Card>
+        <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Appearance</Text>
+        <Text style={{ color: t.muted, fontSize: type.hint }}>System follows your phone’s light or dark setting.</Text>
+        <View accessibilityRole="radiogroup" accessibilityLabel="Appearance" style={styles.chips}>
+          {THEMES.map(([id, label]) => {
+            const on = settings.theme === id;
+            return (
+              <Tap
+                key={id} accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={`Appearance ${label}`}
+                onPress={() => void update({ theme: id })}
+                style={(st) => [styles.chip, { backgroundColor: on ? t.accentSoft : 'transparent', borderColor: on ? t.accent : t.outline }, pressed(st)]}
               >
                 <Text style={[styles.name, { color: t.text }]}>{label}</Text>
               </Tap>

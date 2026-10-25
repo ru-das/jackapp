@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { Platform, useColorScheme } from 'react-native';
+import { Appearance, Platform, useColorScheme } from 'react-native';
 
 const light = {
   bg: '#F7F3EC', surface: '#FFFDF9', border: '#E8E1D4', outline: '#8C8576', text: '#2B2A27', muted: '#6B665B',
@@ -29,7 +29,24 @@ export const pressed = ({ pressed: down }: { pressed: boolean }) => (down && Pla
 const noop = () => () => {};
 const useHydrated = (): boolean => useSyncExternalStore(noop, () => true, () => false);
 
+export type ThemePreference = 'system' | 'light' | 'dark';
+
+// The Settings choice. `system` follows the phone or browser; the other two override it.
+let preference: ThemePreference = 'system';
+const listeners = new Set<() => void>();
+const subscribe = (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn); }; };
+
+export function setThemePreference(next: ThemePreference) {
+  if (next === preference) return;
+  preference = next;
+  // Native only: lets system dialogs and the status bar follow the choice. react-native-web has no setColorScheme.
+  if (Platform.OS !== 'web') Appearance.setColorScheme(next === 'system' ? 'unspecified' : next);
+  listeners.forEach((fn) => fn());
+}
+
 export const useTheme = (): Palette => {
   const scheme = useColorScheme();
-  return useHydrated() && scheme === 'dark' ? dark : light;
+  const pref = useSyncExternalStore(subscribe, () => preference, () => 'system' as const);
+  const hydrated = useHydrated();
+  return hydrated && (pref === 'dark' || (pref === 'system' && scheme === 'dark')) ? dark : light;
 };
