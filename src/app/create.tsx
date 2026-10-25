@@ -1,4 +1,4 @@
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, usePreventRemove, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { generate, type GenerationProgress } from '@/ai/generator/generate';
@@ -6,7 +6,7 @@ import type { Unsupported } from '@/ai/generator/outputSchemas';
 import { RECIPES, type RecipeId } from '@/ai/generator/recipes';
 import { getActiveProvider, getCloudFallback } from '@/ai/provider';
 import { localModel } from '@/ai/providers/litert';
-import { toast } from '@/capabilities';
+import { confirm, toast } from '@/capabilities';
 import { describeSpec, omissions } from '@/runtime/describe';
 import { Renderer } from '@/runtime/Renderer';
 import { createSession } from '@/runtime/session';
@@ -160,10 +160,17 @@ export default function Create() {
     setSaving(false);
     notifyAppsChanged();
     draft.current = null; // saved: the data now belongs to the mini-app
+    disablePrevention(); // the preview is still on screen until replace() lands; saving must not ask to discard
     router.replace({ pathname: '/run/[id]', params: { id: d.id } });
   };
 
   const busy = phase.kind === 'loading' || phase.kind === 'working';
+
+  // A build can take minutes on the phone, and leaving the preview deletes it (see `discard`): ask before a stray Back does that.
+  const disablePrevention = usePreventRemove(phase.kind === 'preview', ({ repeat }) => {
+    void confirm('It hasn’t been saved. You can describe it again to build a new one.',
+      { title: 'Discard this mini-app?', confirmLabel: 'Discard', destructive: true }).then((ok) => { if (ok) repeat(); });
+  });
 
   if (phase.kind === 'preview') {
     return (

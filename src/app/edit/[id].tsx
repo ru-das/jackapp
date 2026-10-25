@@ -1,4 +1,4 @@
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, usePreventRemove, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { RECIPES } from '@/ai/generator/recipes';
@@ -34,6 +34,7 @@ export default function Customize() {
   const router = useRouter();
   const [spec, setSpec] = useState<Spec | null | undefined>(undefined);
   const [values, setValues] = useState<Record<string, string>>({});
+  const [initial, setInitial] = useState<Record<string, string>>({});
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   useAnnounce(error);
@@ -44,9 +45,18 @@ export default function Customize() {
       const info = s?.meta.recipe;
       if (!s || !info) return;
       const saved = readSettings(info.settings);
-      setValues(Object.fromEntries(keysOf(info.settings).map((k) => [k, (saved.get(k) ?? []).join('\n')])));
+      const start = Object.fromEntries(keysOf(info.settings).map((k) => [k, (saved.get(k) ?? []).join('\n')]));
+      setValues(start);
+      setInitial(start);
     });
   }, [id]);
+
+  // Edited settings exist only on this screen; a stray Back must not throw them away.
+  const dirty = [...new Set([...Object.keys(values), ...Object.keys(initial)])].some((k) => (values[k] ?? '') !== (initial[k] ?? ''));
+  const disablePrevention = usePreventRemove(dirty, ({ repeat }) => {
+    void confirm('The settings you edited haven’t been saved.', { title: 'Discard your changes?', confirmLabel: 'Discard', destructive: true })
+      .then((ok) => { if (ok) repeat(); });
+  });
 
   const info = spec?.meta.recipe;
   if (spec === undefined) return <View style={{ flex: 1, backgroundColor: t.bg }}><ActivityIndicator accessibilityLabel="Opening settings" color={t.accent} style={{ marginTop: space.lg * 2 }} /></View>;
@@ -82,6 +92,7 @@ export default function Customize() {
       await writeJson(specKey(id), result.spec);
       notifyAppsChanged();
       if (result.notes.length) toast(result.notes[0]);
+      disablePrevention();
       router.back();
     } catch {
       setError("Couldn’t save. Try again.");

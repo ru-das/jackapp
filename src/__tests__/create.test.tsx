@@ -8,17 +8,24 @@ import { saveSettings } from '@/storage/settings';
 
 const mockReplace = jest.fn();
 const mockPush = jest.fn();
+const mockDisable = jest.fn();
+const mockConfirm = jest.fn();
+let mockGuard: { prevent: boolean; ask(o: { repeat(): void }): void } = { prevent: false, ask: () => {} };
 jest.mock('expo-router', () => ({
   useRouter: () => ({ replace: mockReplace, push: mockPush }),
   useLocalSearchParams: () => ({}),
   useFocusEffect: (cb: () => void) => mockUseEffect(cb, [cb]),
+  usePreventRemove: (prevent: boolean, ask: (o: { repeat(): void }) => void) => { mockGuard = { prevent, ask }; return mockDisable; },
 }));
+jest.mock('@/capabilities', () => ({ ...jest.requireActual('@/capabilities'), confirm: (...a: unknown[]) => mockConfirm(...a) }));
 jest.mock('@react-native-async-storage/async-storage', () =>
   jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'));
 
 beforeEach(async () => {
   mockReplace.mockClear();
   mockPush.mockClear();
+  mockDisable.mockClear();
+  mockConfirm.mockReset();
   await saveSettings({ provider: 'mock', openrouterKey: '', ollamaUrl: 'http://localhost:11434', ollamaModel: '', currency: 'USD' });
   jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
@@ -80,4 +87,29 @@ test('failed save keeps the preview and says so; retry saves and the app reopens
   await waitFor(() => expect(mockReplace).toHaveBeenCalledTimes(1));
   const id = mockReplace.mock.calls[0][0].params.id;
   expect(((await readJson(specKey(id))) as { meta: { name: string } }).meta.name).toBe('Fridge Snap');
+});
+
+test('a built preview asks before it is thrown away; Save does not ask', async () => {
+  await render(<Create />);
+  expect(mockGuard.prevent).toBe(false); // nothing built yet
+  await fireEvent.press(screen.getByLabelText('Example: Plant Pal'));
+  await fireEvent.press(screen.getByText('Build'));
+  await screen.findByText(/Preview · /);
+  expect(mockGuard.prevent).toBe(true);
+
+  const repeat = jest.fn();
+  mockConfirm.mockResolvedValueOnce(false);
+  mockGuard.ask({ repeat });
+  await waitFor(() => expect(mockConfirm).toHaveBeenCalledTimes(1));
+  expect(mockConfirm.mock.calls[0][1]).toMatchObject({ title: 'Discard this mini-app?', confirmLabel: 'Discard', destructive: true });
+  expect(repeat).not.toHaveBeenCalled(); // kept
+
+  mockConfirm.mockResolvedValueOnce(true);
+  mockGuard.ask({ repeat });
+  await waitFor(() => expect(repeat).toHaveBeenCalledTimes(1)); // discarded: the blocked Back goes through
+
+  await fireEvent.press(screen.getByText('Save'));
+  await waitFor(() => expect(mockReplace).toHaveBeenCalled());
+  expect(mockDisable).toHaveBeenCalledTimes(1);
+  expect(mockDisable.mock.invocationCallOrder[0]).toBeLessThan(mockReplace.mock.invocationCallOrder[0]);
 });

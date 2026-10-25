@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M7 — Ship: features done and device-tested; cleaning and polishing; T-70..74 (log, video, README, DEV post, publish) open |
-| Last updated | 2026-10-25 by Claude Code (T-125) |
+| Last updated | 2026-10-25 by Claude Code (T-126) |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-126 leave guards (Claude Code, 2026-10-25, human-requested after the second audit; no Codex-owned files touched):** `usePreventRemove` (from `expo-router`, no new dependency) in `src/app/create.tsx` while the phase is `preview`, and in `src/app/edit/[id].tsx` while any setting differs from what was loaded. Both ask through `confirm` ("Discard this mini-app?" / "Discard your changes?", button **Discard**); Save calls the returned `disablePrevention()` before `router.replace` / `router.back`, so saving never asks. Putting an edited value back to the original is not a change. On web it also warns before closing the tab. `npm run check` green; new tests in `create.test.tsx` and `customize.test.tsx`. **Not tried on a device.** **Human next:** build something and press Back / swipe from the edge on the preview (dialog; Cancel keeps it, Discard leaves); Save still goes straight to the app; Customize: change a field and press Back (dialog), change it back (no dialog), Save changes (no dialog). **Not guarded (say if wanted):** leaving while a build is still running (Create's Cancel button is the way; Back aborts the build), and Customize's own data-risk dialog is unchanged.
+>
 > **T-125 polish (Claude Code, 2026-10-25, human-requested; closes the Android audit T-119..124):** read the whole session diff for defects; fixed one: `Toaster` kept the toast as a string, so the same text twice neither re-spoke nor restarted the 2.5 s timer (now an object; test added). Lint clean, detector clean, `npm run check` green. AT-16 in `TESTING.md` now lists every Android check from this audit in one place. **Nothing from T-119..125 has been seen on a device**: that run through AT-16 is the human's next step, then re-run `$impeccable audit` (it scored 12/20 before). There is no DESIGN.md/PRODUCT.md for the impeccable skill (`$impeccable init` would record the look in `src/ui/theme.ts` for later passes).
 >
 > **T-124 clarify (Claude Code, 2026-10-25, human-requested after the audit; no Codex-owned files touched):** ADR-045. `confirm(message, { title, confirmLabel, destructive })`. **Delete** (app), **Delete model** and **Save and keep copy** (Customize) are named on the button; a mini-app's own confirm (counter reset, log/splitter delete, checklist clear) shows its question as the Android dialog title with a plain OK. Decorative 🦥 hidden from TalkBack in the Home and List empty states and the "out of my reach" header. `npm run check` green (new `confirm.native.test.ts`). **Not tried on a device.** **Human next (Android):** delete an app from Home (More, Delete): title, "Its data goes too", red/named Delete; delete the model in Settings; change a log's field key in Customize to see "Some saved data will be hidden"; reset a counter (question as title, OK); web: the same dialogs read as one sentence. **Open for Codex/human:** optional `confirmLabel` on the spec `confirm` op so mini-app dialogs can say "Reset" / "Delete" too (contract change). **All audit items now done or noted.**
@@ -233,6 +235,7 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-126 | Leave guards: confirm before discarding an unsaved Create preview or edited Customize settings (usePreventRemove). | see git |
 | 2026-10-25 | Claude Code | T-125 | Polish: repeated toast fix, AT-16 Android checklist. | see git |
 | 2026-10-25 | Claude Code | T-124 | Clarify: confirm dialogs name the action (Delete, Delete model, Save and keep copy); mini-app questions become the title; sloth hidden from TalkBack; ADR-045. | see git |
 | 2026-10-25 | Claude Code | T-123 | List performance: memoised rows + Intl formatter cache in values.ts (Codex file, human OK); keystroke at 1,000 rows 1,825 to 78 ms (desktop); ADR-044. | see git |
