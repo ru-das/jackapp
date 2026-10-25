@@ -126,7 +126,6 @@ A fourth, the **graceful refusal**, is also part of the demo: "Build me a physic
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
 | Free models rate-limited or removed | High | Medium | Named fallback models, 429 retry, friendly message; Ollama as the alternative |
-| Transformers.js inside Expo web bundling fails | Medium | High | Load it in a Web Worker from checksum-pinned same-origin runtime assets (ADR-018) |
 | Small model makes invalid specs | High | High | Two-stage generation, schema-constrained output, repair loop, few-shot examples |
 | Scope creep | High | High | `TASKS.md` priorities; P1/P2 only after P0 is green |
 | Weak write-up (weighted most) | Medium | High | Sunday is reserved for the write-up; collect evidence from Friday |

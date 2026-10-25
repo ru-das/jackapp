@@ -1,6 +1,6 @@
 # JackApp
 
-Jack of all trades, master of your chores. Describe a tiny tool in plain language and get a working mini-app, run on your own device with an open model (Gemma 4 or Qwen3.5).
+Jack of all trades, master of your chores. Describe a tiny tool in plain language and get a working mini-app, run on your own device with an open model (Gemma 4).
 
 The AI never writes code. It assembles a JSON spec from a fixed catalog of pre-built components, and the app validates and renders it. Everything stays local.
 
@@ -8,8 +8,8 @@ The AI never writes code. It assembles a JSON spec from a fixed catalog of pre-b
 
 ```bash
 npm install
-npm run web        # verify/prepare local runtime assets, then web dev server
-npm run export:web # verify/prepare assets, then static export to dist/
+npm run web        # web dev server
+npm run export:web # static export to dist/ with the offline service worker
 npm run check      # typecheck + lint + test
 ```
 

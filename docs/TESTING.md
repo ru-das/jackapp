@@ -26,7 +26,7 @@ Rules:
 
 ## 2. Eval on the phone
 
-Runner: `src/ai/generator/eval.ts` (pure TS, any provider, unit-tested with `mock`). The hidden screen `src/app/dev/eval.tsx` runs it with the local provider, with options for the model (E2B/E4B/Qwen3.5-2B), no-plan, and a single prompt id, then shares the results JSON.
+Runner: `src/ai/generator/eval.ts` (pure TS, any provider, unit-tested with `mock`). The hidden screen `src/app/dev/eval.tsx` runs it with the local provider, with options for the provider, no-plan, recipes, and a single prompt id, then shares the results JSON.
 
 - Input: `evals/prompts.json`
 

@@ -8,8 +8,8 @@
 
 | | |
 |---|---|
-| Phase | M0 — Setup done except T-04 CI; T-14 decisions drafted (ADR-003/005 await human Accept); M1 phone spikes pending |
-| Last updated | 2026-10-25 by Claude Code (T-116) |
+| Phase | M7 — Ship: features done and device-tested; cleaning and polishing; T-70..74 (log, video, README, DEV post, publish) open |
+| Last updated | 2026-10-25 by Claude Code (T-117) |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-117 first clean + polish pass (Claude Code, 2026-10-25, human-requested):** removed unused deps (`expo-status-bar`, `tsx`, `react-test-renderer` + types), the `ios` script, an empty `src/ui/index.ts` and stale Qwen/llama.rn/Transformers.js text in README, COMPONENTS, PRD, TESTING, ARCHITECTURE. UI: Customize shows readable labels, a spinner and Back (and no longer shows model-prompt hints); new `+not-found` screen; Toaster follows the theme; run error card has Back; export failure toasts; List rows and steppers hold up at large fonts; settings radios use `checked`; wording unified to "mini-app" ("Examples to try", "Build again", "Fixing mistakes (try N)"). `npm run check` green (57 suites / 2,650 tests), `npm run export:web` builds. **Not tried on a device.** **Human next:** open a bad link; Customize a calculator; toast in dark mode; run-screen header and a checklist at the largest Android font. **Not done (ask Codex / human):** dead exports in Codex-owned `src/spec/*` (`MathSchema`, `Meta`, `Trigger`), unused `caps.contextTokens`, OpenRouter/Ollama + `usesCleartextTraffic` removal, `RECORD_AUDIO` permission (human: leave). Spacing-token and shared-card cleanup deferred.
+>
 > **T-116 photo logs / converter / free-form message (Claude Code, 2026-10-25, human-requested after two phone failures; edits Codex-owned `src/ai/generator/**`; ask Codex to review):** ADR-040. "Receipt Photo to Expense Tracker" built a log with no photo input; "Currency Converter" went to the cloud. Causes found by running the matcher: no recipe could read a photo into a log; a calculator reply with no formula threw `RecipeError`, reported as "nothing fits". Fixes: `log` `photo` setting (ImageInput + Read photo, `ai.run` append); converter starter (amount x typed rate) instead of a fallback; `freeFormReason` so the message is true. Instant "can't build that yet" card is **a proposal only**. `npm run check` green (57 suites / 2,650 tests). **Not tried on a device.** **Human next:** build "Receipt Photo to Expense Tracker", photograph a receipt, Read photo, check rows and the total; build "Currency Converter" and type a rate; Customize either one. Limits: photo-read rows have empty date fields and no ⚠ for partly read rows.
 >
 > **T-114/115 customize (Claude Code, 2026-10-25, human-requested; edits Codex-owned `src/spec/schema.ts`, `recipes/*`; ask Codex to review `meta.recipe`):** ADR-039. Recipe builds store `meta.recipe`; run header Customize rebuilds from edited setting lines, asks before hiding saved data and keeps an "(old)" copy with data. Home Remix is now "Make similar to X". `npm run check` green (57 suites / 2,625 tests). **Not tried on a device.** **Human next:** build a counter, Customize step 2, Add adds 2 and count stays; log app: rename a field key, expect the copy prompt, copy has old rows. Limits: apps made before this have no `meta.recipe`; Home templates not customizable.
@@ -200,7 +202,7 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 ## Open questions (human to answer)
 
 1. ~~**Hardware**~~ Answered: laptop has 4 GB RAM, no model runs on it (ADR-012).
-2. **Phone**: Android model and RAM? Chrome version (WebGPU)?
+2. ~~**Phone**~~ Answered: Moto G45, Android 15, 8 GB RAM
 3. **Accounts**: Expo/EAS account ready? GitHub repo created (name, public)?
 4. **Team**: solo, or teammates (DEV handles)?
 5. **Domain**: claim the free .tech domain for the web build?
@@ -211,17 +213,11 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 |---|---|---|---|---|
 | — | — | — | — | — |
 
-## Spike results (fill during M1)
-
-| Provider | Model id | Download | Load time | Tokens/s | Valid JSON (of 5) | Verdict |
-|---|---|---|---|---|---|---|
-| Web (Transformers.js + WebGPU) | | | | | | |
-| Android (llama.rn) | | | | | | |
-
 ## Done log (newest first)
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-117 | First clean + polish pass: unused deps, stale docs, Customize/not-found/Toaster/a11y copy fixes. | see git |
 | 2026-10-25 | Claude Code | T-110 | Run screen "Export data" shares saved data as CSV. | see git |
 | 2026-10-25 | Claude Code | T-109 | Log apps with no tap action: tap a row to fix or delete it. | see git |
 | 2026-10-25 | Claude Code | T-108 | Store remembers the last list shrink; UndoBar restores it. | see git |
