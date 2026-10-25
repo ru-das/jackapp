@@ -19,6 +19,7 @@ import { Toggle } from '@/catalog/Toggle/Toggle';
 import { catalog } from '@/catalog';
 import { resolveTemplate, resolveValue, type ValueContext } from '@/spec/values';
 import type { Spec } from '@/spec/types';
+import { preferredCurrency } from '@/storage/settings';
 import { space, useTheme } from '@/ui/theme';
 import type { createActionEngine } from './actions';
 import { ElementBoundary } from './ElementBoundary';
@@ -33,8 +34,6 @@ interface Ctx {
 }
 
 const LOCALE = Intl.DateTimeFormat().resolvedOptions();
-// shortcut: fixed USD until a currency setting exists (T-40 settings), then read it from there.
-const CURRENCY = 'USD';
 const FORMATS = new Set(['number', 'currency', 'percent', 'date', 'ago', 'text']);
 
 function formatStat(value: unknown, format: string, ctx: ValueContext, currency?: string): string {
@@ -171,7 +170,7 @@ export function Renderer({ spec, store, engine, onReady }: RendererProps) {
   useEffect(() => onReady?.({ navigate }), [onReady, navigate]);
 
   const base = useMemo<ValueContext>(() => ({
-    state, now: new Date(), locale: LOCALE.locale, timeZone: LOCALE.timeZone, currency: CURRENCY,
+    state, now: new Date(), locale: LOCALE.locale, timeZone: LOCALE.timeZone, currency: preferredCurrency(),
     onWarning: (m) => console.warn(`spec: ${m}`),
   }), [state]);
   const busy = useMemo(() => new Set(busySnap ? busySnap.split(',') : []), [busySnap]);

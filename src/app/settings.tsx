@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, 
 import { toast } from '@/capabilities';
 import { OPENROUTER_MODELS } from '@/ai/models';
 import { localModel } from '@/ai/providers/litert';
+import { CURRENCIES } from '@/ai/generator/recipes/splitter';
 import { loadSettings, saveSettings, type Settings } from '@/storage/settings';
 import { LocalModelCard } from '@/ui/LocalModelCard';
 import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
@@ -59,6 +60,25 @@ export default function SettingsScreen() {
         })}
       </View>
 
+      <View style={card}>
+        <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Money</Text>
+        <Text style={{ color: t.muted, fontSize: 15 }}>The currency used to show amounts. It does not change the app's language.</Text>
+        <View style={styles.chips}>
+          {CURRENCIES.map((code) => {
+            const on = settings.currency === code;
+            return (
+              <Pressable
+                key={code} accessibilityRole="radio" accessibilityState={{ selected: on }} accessibilityLabel={`Currency ${code}`}
+                onPress={() => void update({ currency: code })}
+                style={[styles.chip, { backgroundColor: on ? t.accentSoft : 'transparent', borderColor: on ? t.accent : t.border }]}
+              >
+                <Text style={[styles.name, { color: t.text }]}>{code}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+
       {settings.provider === 'local' ? <LocalModelCard style={card} /> : null}
 
       {settings.provider === 'openrouter' ? (
@@ -105,6 +125,8 @@ const styles = StyleSheet.create({
   card: { padding: space.lg, gap: space.sm, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth },
   h: { fontSize: 19, fontWeight: '600' },
   row: { minHeight: MIN_TARGET, padding: space.md, borderRadius: radius.control, borderWidth: 1, justifyContent: 'center' },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  chip: { minHeight: MIN_TARGET, minWidth: MIN_TARGET + 12, paddingHorizontal: space.md, borderRadius: radius.control, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   name: { fontSize: 16, fontWeight: '600' },
   input: { minHeight: MIN_TARGET, borderWidth: 1, borderRadius: radius.control, paddingHorizontal: space.md, fontSize: 16 },
 });

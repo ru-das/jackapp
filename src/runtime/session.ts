@@ -1,6 +1,7 @@
 import { getActiveProvider } from '@/ai/provider';
 import { confirm, notifyNow, share, toast } from '@/capabilities';
 import type { Spec } from '@/spec/types';
+import { preferredCurrency } from '@/storage/settings';
 import { createActionEngine } from './actions';
 import { createAiService } from './ai';
 import type { RendererHandle } from './Renderer';
@@ -21,7 +22,7 @@ export function createSession(id: string, spec: Spec, signal?: AbortSignal) {
     getValueContext: () => ({
       now: new Date(), locale: Intl.DateTimeFormat().resolvedOptions().locale,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      currency: 'USD', // shortcut: same fixed currency as Renderer, until a currency setting exists
+      currency: preferredCurrency(),
       onWarning: (m) => console.warn(`spec: ${m}`),
     }),
   });

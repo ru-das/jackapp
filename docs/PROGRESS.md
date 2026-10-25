@@ -179,6 +179,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-105 | Currency setting (Settings → Money) replaces fixed USD in Renderer and session. | see git |
 | 2026-10-25 | Claude Code | T-104 | Number field keeps draft text, commits valid numbers, explains invalid ones. | see git |
 | 2026-10-25 | Claude Code | T-103 | `ai.run` flags unreadable essential fields instead of defaulting; empty read keeps old list with a specific toast; splitter shows ⚠ lines. | see git |
 | 2026-10-25 | Claude Code | T-98 | Preview describes the built spec and lists what was not included (recipe notes + keyword omissions); scope hint on Create. | (this commit) |

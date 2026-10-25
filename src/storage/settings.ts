@@ -13,12 +13,23 @@ const SettingsSchema = z.object({
   openrouterKey: z.string().catch(''),
   ollamaUrl: httpUrl.catch(DEFAULT_OLLAMA_URL),
   ollamaModel: z.string().catch(''),
+  // An explicit choice, never guessed from the interface language.
+  currency: z.string().regex(/^[A-Z]{3}$/).catch('USD'),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 
+// ponytail: module-level cache so render code can read the currency synchronously; one settings screen writes it, so no subscription.
+let currency = 'USD';
+export const preferredCurrency = () => currency;
+
 export async function loadSettings(): Promise<Settings> {
   const raw = await readJson(SETTINGS_KEY).catch(() => null); // settings must never block the app; defaults apply
-  return SettingsSchema.parse(typeof raw === 'object' && raw !== null ? raw : {});
+  const settings = SettingsSchema.parse(typeof raw === 'object' && raw !== null ? raw : {});
+  currency = settings.currency;
+  return settings;
 }
 
-export const saveSettings = (s: Settings) => writeJson(SETTINGS_KEY, s);
+export async function saveSettings(s: Settings) {
+  await writeJson(SETTINGS_KEY, s);
+  currency = s.currency;
+}

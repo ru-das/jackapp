@@ -10,6 +10,7 @@ import { SpecSchema } from '@/spec/schema';
 import type { Spec } from '@/spec/types';
 import { validate } from '@/spec/validate';
 import { readJson, specKey, StorageError } from '@/storage';
+import { loadSettings } from '@/storage/settings';
 import { ReminderStatus } from '@/ui/ReminderStatus';
 import { radius, space, useTheme } from '@/ui/theme';
 
@@ -29,6 +30,7 @@ export default function Run() {
     let live = true;
     let resync = () => Promise.resolve();
     (async () => {
+      await loadSettings(); // warms the currency preference before the first render
       const raw = await readJson(specKey(id)).catch((e) => {
         if (e instanceof StorageError && e.kind === 'unreadable') return {}; // fails validate() below: damaged
         throw e;

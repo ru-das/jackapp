@@ -121,3 +121,17 @@ test.each([['EUR', '€12.50'], ['not a code', '$12.50']])('Stat currency %s sho
   await render(f.ui);
   expect(screen.getByLabelText(`Value: ${shown}`)).toBeTruthy();
 });
+
+test('a currency Stat uses the saved currency preference', async () => {
+  const { saveSettings, loadSettings } = jest.requireActual('@/storage/settings');
+  await saveSettings({ ...(await loadSettings()), currency: 'INR' });
+  const f = mount({
+    specVersion: '0.1', meta: { name: 'Pay', icon: '💰', description: 'd' },
+    state: { total: { type: 'number', default: 5 } }, actions: {},
+    screens: [{ id: 'home', title: 'Pay', root: 'root' }],
+    elements: { root: { type: 'Stat', props: { label: 'Total', value: { $ref: 'total' }, format: 'currency' } } },
+  });
+  await render(f.ui);
+  expect(screen.getByLabelText(/Total: .*5\.00/).props.accessibilityLabel).toContain('₹');
+  await saveSettings({ ...(await loadSettings()), currency: 'USD' });
+});
