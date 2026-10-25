@@ -84,7 +84,7 @@ A prop that accepts a **Value** can be any of these:
 
 **`$math`**: `[op, a, b]` with `op` in `+ - * / pow min max`, `["round", a, digits]`, or `["days", from, to]`. Operands are Values. Max nesting depth 3. Division by zero → `0` plus a runtime warning. `pow` is exponentiation (`sqrt(x)` is `pow(x, 0.5)`); a non-finite result is `0` plus a warning. `days` takes dates (a date state, `{"$now":true}` or an ISO date literal) and returns the whole calendar days from `from` to `to` (negative if `to` is earlier); only the date part counts (ADR-029).
 
-**Formatters** (templates only): `count` (list length), `date`, `time`, `ago` ("3 days ago"), `upper`, `lower`, `currency` (locale default currency, 2 decimals), `fixed2`, `lines` (list only: one `- a · b` row per item, empty and boolean fields skipped, dates as `date`; used by Share).
+**Formatters** (templates only): `count` (list length), `date`, `time`, `ago` ("3 days ago", "now" when it just happened), `upper`, `lower`, `currency` (locale default currency, 2 decimals), `fixed2`, `lines` (list only: one `- a · b` row per item, empty and boolean fields skipped, dates as `date`; used by Share).
 
 Templates render **plain text only**. Write `\{{` for a literal `{{`.
 
@@ -274,7 +274,7 @@ type SpecError = { code: ErrorCode; path: string; message: string; hint?: string
     "root":     { "type": "Stack", "props": { "gap": "md" }, "children": ["capture", "listCard"] },
     "capture":  { "type": "Card", "props": { "title": "Snap your fridge" }, "children": ["photoIn", "notesIn", "makeBtn"] },
     "photoIn":  { "type": "ImageInput", "props": { "bind": "photo", "label": "Fridge photo", "source": "any" } },
-    "notesIn":  { "type": "TextInput", "props": { "bind": "notes", "label": "Anything to add?", "placeholder": "e.g. we're out of eggs" } },
+    "notesIn":  { "type": "TextInput", "props": { "bind": "notes", "label": "Anything to add?", "placeholder": "e.g. we’re out of eggs" } },
     "makeBtn":  { "type": "Button", "props": { "label": "Make my list", "onPress": "makeList", "variant": "primary" } },
     "listCard": { "type": "Card", "props": { "title": "Grocery list" }, "children": ["list", "clearBtn"] },
     "list":     { "type": "List", "props": { "items": "items", "title": "{{$item.name}}", "subtitle": "{{$item.qty}}", "checkField": "done", "deletable": true, "emptyText": "Snap a photo to start" } },
@@ -287,10 +287,10 @@ type SpecError = { code: ErrorCode; path: string; message: string; hint?: string
         "image": { "$ref": "photo" },
         "output": { "type": "list", "of": { "name": "string", "qty": "string" } },
         "into": "items", "mode": "replace", "defaults": { "done": false } },
-      { "op": "toast", "message": "{{items|count}} items on your list" }
+      { "op": "toast", "message": "Items on your list: {{items|count}}." }
     ]},
     "clearDone": { "steps": [
-      { "op": "confirm", "message": "Remove items you've bought?" },
+      { "op": "confirm", "message": "Remove items you’ve bought?" },
       { "op": "state.remove", "path": "items", "where": { "field": "done", "equals": true } }
     ]}
   }
