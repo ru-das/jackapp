@@ -19,9 +19,10 @@ export const switchColors = (t: Palette) => ({ trackColor: { true: t.accent, fal
 export const space = { none: 0, xs: 4, sm: 8, md: 16, lg: 24 } as const;
 export const radius = { card: 20, control: 14, pill: 999 } as const;
 // Font families, loaded in the root layout from the bundled @expo-google-fonts files. Figtree carries all running text, Fraunces the titles, JetBrains Mono the digits.
+// `brand` (Bagel Fat One) is the wordmark's alone: only the JackApp name on Home uses it, so it stays recognisable (guarded by a test).
 export const font = {
   display: 'Fraunces_600SemiBold', body: 'Figtree_400Regular', medium: 'Figtree_500Medium', semibold: 'Figtree_600SemiBold', bold: 'Figtree_700Bold',
-  mono: 'JetBrainsMono_600SemiBold',
+  mono: 'JetBrainsMono_600SemiBold', brand: 'BagelFatOne_400Regular',
 } as const;
 export const MIN_TARGET = 48; // Material minimum; 44 is the iOS value
 // Role sizes for the app's own screens. Catalog Text variants keep their own scale (it is part of what a spec can ask for).
