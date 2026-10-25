@@ -49,6 +49,17 @@ function ai(ctx: ValidationContext, step: Extract<ActionStep, { op: 'ai.run' }>,
         'AI default has the wrong type.', `Use a ${type.type} literal.`);
     }
   }
+  if (step.flag !== undefined) {
+    if (step.output.type !== 'list' || (target && target.type !== 'list')) {
+      ctx.add('BAD_ACTION', `${base}.flag`, 'AI flag is list-only.', 'Remove flag for scalar output.');
+    } else if (target?.type === 'list') {
+      const type = field(ctx, target.of, step.flag, `${base}.flag`);
+      if (type) expectType(ctx, type, { type: 'string' }, `${base}.flag`);
+      if (own(step.output.of, step.flag) || (step.defaults && own(step.defaults, step.flag))) {
+        ctx.add('BAD_ACTION', `${base}.flag`, 'The flag field cannot also be read by the AI or defaulted.', 'Use a separate string field.');
+      }
+    }
+  }
   const state = Object.fromEntries(Object.entries(ctx.spec.state).map(([key, decl]) => [key, decl.default]));
   const decl = item ? ctx.spec.state[item.list] : undefined;
   const rows = decl?.type === 'list' && decl.default.length ? decl.default : [

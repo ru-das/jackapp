@@ -96,7 +96,7 @@ export const ActionStepSchema = z.discriminatedUnion('op', [
   z.strictObject({ op: z.literal('state.reset'), path: IdentifierSchema }),
   z.strictObject({ op: z.literal('state.diff'), path: IdentifierSchema, from: IdentifierSchema, without: IdentifierSchema, field: IdentifierSchema }),
   z.strictObject({ op: z.literal('ai.run'), prompt: z.string(), image: ValueSchema.optional(), output: OutputSchema,
-    into: IdentifierSchema, mode: z.enum(['replace', 'append']).default('replace'), defaults: z.record(IdentifierSchema, scalar).optional() }),
+    into: IdentifierSchema, mode: z.enum(['replace', 'append']).default('replace'), defaults: z.record(IdentifierSchema, scalar).optional(), flag: IdentifierSchema.optional() }),
   z.strictObject({ op: z.literal('navigate'), screen: IdentifierSchema }),
   z.strictObject({ op: z.literal('confirm'), message: z.string() }),
   z.strictObject({ op: z.literal('toast'), message: z.string() }),

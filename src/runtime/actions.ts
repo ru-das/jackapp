@@ -6,6 +6,8 @@ import type { Store } from './store';
 type MaybePromise<T> = T | Promise<T>;
 type AiStep = Extract<ActionStep, { op: 'ai.run' }>;
 export type ResolvedAiStep = Omit<AiStep, 'image'> & { image?: unknown };
+/** An error whose message is already short and safe to show the user as a toast. */
+export class FriendlyError extends Error {}
 export interface ActionServices {
   share(text: string): MaybePromise<void>;
   toast(message: string): MaybePromise<void>;
@@ -162,7 +164,8 @@ export function createActionEngine({ spec, store, services, getValueContext }: A
       } catch (error) {
         console.error('Action failed', { actionId, stepIndex, step: spec.actions[actionId]?.steps[stepIndex], error });
         const op = spec.actions[actionId]?.steps[stepIndex]?.op;
-        const message = op === 'ai.run' && !services.ai ? 'AI is unavailable right now.'
+        const message = error instanceof FriendlyError ? error.message
+          : op === 'ai.run' && !services.ai ? 'AI is unavailable right now.'
           : op === 'notify' && !services.notify ? 'Notifications are unavailable right now.'
             : 'Something went wrong. Please try again.';
         try { await services.toast(message); }

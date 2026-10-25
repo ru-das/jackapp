@@ -24,7 +24,7 @@ describe('splitter', () => {
   const receipt = [
     { name: 'Pasta', price: 20, kind: 'item' }, { name: 'Wine', price: 30, kind: 'item' }, { name: 'Subtotal', price: 50, kind: 'subtotal' },
     { name: 'Tax', price: 5, kind: 'tax' }, { name: 'Service', price: 5, kind: 'service' }, { name: 'Total', price: 60, kind: 'total' },
-  ];
+  ].map((row) => ({ ...row, check: '' }));
   const make = () => run(buildSplitter({ name: 'Bill Splitter', icon: '🧾', description: 'd', currency: 'EUR' }), { lines: receipt });
 
   test('reading counts items, tax and service once; subtotal and total rows are not added', async () => {
@@ -46,7 +46,7 @@ describe('splitter', () => {
     await engine.run('editLine', { item: receipt[0], index: 0 });
     store.setState({ editPrice: 10 });
     await engine.run('saveLine');
-    expect(store.getState().lines).toEqual(expect.arrayContaining([{ name: 'Pasta', price: 10, kind: 'item' }]));
+    expect(store.getState().lines).toEqual(expect.arrayContaining([{ name: 'Pasta', price: 10, kind: 'item', check: '' }]));
     expect(store.getState().billTotal).toBe(60); // the printed total still wins; the user types a new one if it is wrong
     store.setState({ billTotal: 50 });
     await engine.run('editLine', { item: receipt[1], index: 1 });

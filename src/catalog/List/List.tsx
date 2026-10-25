@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MIN_TARGET, radius, space, useTheme } from '@/ui/theme';
 
-export interface ListRow { key: string; title: string; subtitle?: string; trailing?: string; checked?: boolean }
+export interface ListRow { key: string; title: string; subtitle?: string; trailing?: string; flag?: string; checked?: boolean }
 interface Props {
   rows: ListRow[]; emptyText: string;
   onToggle?(i: number): void; onDelete?(i: number): void; onPress?(i: number): void;
@@ -29,7 +29,8 @@ export function List({ rows, emptyText, onToggle, onDelete, onPress }: Props) {
             <Text style={[styles.title, { color: r.checked ? t.muted : t.text, textDecorationLine: r.checked ? 'line-through' : 'none' }]}>{r.title}</Text>
             {r.subtitle ? <Text style={[styles.sub, { color: t.muted }]}>{r.subtitle}</Text> : null}
           </Pressable>
-          {r.trailing ? <Text style={[styles.sub, { color: t.muted }]}>{r.trailing}</Text> : null}
+          {r.flag ? <Text style={[styles.sub, styles.flag, { color: t.danger }]} accessibilityLabel={`Needs checking: ${r.flag}`}>⚠ {r.flag}</Text>
+            : r.trailing ? <Text style={[styles.sub, { color: t.muted }]}>{r.trailing}</Text> : null}
           {onDelete ? (
             <Pressable accessibilityRole="button" accessibilityLabel={`Delete ${r.title}`} onPress={() => onDelete(i)} style={styles.target}>
               <Text style={{ color: t.danger, fontSize: 20 }}>✕</Text>
@@ -49,4 +50,5 @@ const styles = StyleSheet.create({
   body: { flex: 1, paddingVertical: 8 },
   title: { fontSize: 16 },
   sub: { fontSize: 14 },
+  flag: { flexShrink: 1, maxWidth: '45%', fontWeight: '600' },
 });

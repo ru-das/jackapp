@@ -2,6 +2,8 @@ import { createScriptedMock, mockProvider } from '@/ai/providers/mock';
 import type { LLMProvider } from '@/ai/provider';
 import { h1 } from '@/spec/fixtures';
 import { SpecSchema } from '@/spec/schema';
+import { buildCompare } from '@/ai/generator/recipes/compare';
+import { buildSplitter } from '@/ai/generator/recipes/splitter';
 import { createActionEngine } from '../actions';
 import { createAiService, AI_TIMEOUT_MS } from '../ai';
 
@@ -111,4 +113,64 @@ test('120 s timeout aborts the provider call', async () => {
   await run;
   expect(aborted).toBe(true);
   expect(rows(t.get())).toEqual([]);
+});
+
+describe('T-103: uncertain output is flagged, never trusted', () => {
+  const split = SpecSchema.parse(buildSplitter({ name: 'Bill', icon: '🧾', description: 'd', currency: 'USD' }));
+  function bill(replies: string[], seed: Record<string, unknown> = {}) {
+    let state: Record<string, unknown> = Object.fromEntries(Object.entries(split.state).map(([k, d]) => [k, structuredClone(d.default)]));
+    Object.assign(state, { bill: PHOTO, ...seed });
+    const store = { getState: () => state, setState: (n: Record<string, unknown>) => { state = { ...state, ...n }; } };
+    const toast = jest.fn();
+    const engine = createActionEngine({ spec: split, store, getValueContext: () => ctx,
+      services: { share: jest.fn(), toast, confirm: () => true, navigate: jest.fn(),
+        ai: createAiService({ spec: split, store, getProvider: async () => ({ provider: createScriptedMock(replies) }) }) } });
+    return { engine, toast, get: () => state };
+  }
+
+  test('unreadable price is flagged, not a verified zero, and stays out of the total', async () => {
+    const t = bill(['{"items":[{"name":"Pizza","price":12,"kind":"item"},{"name":"Soup","kind":"item"},{"name":"Cola","price":"abc","kind":"item"}]}']);
+    await t.engine.run('readBill');
+    const lines = t.get().lines as { name: string; price: number; check: string }[];
+    expect(lines.map((l) => l.check)).toEqual(['', "Couldn't read the price", "Couldn't read the price"]);
+    expect(t.get().billTotal).toBe(12);
+    expect(lines.filter((l) => l.check).length).toBe(2);
+    expect(t.toast).toHaveBeenLastCalledWith(expect.stringContaining('⚠'));
+  });
+
+  test('a row with nothing readable is dropped', async () => {
+    const t = bill(['{"items":[{"name":"Pizza","price":12,"kind":"item"},{"name":"","kind":""}]}']);
+    await t.engine.run('readBill');
+    expect((t.get().lines as unknown[]).length).toBe(1);
+  });
+
+  test('empty read keeps the previous lines and total, and says what to do', async () => {
+    const old = [{ name: 'Tea', price: 3, kind: 'item', check: '' }];
+    const t = bill(['{"items":[]}', '{"items":[]}'], { lines: old, billTotal: 3 });
+    await t.engine.run('readBill');
+    expect(t.get().lines).toEqual(old);
+    expect(t.get().billTotal).toBe(3);
+    expect(t.toast).toHaveBeenCalledWith(expect.stringContaining('photo'));
+  });
+
+  test('fridge look: unusable rows keep the old seen list', async () => {
+    const s = SpecSchema.parse(buildCompare({ name: 'F', icon: '🧊', description: 'd', usual: ['Milk'], button: 'Go', share: false }));
+    let state: Record<string, unknown> = { photo: PHOTO, seen: [{ name: 'Eggs' }], staples: [], items: [], newSeen: '', newStaple: '' };
+    const store = { getState: () => state, setState: (n: Record<string, unknown>) => { state = { ...state, ...n }; } };
+    const toast = jest.fn();
+    const engine = createActionEngine({ spec: s, store, getValueContext: () => ctx,
+      services: { share: jest.fn(), toast, confirm: () => true, navigate: jest.fn(),
+        ai: createAiService({ spec: s, store, getProvider: async () => ({ provider: createScriptedMock(['{"items":[{},{"name":" "}]}', '{"items":[]}']) }) }) } });
+    await engine.run('look');
+    expect(state.seen).toEqual([{ name: 'Eggs' }]);
+    expect(toast).toHaveBeenCalledWith(expect.stringContaining("Couldn't read anything"));
+  });
+
+  test('without flag, a partly read row is still zero-filled (back-compat)', async () => {
+    const s = SpecSchema.parse({ ...h1, actions: { go: { steps: [{ op: 'ai.run', prompt: 'x', output: { type: 'list', of: { name: 'string', qty: 'string' } }, into: 'items', defaults: { done: false } }] } } });
+    let state: Record<string, unknown> = { items: [] };
+    const store = { getState: () => state, setState: (n: Record<string, unknown>) => { state = { ...state, ...n }; } };
+    await createAiService({ spec: s, store, getProvider: async () => ({ provider: createScriptedMock(['{"items":[{"name":"B"}]}']) }) })(s.actions.go.steps[0] as never);
+    expect(state.items).toEqual([{ name: 'B', qty: '', done: false }]);
+  });
 });

@@ -1,12 +1,14 @@
 import type { LLMProvider } from '@/ai/provider';
 import { IsoDateSchema, StateDeclSchema } from '@/spec/schema';
 import type { Spec } from '@/spec/types';
-import type { ActionServices, ResolvedAiStep } from './actions';
+import { FriendlyError, type ActionServices, type ResolvedAiStep } from './actions';
 import type { Store } from './store';
 
 export const AI_TIMEOUT_MS = 120_000;
 const PROMPT_LIMIT = 2000;
 const ATTEMPTS = 2;
+const EMPTY_PHOTO = "Couldn't read anything in the photo. Try again with a closer, brighter photo.";
+const EMPTY_TEXT = 'The AI gave an empty answer. Try again or add more detail.';
 
 type FieldType = 'string' | 'number' | 'boolean' | 'date';
 const ZERO: Record<FieldType, unknown> = { string: '', number: 0, boolean: false, date: null };
@@ -49,23 +51,40 @@ function parse(raw: string): unknown {
   return JSON.parse(raw.slice(start, end + 1));
 }
 
+/** Unreadable = missing, wrong type, or a blank string; a blank name or price is not an answer. */
+const read = (type: FieldType, v: unknown) => {
+  const c = coerce(type, v);
+  return typeof c === 'string' && c.trim() === '' ? undefined : c;
+};
+
 function interpret(step: ResolvedAiStep, target: Spec['state'][string], key: string, raw: string): unknown {
   const body = (parse(raw) as Record<string, unknown> | null)?.[key];
   if (step.output.type !== 'list') {
     const value = coerce(step.output.type as FieldType, body);
     if (value === undefined) throw new Error(`Model output "${key}" has the wrong type.`);
+    if (step.output.type === 'string' && (value as string).trim() === '') throw new FriendlyError(EMPTY_TEXT);
     return value;
   }
   if (!Array.isArray(body) || target.type !== 'list') throw new Error('Model output "items" is not a list.');
-  return body.map((row) => {
+  const of = step.output.of as Record<string, FieldType>;
+  // A field is essential unless the spec gave it a default: a default says "safe to guess".
+  const essential = Object.keys(of).filter((f) => !(step.defaults && f in step.defaults));
+  const rows = body.flatMap((row) => {
     if (typeof row !== 'object' || row === null || Array.isArray(row)) throw new Error('A list row is not an object.');
+    const cells = row as Record<string, unknown>;
+    const missing = essential.filter((f) => read(of[f], cells[f]) === undefined);
+    if (essential.length && missing.length === essential.length) return [];
     // Every target field is filled: model value, then defaults, then the type's zero value.
-    return Object.fromEntries(Object.entries(target.of).map(([field, type]) => {
-      const model = field in (step.output as { of: object }).of ? coerce(type as FieldType, (row as Record<string, unknown>)[field]) : undefined;
+    const out: Record<string, unknown> = Object.fromEntries(Object.entries(target.of).map(([field, type]) => {
+      const model = field in of ? coerce(type as FieldType, cells[field]) : undefined;
       const fallback = coerce(type as FieldType, step.defaults?.[field]);
       return [field, model ?? fallback ?? ZERO[type as FieldType]];
     }));
+    if (step.flag) out[step.flag] = missing.length ? `Couldn't read the ${missing.join(' and ')}` : '';
+    return [out];
   });
+  if (!rows.length) throw new FriendlyError(step.image ? EMPTY_PHOTO : EMPTY_TEXT);
+  return rows;
 }
 
 export interface AiServiceOptions {

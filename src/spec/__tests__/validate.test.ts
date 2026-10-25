@@ -190,6 +190,17 @@ test('AI output subset, matching field types, defaults, mode and image', () => {
   expectError(withSteps([{ ...step, output: { type: 'string' }, into: 'notes', mode: 'append' }], state), 'BAD_ACTION', 'actions.test.steps[0].mode');
   expectError(withSteps([{ ...step, output: { type: 'string' }, into: 'notes', defaults: {} }], state), 'BAD_ACTION', 'actions.test.steps[0].defaults');
 });
+test('ai.run flag: a separate string field of the target list', () => {
+  const step = { op: 'ai.run', prompt: 'Hi', output: { type: 'list', of: { name: 'string' } }, into: 'items' };
+  const state = { items: h1.state.items, notes: h1.state.notes };
+  const path = 'actions.test.steps[0].flag';
+  expect(validate(withSteps([{ ...step, flag: 'qty' }], state))).toEqual([]);
+  expectError(withSteps([{ ...step, flag: 'nope' }], state), 'BAD_VALUE', path);
+  expectError(withSteps([{ ...step, flag: 'done' }], state), 'TYPE_MISMATCH', path);
+  expectError(withSteps([{ ...step, flag: 'name' }], state), 'BAD_ACTION', path);
+  expectError(withSteps([{ ...step, flag: 'qty', defaults: { qty: 'x' } }], state), 'BAD_ACTION', path);
+  expectError(withSteps([{ ...step, output: { type: 'string' }, into: 'notes', flag: 'qty' }], state), 'BAD_ACTION', path);
+});
 test('multiple independent errors remain precise, unique, repeatable and immutable', () => {
   const s = minimal(); s.state.n = { type: 'number', default: 1, persist: true };
   s.elements.root = { type: 'TextInput', props: { bind: 'n', label: 'Number' } };

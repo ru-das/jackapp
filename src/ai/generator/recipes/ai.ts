@@ -50,7 +50,7 @@ export function buildAi(c: AiConfig): Obj {
   const aiStep = {
     op: 'ai.run', prompt, ...(photo ? { image: ref(photo.key) } : {}),
     output: checklist ? { type: 'list', of: { name: 'string', qty: 'string' } } : { type: 'string' },
-    into: checklist ? 'items' : 'result', ...(checklist ? { mode: 'replace', defaults: { done: false } } : {}),
+    into: checklist ? 'items' : 'result', ...(checklist ? { mode: 'replace', defaults: { done: false, qty: '' } } : {}),
   };
   const actions: Obj = {
     run: { steps: [aiStep,

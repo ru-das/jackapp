@@ -141,7 +141,7 @@ Templates render **plain text only**. Write `\{{` for a literal `{{`.
 | `state.increment` | `path` (number), `by: Value` (default 1) | Add to a number |
 | `state.reset` | `path` | Back to its `default` |
 | `state.diff` | `path` (list), `from` (list), `without` (list), `field` (string field in all three) | `path` becomes the rows of `from` whose `field` matches no row of `without` (case-insensitive, one trailing "s" ignored, either text may contain the other); other fields of `path` get zero values |
-| `ai.run` | `prompt` (template), `image?: Value`, `output`, `into`, `mode?`, `defaults?` | Calls the model (see below) |
+| `ai.run` | `prompt` (template), `image?: Value`, `output`, `into`, `mode?`, `defaults?`, `flag?` | Calls the model (see below) |
 | `navigate` | `screen` | Switch screen |
 | `confirm` | `message` | Ask the user; "No" stops the action |
 | `toast` | `message` (template) | Short message |
@@ -155,6 +155,8 @@ Rules:
 ### `ai.run` details
 - `output` describes the result using the **same type vocabulary as state**: `{ "type": "string" }`, `{ "type": "number" }`, or `{ "type": "list", "of": {…} }`.
 - `into` must be a state key whose type matches `output`. For lists, the `of` fields of `output` must be a subset of the target list's fields. Missing fields are filled from `defaults`, then from type zero values (`""`, `0`, `false`, `null`).
+- **Essential vs default (ADR-035)**: an `output.of` field is essential unless `defaults` names it. A value is unreadable if it is missing, the wrong type, or a blank string. A list row whose essential fields are all unreadable is dropped. If no row is left (or a `string` answer is blank) the run fails with a specific friendly toast after the one retry, and **state is not changed**, so the previous list stays.
+- `flag` (lists only): a `string` field of the target list that is not in `output.of` or `defaults`. A row with some unreadable essential field is kept (zero-filled) and `flag` is set to `Couldn't read the <fields>`; fully read rows get `""`. Without `flag`, partly read rows are zero-filled silently as before. Use it for numbers a user would trust (prices).
 - `mode`: `replace` (default) or `append` (lists only).
 - The runtime converts `output` into a JSON Schema, asks the provider for JSON, validates it, and retries **once** on failure. A second failure shows a toast and changes nothing.
 - `prompt` max 2000 chars after template expansion. `image` must resolve to an image or `null` (if `null`, it is skipped).

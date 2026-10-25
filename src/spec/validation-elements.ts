@@ -57,6 +57,7 @@ export function elements(ctx: ValidationContext, invalidProps: Set<string>): Cal
         if (list[key] !== undefined) template(ctx, list[key], `${base}.${key}`, item);
       }
       if (list.checkField) expectType(ctx, field(ctx, decl.of, list.checkField, `${base}.checkField`), { type: 'boolean' }, `${base}.checkField`);
+      if (list.flagField) expectType(ctx, field(ctx, decl.of, list.flagField, `${base}.flagField`), { type: 'string' }, `${base}.flagField`);
       if (list.sort) field(ctx, decl.of, list.sort.field, `${base}.sort.field`);
       if (list.onItemPress) call(list.onItemPress, `${base}.onItemPress`, item);
     }

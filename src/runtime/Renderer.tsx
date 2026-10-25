@@ -137,6 +137,7 @@ function renderList(p: Props, ctx: Ctx, state: Row) {
     const vctx: ValueContext = { ...ctx.base, state, item: raw[orig], index: orig };
     const r = (s?: string) => (s === undefined ? undefined : resolveTemplate(s, vctx));
     return { key: String(pos), title: r(p.title)!, subtitle: r(p.subtitle), trailing: r(p.trailing),
+      flag: p.flagField && typeof raw[orig][p.flagField] === 'string' && raw[orig][p.flagField] ? String(raw[orig][p.flagField]) : undefined,
       checked: p.checkField ? raw[orig][p.checkField] === true : undefined };
   });
   return (

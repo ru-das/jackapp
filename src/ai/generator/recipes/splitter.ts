@@ -23,12 +23,13 @@ export function buildSplitter(c: SplitterConfig): Obj {
   const read = t.add('Button', { label: 'Read receipt', onPress: 'readBill', variant: 'primary' });
   const capture = t.add('Card', { title: 'The bill' }, [photo, read]);
 
-  const hint = t.add('Text', { value: 'Check each line. Tap one to fix a price or its type; subtotal and total rows are not added twice.', variant: 'muted' });
-  const list = t.add('List', { items: 'lines', title: '{{$item.name}}', subtitle: '{{$item.kind}}', trailing: '{{$item.price|fixed2}}', deletable: true, onItemPress: 'editLine', emptyText: 'Take a photo of the receipt' });
+  const hint = t.add('Text', { value: 'Check each line. Tap one to fix a price or its type; subtotal and total rows are not added twice. Lines marked ⚠ could not be fully read and are left out of the total until you fix them.', variant: 'muted' });
+  const list = t.add('List', { items: 'lines', title: '{{$item.name}}', subtitle: '{{$item.kind}}', trailing: '{{$item.price|fixed2}}', flagField: 'check', deletable: true, onItemPress: 'editLine', emptyText: 'Take a photo of the receipt' });
   const items = t.add('Stat', { label: 'Items', value: sumOf('item'), format: 'currency', currency: '{{currency}}' });
   const extras = t.add('Stat', { label: 'Tax and service', value: math('+', sumOf('tax'), sumOf('service')), format: 'currency', currency: '{{currency}}' });
+  const unread = t.add('Stat', { label: 'Lines to check', value: math('-', { $agg: { op: 'count', of: 'lines' } }, { $agg: { op: 'count', of: 'lines', where: { field: 'check', equals: '' } } }), format: 'number' });
   const again = t.add('Button', { label: 'Use the lines for the bill total', onPress: 'recalc', variant: 'secondary' });
-  const linesCard = t.add('Card', { title: 'What was read' }, [hint, list, items, extras, again]);
+  const linesCard = t.add('Card', { title: 'What was read' }, [hint, list, unread, items, extras, again]);
 
   const money = t.add('Select', { bind: 'currency', label: 'Currency', options: CURRENCIES });
   const total = t.add('NumberInput', { bind: 'billTotal', label: 'Bill total (type it if the photo is wrong)', min: 0, mode: 'field' });
@@ -48,31 +49,32 @@ export function buildSplitter(c: SplitterConfig): Obj {
   const name = t.add('TextInput', { bind: 'editName', label: 'Name' });
   const price = t.add('NumberInput', { bind: 'editPrice', label: 'Price', min: 0, mode: 'field' });
   const kind = t.add('Select', { bind: 'editKind', label: 'Type', options: KINDS });
+  const why = t.add('Text', { value: '{{editCheck}}', variant: 'muted' });
   const save = t.add('Button', { label: 'Save line', onPress: 'saveLine', variant: 'primary' });
   const drop = t.add('Button', { label: 'Delete line', onPress: 'deleteLine', variant: 'danger' });
-  const lineRoot = t.add('Stack', { gap: 'md' }, [t.add('Card', { title: 'Fix this line' }, [name, price, kind, save, drop])]);
+  const lineRoot = t.add('Stack', { gap: 'md' }, [t.add('Card', { title: 'Fix this line' }, [why, name, price, kind, save, drop])]);
 
   const aiStep = { op: 'ai.run', image: ref('bill'), into: 'lines',
     prompt: 'Read the receipt. Return every printed row with its name, its numeric price and kind. kind is one of: item (food or drink), tax, service (service charge), tip, subtotal, total.',
-    output: { type: 'list', of: { name: 'string', price: 'number', kind: 'string' } } };
+    output: { type: 'list', of: { name: 'string', price: 'number', kind: 'string' } }, flag: 'check' };
   const tipAction = (rate: number) => ({ steps: [{ op: 'state.set', path: 'tip', value: math('round', math('*', bill, rate), 2) }] });
   return assemble({ name: c.name, description: c.description, icon: c.icon }, {
     bill: { type: 'image', default: null, persist: false },
-    lines: { type: 'list', of: { name: 'string', price: 'number', kind: 'string' }, default: [] },
+    lines: { type: 'list', of: { name: 'string', price: 'number', kind: 'string', check: 'string' }, default: [] },
     billTotal: { type: 'number', default: 0 }, tip: { type: 'number', default: 0 }, people: { type: 'number', default: 2 },
     currency: { type: 'string', default: c.currency },
     editIndex: { type: 'number', default: 0, persist: false }, editName: { type: 'string', default: '', persist: false },
-    editPrice: { type: 'number', default: 0, persist: false }, editKind: { type: 'string', default: 'item', persist: false },
+    editPrice: { type: 'number', default: 0, persist: false }, editKind: { type: 'string', default: 'item', persist: false }, editCheck: { type: 'string', default: '', persist: false },
     summary: { type: 'string', default: '', persist: false },
   }, root, t.elements, {
-    readBill: { steps: [aiStep, ...recalc, { op: 'toast', message: 'Check the lines and the bill total' }] },
+    readBill: { steps: [aiStep, ...recalc, { op: 'toast', message: 'Check the lines and the bill total. Fix any line marked ⚠.' }] },
     recalc: { steps: recalc },
     tip0: tipAction(0), tip10: tipAction(0.1), tip15: tipAction(0.15),
     editLine: { steps: [
       { op: 'state.set', path: 'editIndex', value: ref('$index') }, { op: 'state.set', path: 'editName', value: ref('$item.name') },
-      { op: 'state.set', path: 'editPrice', value: ref('$item.price') }, { op: 'state.set', path: 'editKind', value: ref('$item.kind') },
+      { op: 'state.set', path: 'editPrice', value: ref('$item.price') }, { op: 'state.set', path: 'editKind', value: ref('$item.kind') }, { op: 'state.set', path: 'editCheck', value: ref('$item.check') },
       { op: 'navigate', screen: 'line' }] },
-    saveLine: { steps: [{ op: 'state.update', path: 'lines', index: ref('editIndex'), set: { name: ref('editName'), price: ref('editPrice'), kind: ref('editKind') } },
+    saveLine: { steps: [{ op: 'state.update', path: 'lines', index: ref('editIndex'), set: { name: ref('editName'), price: ref('editPrice'), kind: ref('editKind'), check: '' } },
       ...recalc, { op: 'navigate', screen: 'main' }] },
     deleteLine: { steps: [{ op: 'confirm', message: 'Delete this line?' }, { op: 'state.remove', path: 'lines', index: ref('editIndex') }, ...recalc, { op: 'navigate', screen: 'main' }] },
     share: { steps: [

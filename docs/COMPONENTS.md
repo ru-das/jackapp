@@ -160,6 +160,7 @@ Shows the items of a list state key. Item slots are Templates that may use `$ite
 | `subtitle` | Template | | |
 | `trailing` | Template | | |
 | `checkField` | boolean field of the item | | |
+| `flagField` | string field of the item | | | A non-empty value shows as `⚠ <text>` in place of `trailing`, in the danger colour |
 | `deletable` | boolean | | `false` |
 | `onItemPress` | action id (gets `$item`, `$index`) | | |
 | `sort` | `{ field, dir: "asc" \| "desc" }` | | insertion order |

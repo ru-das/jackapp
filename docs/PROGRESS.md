@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M0 — Setup done except T-04 CI; T-14 decisions drafted (ADR-003/005 await human Accept); M1 phone spikes pending |
-| Last updated | 2026-10-25 by Claude Code (T-97) |
+| Last updated | 2026-10-25 by Claude Code (T-103) |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-103 uncertain AI output (Claude Code, 2026-10-25, human-requested; edits Codex-owned `src/spec/*`, `runtime/actions.ts`, `recipes/{splitter,ai}.ts`; ask Codex to review the `flag` contract):** ADR-035. `ai.run`: fields not in `defaults` are essential; blank/missing/wrong type = unreadable; rows with nothing readable are dropped; new `flag` field marks partly read rows ("Couldn't read the price"); empty result throws a `FriendlyError` toast and leaves the old list. Splitter shows ⚠ on flagged lines (new `List.flagField`), "Lines to check", and keeps them out of the total until fixed. `npm run check` green (51 suites / 2,580 tests). **Not tried on a device.** **Human next:** read a blurry receipt, see ⚠ lines and the count, fix one, re-read with a blank photo (old lines must stay). Limits: unknown `kind` values are not flagged; no add-a-line action.
+>
 > **T-102 Fridge Snap (Claude Code, 2026-10-25, human-requested; edits Codex-owned `recipes/ai.ts`, `src/spec/{schema,validation-actions}.ts`, `runtime/actions.ts`; ask Codex to review the `state.diff` contract):** ADR-034. Photo → editable "what I can see" → editable usual items → shopping list of usual items not seen (+ note that a photo does not prove absence). `output compare`; fridge/pantry photo requests use it even if the model said checklist. **Not tried on a device.** **Human next:** build Fridge Snap, snap a fridge, delete a wrong item, add one, edit the usual list, Make shopping list. Limit: text match only ("yogurt" vs "yoghurt" misses).
 >
 > **T-101 Plant Pal (Claude Code, 2026-10-25, human-requested; edits Codex-owned `recipes/log.ts`; ask Codex to review):** ADR-034. Any `log` app with `tap date` now taps into an item screen: Last-watered stat + date, "Watered now", Undo, pick-a-day + "Save that day"; the list has a one-line hint. `describeSpec` reads only the first screen. Reminder flow unchanged. **Not tried on a device.** **Human next:** build Plant Pal, add two plants, tap one, Watered now, Undo, pick yesterday, Back.
@@ -177,6 +179,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-103 | `ai.run` flags unreadable essential fields instead of defaulting; empty read keeps old list with a specific toast; splitter shows ⚠ lines. | see git |
 | 2026-10-25 | Claude Code | T-98 | Preview describes the built spec and lists what was not included (recipe notes + keyword omissions); scope hint on Create. | (this commit) |
 | 2026-10-25 | Claude Code | T-95 | Storage no longer swallows errors (`StorageError` unavailable/unreadable); Create keeps draft + shows "Couldn't save…" and blocks double Save; autosave failures stay pending and retry on next flush/change; Home shows a retry card instead of the empty state; Run refuses to open (and overwrite data) when storage is unavailable. | (this commit) |
 | 2026-10-25 | Claude Code | T-79 | Seven recipes, classifier, cloud/free-form fallback, $math pow/min/max/days, Stat fix, DateInput, Timer, notifications (T-52), coverage sets (49.0% → 97.5% dev, 91.9% hold-out); ADR-028/029/030. | (this commit) |
