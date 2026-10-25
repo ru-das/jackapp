@@ -23,10 +23,15 @@ export function buildLog(c: LogConfig): Obj {
   const typed = c.fields.filter((f) => f.type !== 'date');
   const draft = (f: LogField) => `new${cap(f.key)}`;
   const dateTap = c.tap?.kind === 'date' ? c.tap : null;
+  const fix = (f: LogField) => `fix${cap(f.key)}`;
+  // shortcut: apps with a tap action keep it, so only plain logs can be edited; Save does not re-check required text, when blank titles on edit matter.
+  const editable = !c.tap;
   const draftDefault = (f: LogField) => f.type === 'choice' ? (f.options ?? [''])[0] : f.type === 'rating' ? 3 : f.type === 'day' ? null : f.type === 'text' || f.type === 'longtext' ? '' : 0;
   const state: Obj = {
     items: { type: 'list', of: { ...Object.fromEntries(c.fields.map((f) => [f.key, stateType[f.type]])), ...(c.checkbox ? { done: 'boolean' } : {}) }, default: [] },
     ...Object.fromEntries(typed.map((f) => [draft(f), { type: stateType[f.type], default: draftDefault(f), persist: false }])),
+    ...(editable ? { editIndex: { type: 'number', default: 0, persist: false },
+      ...Object.fromEntries(typed.map((f) => [fix(f), { type: stateType[f.type], default: draftDefault(f), persist: false }])) } : {}),
     ...(dateTap ? {
       selIndex: { type: 'number', default: 0, persist: false }, selName: { type: 'string', default: '', persist: false },
       selWhen: { type: 'date', default: null, persist: false }, prevWhen: { type: 'date', default: null, persist: false },
@@ -34,14 +39,15 @@ export function buildLog(c: LogConfig): Obj {
     } : {}),
   };
 
-  const inputs = typed.map((f) => {
-    if (f.type === 'text') return t.add('TextInput', { bind: draft(f), label: f.label, ...(typed.every((x) => x.type === 'text') ? { onSubmit: 'add' } : {}) });
-    if (f.type === 'longtext') return t.add('TextInput', { bind: draft(f), label: f.label, multiline: true });
-    if (f.type === 'choice') return t.add('Select', { bind: draft(f), label: f.label, options: f.options });
-    if (f.type === 'rating') return t.add('NumberInput', { bind: draft(f), label: f.label, min: 1, max: 5, mode: 'slider' });
-    if (f.type === 'day') return t.add('DateInput', { bind: draft(f), label: f.label });
-    return t.add('NumberInput', { bind: draft(f), label: f.label, min: 0, mode: f.type === 'money' ? 'field' : 'stepper' });
-  });
+  const input = (f: LogField, bind: string, onSubmit?: string) => {
+    if (f.type === 'text') return t.add('TextInput', { bind, label: f.label, ...(onSubmit ? { onSubmit } : {}) });
+    if (f.type === 'longtext') return t.add('TextInput', { bind, label: f.label, multiline: true });
+    if (f.type === 'choice') return t.add('Select', { bind, label: f.label, options: f.options });
+    if (f.type === 'rating') return t.add('NumberInput', { bind, label: f.label, min: 1, max: 5, mode: 'slider' });
+    if (f.type === 'day') return t.add('DateInput', { bind, label: f.label });
+    return t.add('NumberInput', { bind, label: f.label, min: 0, mode: f.type === 'money' ? 'field' : 'stepper' });
+  };
+  const inputs = typed.map((f) => input(f, draft(f), typed.every((x) => x.type === 'text') ? 'add' : undefined));
   const addButton = t.add('Button', { label: `Add ${c.noun}`, onPress: 'add', variant: 'primary' });
   const addCard = t.add('Card', { title: `New ${c.noun}` }, [...inputs, addButton]);
 
@@ -56,10 +62,11 @@ export function buildLog(c: LogConfig): Obj {
   const subtitle = others.map(part).join(' · ');
   const list = t.add('List', {
     items: 'items', title: `{{$item.${title.key}}}`, ...(subtitle ? { subtitle } : {}),
-    ...(c.checkbox ? { checkField: 'done' } : {}), deletable: true, ...(c.tap ? { onItemPress: dateTap ? 'open' : 'record' } : {}),
+    ...(c.checkbox ? { checkField: 'done' } : {}), deletable: true, onItemPress: !c.tap ? 'edit' : dateTap ? 'open' : 'record',
     ...(c.sort ? { sort: c.sort } : {}), emptyText: `Add your first ${c.noun}`,
   });
-  const listKids = dateTap ? [t.add('Text', { value: `Tap a ${c.noun} to log it or fix the date.`, variant: 'muted' }), list] : [list];
+  const hint = dateTap ? `Tap a ${c.noun} to log it or fix the date.` : editable ? `Tap a ${c.noun} to fix or delete it.` : '';
+  const listKids = hint ? [t.add('Text', { value: hint, variant: 'muted' }), list] : [list];
   for (const total of c.totals) {
     const field = c.fields.find((f) => f.key === total.field);
     listKids.push(t.add('Stat', {
@@ -85,6 +92,11 @@ export function buildLog(c: LogConfig): Obj {
     t.add('DateInput', { bind: 'pickDay', label: 'Or pick the day' }),
     t.add('Button', { label: 'Save that day', onPress: 'saveDay', variant: 'secondary' }),
   ])]) }];
+  const editScreen = !editable ? [] : [{ id: 'edit', title: `Fix ${c.noun}`, root: t.add('Stack', { gap: 'md' }, [t.add('Card', { title: `Fix this ${c.noun}` }, [
+    ...typed.map((f) => input(f, fix(f))),
+    t.add('Button', { label: 'Save changes', onPress: 'saveEdit', variant: 'primary' }),
+    t.add('Button', { label: `Delete ${c.noun}`, onPress: 'deleteEdit', variant: 'danger' }),
+  ])]) }];
   const record = c.tap?.kind === 'add'
     ? { [c.tap.field]: { $math: ['+', ref(`$item.${c.tap.field}`), 1] }, ...(dateField ? { [dateField.key]: NOW } : {}) }
     : undefined;
@@ -106,12 +118,20 @@ export function buildLog(c: LogConfig): Obj {
         { op: 'state.set', path: 'selWhen', value: ref('pickDay') }, { op: 'toast', message: 'Saved' }] },
       undo: { steps: [when(dateTap.field, ref('prevWhen')), { op: 'state.set', path: 'selWhen', value: ref('prevWhen') }, { op: 'toast', message: 'Undone' }] },
     } : {}),
+    ...(editable ? {
+      edit: { steps: [{ op: 'state.set', path: 'editIndex', value: ref('$index') },
+        ...typed.map((f) => ({ op: 'state.set', path: fix(f), value: ref(`$item.${f.key}`) })), { op: 'navigate', screen: 'edit' }] },
+      saveEdit: { steps: [{ op: 'state.update', path: 'items', index: ref('editIndex'), set: Object.fromEntries(typed.map((f) => [f.key, ref(fix(f))])) },
+        { op: 'navigate', screen: 'main' }, { op: 'toast', message: 'Saved' }] },
+      deleteEdit: { steps: [{ op: 'confirm', message: `Delete this ${c.noun}?` }, { op: 'state.remove', path: 'items', index: ref('editIndex') },
+        { op: 'navigate', screen: 'main' }] },
+    } : {}),
     ...(record ? { record: { steps: [{ op: 'state.update', path: 'items', index: ref('$index'), set: record }] } } : {}),
     ...(c.checkbox ? { clearDone: { steps: [{ op: 'state.remove', path: 'items', where: { field: 'done', equals: true } }] } } : {}),
     ...(c.share ? { share: { steps: [{ op: 'share', text: `${c.name}: {{items|count}} ${c.noun}s\n{{items|lines}}` }] } } : {}),
   };
   return assemble({ name: c.name, description: c.description, icon: c.icon }, state, root, t.elements, actions,
-    c.reminder ? [reminderTrigger(c.name, c.reminder)] : [], itemScreen);
+    c.reminder ? [reminderTrigger(c.name, c.reminder)] : [], [...itemScreen, ...editScreen]);
 }
 
 const TYPES: [RegExp, FieldType][] = [

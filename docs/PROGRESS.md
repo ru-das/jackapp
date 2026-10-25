@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-109 edit entry (Claude Code, 2026-10-25, human-requested; edits Codex-owned `recipes/log.ts`; ask Codex to review):** log apps with no tap action open a "Fix" screen on row tap (Save / Delete with confirm; Delete is undoable). Date-tap and add-tap apps are unchanged. Limit: Save does not re-check a blank title. **Not tried on a device.**
+>
 > **T-108 undo (Claude Code, 2026-10-25, human-requested):** any list that gets shorter (row delete, Clear done, splitter Delete line, `state.diff`, AI replace) shows "Removed N items · Undo" for 8 s; one step only; a later change to that list clears it. **Not tried on a device.** Limit: a re-read that replaces rows also offers undo.
 >
 > **T-107 share text (Claude Code, 2026-10-25, human-requested; edits Codex-owned `src/spec/{values,validation-values}.ts`, `recipes/{ai,compare,log,splitter}.ts`; ask Codex to review the `lines` formatter):** ADR-037. Checklist/log/shopping Share lists items; splitter Share has bill, tip, total, people, each. Money fields print as plain numbers. **Not tried on a device.** Next: T-108 undo, T-109 edit entry, T-110 CSV export (TASKS.md).
@@ -185,6 +187,7 @@
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-109 | Log apps with no tap action: tap a row to fix or delete it. | see git |
 | 2026-10-25 | Claude Code | T-108 | Store remembers the last list shrink; UndoBar restores it. | see git |
 | 2026-10-25 | Claude Code | T-107 | `lines` formatter; Share sends item rows; splitter Share sends bill, tip, total, each. | see git |
 | 2026-10-25 | Claude Code | T-106 | `state.append` `required` text fields; log Add refuses a blank title. | see git |

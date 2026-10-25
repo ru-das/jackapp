@@ -130,3 +130,19 @@ describe('fridge compare', () => {
     expect((f.store.getState().staples as unknown[]).length).toBe(4);
   });
 });
+
+describe('editing a log entry', () => {
+  const config = { name: 'Spend', icon: '💸', description: 'd', noun: 'expense', fields: [{ key: 'name', label: 'What', type: 'text' as const }, { key: 'amount', label: 'Amount', type: 'money' as const }],
+    checkbox: false, totals: [], tap: null, sort: null, share: false, reminder: null };
+  test('tap opens a fix screen; Save updates the row, Delete removes it', async () => {
+    const { store, engine, services } = run(buildLog(config));
+    store.setState({ items: [{ name: 'Tea', amount: 3 }, { name: 'Cab', amount: 20 }] });
+    await engine.run('edit', { item: { name: 'Cab', amount: 20 }, index: 1 });
+    expect(services.navigate).toHaveBeenCalledWith('edit');
+    store.setState({ fixName: 'Taxi', fixAmount: 25 });
+    await engine.run('saveEdit');
+    expect(store.getState().items).toEqual([{ name: 'Tea', amount: 3 }, { name: 'Taxi', amount: 25 }]);
+    await engine.run('deleteEdit');
+    expect(store.getState().items).toEqual([{ name: 'Tea', amount: 3 }]);
+  });
+});
