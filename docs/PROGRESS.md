@@ -184,6 +184,8 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 | 2026-10-25 | Gate 4: Quick 6, recipes on, GPU, speculative **on** (`evals/results/eval-2026-10-25T10-45-22-748Z-gemma-4-E2B-it.litertlm-noplan.json`) | Passed. 4/4 valid first FILL, 0 repairs, 2/2 refusals (e26, e29), 0 false refusals; build times 15.6 / 18.5 / 5.7 / 12.1 s, median 13.9 s (target ≤ 90 s). Recipes path, so not comparable with the free-form runs of Oct 23. Speculative on cut e01 engine time 24.6 → 15.6 s |
 | 2026-10-25 | Gate 3 (A/B: speculative, GPU off) | Not done (optional). Quick 6 with speculative **off** also not run |
 | 2026-10-25 | Offline (AT-10, Android): open saved app after force-stop (data kept); Create → Build with the installed model; photo action (Fridge Snap) | Passed (human-reported). OpenRouter-offline and Ollama-unreachable message rows not reported |
+| 2026-10-25 | Real generation (AT-07, Android, on-device model): Fridge Snap (photo → correct grocery list), Bill Splitter (receipt read correctly), Plant Pal | Passed (human-reported). Not reported: Save step, time from Build to preview (build times in the Gate 4 eval: e01 15.6 s, e09 5.7 s) |
+| 2026-10-25 | Reminders (AT-09, T-99): Plant Pal reminder notification | Passed (human-reported: notification arrived). Not reported: tap opens Plant Pal, delete cancels, denied-permission line |
 
 ---
 
