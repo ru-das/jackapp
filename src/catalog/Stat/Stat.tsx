@@ -9,7 +9,7 @@ export function Stat({ label, value }: { label: string; value: string }) {
       style={[styles.box, { backgroundColor: t.accentSoft, borderRadius: radius.control }]}
     >
       <Text style={[styles.label, { color: t.muted }]}>{label}</Text>
-      <Text style={[styles.value, { color: t.accent }]}>{value}</Text>
+      <Text maxFontSizeMultiplier={1.5} style={[styles.value, { color: t.accent }]}>{value}</Text>
     </View>
   );
 }

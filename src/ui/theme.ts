@@ -13,6 +13,8 @@ const dark: typeof light = {
 export const palettes = { light, dark };
 export type Palette = typeof light;
 // `border` is the hairline between surfaces; `outline` (3:1) is the edge of a control, so inputs and an off Switch read as controls.
+// Snackbar surface (toast, Undo bar): the page's text colour as fill, so it stands off the content without a border or shadow. The accent comes from the other theme so Undo stays readable on it.
+export const inverse = (t: Palette) => ({ bg: t.text, fg: t.bg, accent: (t === dark ? light : dark).accent });
 export const switchColors = (t: Palette) => ({ trackColor: { true: t.accent, false: t.outline }, thumbColor: t.surface });
 export const space = { none: 0, xs: 4, sm: 8, md: 16, lg: 24 } as const;
 export const radius = { card: 20, control: 14, pill: 999 } as const;

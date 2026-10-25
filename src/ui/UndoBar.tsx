@@ -3,12 +3,12 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Store } from '@/runtime/store';
 import { useAnnounce } from '@/ui/announce';
 import { useInsets } from '@/ui/insets';
-import { MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/theme';
+import { inverse, MIN_TARGET, pressed, radius, space, type, useTheme } from '@/ui/theme';
 
 const SHOW_MS = 8000;
 
 export function UndoBar({ store }: { store: Store }) {
-  const t = useTheme();
+  const snack = inverse(useTheme());
   const { bottom } = useInsets();
   const removal = useSyncExternalStore(store.subscribe, store.lastRemoval);
   const [hidden, setHidden] = useState<unknown>(null);
@@ -24,10 +24,10 @@ export function UndoBar({ store }: { store: Store }) {
   useAnnounce(shown ? `${text}. Undo is available.` : null);
   if (!shown) return null;
   return (
-    <View style={[styles.bar, { backgroundColor: t.surface, borderColor: t.border, bottom: 88 + bottom }]}>
-      <Text style={[styles.text, { color: t.text }]}>{text}</Text>
+    <View style={[styles.bar, { backgroundColor: snack.bg, bottom: 88 + bottom }]}>
+      <Text style={[styles.text, { color: snack.fg }]}>{text}</Text>
       <Pressable accessibilityRole="button" accessibilityLabel="Undo remove" onPress={() => store.undo()} style={(st) => [styles.target, pressed(st)]}>
-        <Text style={[styles.undo, { color: t.accent }]}>Undo</Text>
+        <Text style={[styles.undo, { color: snack.accent }]}>Undo</Text>
       </Pressable>
     </View>
   );
@@ -36,7 +36,7 @@ export function UndoBar({ store }: { store: Store }) {
 const styles = StyleSheet.create({
   bar: {
     position: 'absolute', left: space.md, right: space.md, maxWidth: 608, alignSelf: 'center', flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', paddingLeft: space.md, borderRadius: radius.control, borderWidth: StyleSheet.hairlineWidth,
+    justifyContent: 'space-between', paddingLeft: space.md, borderRadius: radius.control,
   },
   text: { fontSize: type.body, flexShrink: 1 },
   target: { minHeight: MIN_TARGET, minWidth: MIN_TARGET, paddingHorizontal: space.md, justifyContent: 'center' },

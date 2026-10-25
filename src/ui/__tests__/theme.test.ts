@@ -1,4 +1,4 @@
-import { palettes } from '../theme';
+import { inverse, palettes } from '../theme';
 
 const lum = (hex: string) => {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
@@ -29,5 +29,14 @@ describe.each(Object.entries(palettes))('%s palette controls', (_name, p) => {
   });
   test('an off Switch thumb stands out from its track', () => {
     expect(ratio(p.surface, p.outline)).toBeGreaterThanOrEqual(3);
+  });
+});
+
+// The toast and Undo bar are drawn on the inverse surface; their text and the Undo action must read on it.
+describe.each(Object.entries(palettes))('%s palette inverse surface', (_name, p) => {
+  const snack = inverse(p);
+  test('text and the Undo action are at least 4.5:1', () => {
+    expect(ratio(snack.fg, snack.bg)).toBeGreaterThanOrEqual(4.5);
+    expect(ratio(snack.accent, snack.bg)).toBeGreaterThanOrEqual(4.5);
   });
 });

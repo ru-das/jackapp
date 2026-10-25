@@ -48,31 +48,33 @@ export default function SettingsScreen() {
             ? 'Everything stays on this device.'
             : 'Your request, and any photo you ask it to read, is sent to the AI you pick. Your mini-apps and their data stay on this device.'}
         </Text>
-        {choices.map(([id, label]) => {
-          const on = settings.provider === id;
-          return (
-            <Pressable
-              key={id} accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={label}
-              onPress={() => void update({ provider: id })}
-              style={(st) => [styles.row, { backgroundColor: on ? t.accentSoft : 'transparent', borderColor: on ? t.accent : t.border }, pressed(st)]}
-            >
-              <Text style={[styles.name, { color: t.text }]}>{label}</Text>
-            </Pressable>
-          );
-        })}
+        <View accessibilityRole="radiogroup" accessibilityLabel="AI provider" style={styles.group}>
+          {choices.map(([id, label]) => {
+            const on = settings.provider === id;
+            return (
+              <Pressable
+                key={id} accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={label}
+                onPress={() => void update({ provider: id })}
+                style={(st) => [styles.row, { backgroundColor: on ? t.accentSoft : 'transparent', borderColor: on ? t.accent : t.outline }, pressed(st)]}
+              >
+                <Text style={[styles.name, { color: t.text }]}>{label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </Card>
 
       <Card>
         <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Money</Text>
         <Text style={{ color: t.muted, fontSize: type.hint }}>The currency used to show amounts. It does not change the language of the app.</Text>
-        <View style={styles.chips}>
+        <View accessibilityRole="radiogroup" accessibilityLabel="Currency" style={styles.chips}>
           {CURRENCIES.map((code) => {
             const on = settings.currency === code;
             return (
               <Pressable
                 key={code} accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={`Currency ${code}`}
                 onPress={() => void update({ currency: code })}
-                style={(st) => [styles.chip, { backgroundColor: on ? t.accentSoft : 'transparent', borderColor: on ? t.accent : t.border }, pressed(st)]}
+                style={(st) => [styles.chip, { backgroundColor: on ? t.accentSoft : 'transparent', borderColor: on ? t.accent : t.outline }, pressed(st)]}
               >
                 <Text style={[styles.name, { color: t.text }]}>{code}</Text>
               </Pressable>
@@ -128,6 +130,7 @@ const styles = StyleSheet.create({
   content: { padding: space.lg, gap: space.md, maxWidth: 640, width: '100%', alignSelf: 'center' },
   h: { fontSize: type.h, fontWeight: '600' },
   row: { minHeight: MIN_TARGET, padding: space.md, borderRadius: radius.control, borderWidth: 1, justifyContent: 'center' },
+  group: { gap: space.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   chip: { minHeight: MIN_TARGET, minWidth: MIN_TARGET + 12, paddingHorizontal: space.md, borderRadius: radius.control, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   name: { fontSize: type.body, fontWeight: '600' },

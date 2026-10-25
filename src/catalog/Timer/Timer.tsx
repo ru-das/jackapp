@@ -35,7 +35,7 @@ export function Timer({ label, seconds, onDone }: Props) {
   return (
     <View accessible accessibilityLabel={`${label}: ${clock(left)} left`} style={[styles.box, { backgroundColor: t.accentSoft }]}>
       <Text style={{ color: t.muted, fontSize: 14 }}>{label}</Text>
-      <Text style={{ color: t.accent, fontSize: 48, fontWeight: '700', fontVariant: ['tabular-nums'] }}>{clock(left)}</Text>
+      <Text maxFontSizeMultiplier={1.5} style={{ color: t.accent, fontSize: 48, fontWeight: '700', fontVariant: ['tabular-nums'] }}>{clock(left)}</Text>
       <View style={styles.row}>
         {running
           ? <Action name="Pause" label={label} primary={false} onPress={() => setRunning(false)} />
