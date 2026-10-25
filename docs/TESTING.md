@@ -103,7 +103,18 @@ Given Fridge Snap with 5 items, when the user says "add a price field and show t
 Given Plant Pal, when the user taps **Send a test in 2 minutes** (then closes JackApp), then the notification fires, and tapping it opens Plant Pal.
 
 ### AT-10 Offline (W + A)
-Given a saved mini-app and no internet, then it opens and works; only generation and `ai.run` say the AI is unreachable.
+Each offline promise, and how to verify it. Airplane mode on unless noted.
+
+| Operation | Promise | Verify |
+|---|---|---|
+| Open a saved native tool | Works offline after killing and restarting the app. | Save a mini-app, force-stop JackApp, go offline, reopen, use it; data is still there. |
+| Build with the Android model | Works after the download, with no network. | Download and Load now online, go offline, Create, Build. |
+| Photo action, locally | Works offline with the installed model. | Offline, run a photo mini-app (Fridge Snap) with the on-device provider. |
+| Open the website offline | App assets stay available after closing the browser. | Visit the hosted URL once online; confirm DevTools → Application → Service Workers shows it running; close the browser, go offline, reopen `/jackapp/` and a `/jackapp/run/<id>` deep link; saved apps render with their data. After a new deploy, one online visit picks up the new version. |
+| Use OpenRouter | Needs connectivity. | Offline, Build: the existing "can't reach the AI service" message, no crash. |
+| Use Ollama | Needs the configured host. | Host unreachable, Build: "Can't reach Ollama at …". |
+
+Download resilience (Android, T-112): start the model download, force-stop at ~30%, reopen: Settings shows "Paused at …" and Resume continues from there; Cancel keeps the progress; airplane mode mid-download shows where it stopped; a nearly full phone shows the space message before downloading.
 
 ### AT-11 Export / import (W + A)
 Exported JSON re-imports as an identical spec. A tampered file (unknown component) is rejected with a readable error.

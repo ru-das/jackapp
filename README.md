@@ -23,7 +23,8 @@ npx expo run:android
 
 JackApp sends your request to an AI service you choose in **Settings**:
 
-- **On-device (Android, default):** Settings → On-device → Download once (2.6 GB, Wi-Fi). Gemma 4 E2B runs on the phone through Google's LiteRT-LM, so it works offline and has no request limit. Nothing you type or photograph leaves the phone.
+- **On-device (Android, default):** Settings → On-device → Download once (2.6 GB, Wi-Fi). Gemma 4 E2B runs on the phone through Google's LiteRT-LM, so it works offline and has no request limit. The download resumes if it is interrupted. Nothing you type or photograph leaves the phone.
+- **Offline:** saved mini-apps open offline on Android, and on the web after one online visit (a service worker caches the app). Building needs the downloaded Android model, an OpenRouter connection, or a reachable Ollama host.
 - **OpenRouter (web default):** paste a free key from <https://openrouter.ai/keys>. Each step uses a different free model (see `src/ai/models.ts`). Free models are rate-limited (about 50 requests a day without credits), so a full eval run needs credits. The key is stored on your device only, never in the repo.
 - **Ollama:** run `ollama serve` on your computer, then enter its address and a model name. On web, start it with `OLLAMA_ORIGINS=*` so the browser may call it. A phone needs your computer's address on the same Wi-Fi (the Android build allows plain `http`).
 

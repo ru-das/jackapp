@@ -159,7 +159,7 @@ The worker accepts only the two configured ONNX repositories, decodes only image
 
 **Verification limit.** Agent tests use mocked inference and blocked external connections; no model runs on the laptop. Real WebGPU/WASM compatibility, signed-download redirects, cache/offline behavior and full-session phone network logs still require phone acceptance before T-62/AT-12 are complete. Import UI is absent and edit UI is a placeholder; implementing them remains T-53/T-51, with validation required at their future save/render boundaries.
 
-## ADR-019: GitHub Pages for the web build, no service worker (T-63)
+## ADR-019: GitHub Pages for the web build (T-63; the no-service-worker part is superseded by ADR-038)
 
 2026-10-23 · Accepted · Claude Code
 Host the static export on GitHub Pages from a Pages workflow (no deploy branch) under `/jackapp`. Cloudflare Pages is out: its 25 MiB per-file limit rejects the 26.9 MB ONNX wasm. No service worker: Chrome on Android installs from the manifest alone; add one only if the install prompt fails. Deep links use the `404.html` copy of `index.html`. A .tech domain is optional; with one, drop `experiments.baseUrl`.
@@ -297,6 +297,13 @@ The eval used to say only that a spec was valid and contained the named componen
 ## ADR-035: Unreadable AI fields are flagged, not defaulted to trusted values (T-103)
 Date: 2026-10-25. Status: Accepted.
 `ai.run` used to fill any unreadable list field with a default or zero, so an unreadable receipt price became a verified-looking `0`, and an empty reply wiped the previous list. **Contract:** output fields are essential unless the step lists them in `defaults`; blank strings count as unreadable; rows with nothing readable are dropped; new optional `flag` names a string field that records `Couldn't read the price`; an empty or unusable result throws a `FriendlyError` (photo or text wording), shown as the toast, and leaves state untouched. `List` gets `flagField`. Bill Splitter keeps flagged rows, shows `⚠` on them, counts "Lines to check", and an unread price adds 0 / unread type matches no sum, so flagged lines stay out of the total until fixed (saving a line clears its flag). The checklist recipe makes `qty` a default, so only a missing name drops a row. No confidence scores. Limits: a type outside the known kinds is not flagged; a read that returns plausible but wrong numbers is still only caught by the user's review.
+
+## ADR-038: Service worker for offline web; download resumes from the part file (T-112, T-113)
+
+2026-10-25 · Accepted · Claude Code
+Supersedes the "no service worker" part of ADR-019. A manifest and saved data do not make a closed website reopen offline, and PRD G5 promises it. `public/sw.js` precaches every exported file (list and version stamped by `scripts/precache.js` after `expo export`; the version is a content hash, so each deploy updates the worker). Navigations are network-first with the cached shell as fallback, which also serves `/run/<id>` deep links; bundles are cache-first; other files refresh in the background. Only same-origin GETs are handled, so OpenRouter, Ollama and Hugging Face traffic is never touched. Registration is skipped in dev. No dependency (no Workbox). The page also asks the browser for persistent storage so saved apps survive low-disk eviction.
+Android model download: expo-file-system's legacy resume sends `Range: bytes=<n>-` and appends to the file, so the bytes in `<file>.<revision>.part` are the whole resume state (no AsyncStorage). The name carries the pinned revision so a stale part is never extended. A part larger than the model is deleted; one the server over-filled (Range ignored) is deleted with a message. Free space of at least what is left plus 300 MB is required before starting. Cancel pauses the task and keeps the part. "Downloaded" (file on disk) and "loaded" (in the engine's memory this session) are separate states on the card.
+Limits: the download stops when the app is killed (no background service; resume is on reopen); a service worker cannot cache the 2.6 GB model, which is Android-only anyway; the first web visit must be online.
 
 ## ADR-037: Share sends the content, not a count (T-107)
 Date: 2026-10-25. Status: Accepted.

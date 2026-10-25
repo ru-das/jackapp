@@ -6,3 +6,4 @@ export { confirm } from './confirm';
 export { saveFile } from './saveFile';
 export { cancelTriggers, ensurePermission, isSupported, scheduleTest, notifyNow, onNotificationOpen, scheduleTriggers } from './notifications';
 export type { ScheduledTrigger } from './notificationPlan';
+export { registerOffline } from './offline';

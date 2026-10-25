@@ -31,7 +31,7 @@ JackApp lets a user **describe a mini-app in plain language** and get a working 
 |---|---|---|
 | Privacy | Fridge photos, receipts, habits go to a vendor | Data never leaves the device |
 | Cost | Every generation and every run costs tokens | Free OpenRouter models, or your own Ollama; generate 100 apps or 1 |
-| Offline | Breaks without internet | Saved apps run offline; generating needs internet or a reachable Ollama |
+| Offline | Breaks without internet | Saved apps run offline (web after one online visit, via a service worker); generating needs internet, a reachable Ollama, or the downloaded Android model |
 | Control | Vendor decides model, limits, policies | Swap models, constrain output to our schema, fine-tune later |
 | Longevity | API deprecations break your tools | Your mini-apps keep working on your device |
 
