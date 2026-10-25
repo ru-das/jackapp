@@ -12,6 +12,7 @@ import { validate } from '@/spec/validate';
 import { readJson, specKey, StorageError } from '@/storage';
 import { loadSettings } from '@/storage/settings';
 import { ReminderStatus } from '@/ui/ReminderStatus';
+import { UndoBar } from '@/ui/UndoBar';
 import { radius, space, useTheme } from '@/ui/theme';
 
 type Loaded = { spec: Spec; store: Store; engine: ReturnType<typeof createActionEngine> };
@@ -67,6 +68,7 @@ export default function Run() {
       {phase.kind === 'loading' ? <ActivityIndicator accessibilityLabel="Opening mini-app" color={t.accent} style={styles.spin} /> : null}
       {phase.kind === 'ready' && reminders ? <ReminderStatus appId={id} result={reminders} /> : null}
       {phase.kind === 'ready' ? <Renderer spec={phase.spec} store={phase.store} engine={phase.engine} onReady={(h) => { navigateRef.current = h.navigate; }} /> : null}
+      {phase.kind === 'ready' ? <UndoBar store={phase.store} /> : null}
       {phase.kind === 'error' ? (
         <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
           <Text accessibilityRole="header" style={[styles.h, { color: t.text }]}>Can&apos;t open this one</Text>

@@ -5,6 +5,7 @@ import { StateDeclSchema } from '@/spec/schema';
 
 export type State = Record<string, unknown>;
 export type Store = ReturnType<typeof createStore>;
+export type Removal = { key: string; prev: unknown[]; removed: number };
 
 const SAVE_DELAY_MS = 500;
 
@@ -28,6 +29,8 @@ export function createStore(appId: string, decls: Spec['state'], onSaveError?: (
   let pending = false;
   let inflight: Promise<void> = Promise.resolve();
   const listeners = new Set<() => void>();
+  // Only the latest shrink is kept: undo is one step, not a history.
+  let removal: Removal | null = null;
 
   // Writes run one at a time; a caller waits for every earlier write, then writes if still pending.
   const save = (): Promise<void> => {
@@ -48,14 +51,28 @@ export function createStore(appId: string, decls: Spec['state'], onSaveError?: (
     return run;
   };
 
-  return {
+  const store = {
     getState: () => state,
     setState(next: State | ((s: State) => State)) {
-      state = { ...state, ...(typeof next === 'function' ? next(state) : next) };
+      const patch = typeof next === 'function' ? next(state) : next;
+      for (const [k, v] of Object.entries(patch)) {
+        const old = state[k];
+        if (Array.isArray(old) && Array.isArray(v) && v.length < old.length) removal = { key: k, prev: old, removed: old.length - v.length };
+        else if (removal?.key === k) removal = null;
+      }
+      state = { ...state, ...patch };
       pending = true;
       clearTimeout(timer);
       timer = setTimeout(() => { void save().catch(() => {}); }, SAVE_DELAY_MS);
       listeners.forEach((l) => l());
+    },
+    lastRemoval: (): Removal | null => removal,
+    /** Puts the removed rows back; false if nothing is left to undo. */
+    undo(): boolean {
+      if (!removal) return false;
+      const { key, prev } = removal;
+      store.setState({ [key]: prev });
+      return true;
     },
     subscribe(l: () => void) {
       listeners.add(l);
@@ -81,6 +98,7 @@ export function createStore(appId: string, decls: Spec['state'], onSaveError?: (
       return save();
     },
   };
+  return store;
 }
 
 export function useStoreState(store: Store): State {

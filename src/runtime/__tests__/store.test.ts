@@ -118,3 +118,26 @@ describe('save failures', () => {
     await expect(createStore('a1', decls).load()).rejects.toThrow();
   });
 });
+
+describe('undo', () => {
+  test('restores removed rows and clears itself', () => {
+    const store = createStore('a1', decls);
+    store.setState({ items: [1, 2, 3] });
+    expect(store.lastRemoval()).toBeNull();
+    store.setState({ items: [1] });
+    expect(store.lastRemoval()).toMatchObject({ key: 'items', removed: 2 });
+    expect(store.undo()).toBe(true);
+    expect(store.getState().items).toEqual([1, 2, 3]);
+    expect(store.lastRemoval()).toBeNull();
+    expect(store.undo()).toBe(false);
+  });
+  test('a later change to the same list clears it; other keys do not', () => {
+    const store = createStore('a1', decls);
+    store.setState({ items: [1, 2] });
+    store.setState({ items: [1] });
+    store.setState({ name: 'y' });
+    expect(store.lastRemoval()).not.toBeNull();
+    store.setState({ items: [1, 5] });
+    expect(store.lastRemoval()).toBeNull();
+  });
+});
