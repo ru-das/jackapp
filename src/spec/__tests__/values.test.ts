@@ -119,6 +119,16 @@ describe('value resolution', () => {
     expect(resolveTemplate('{{people|currency}}', { ...context, currency: 'JPY' })).toBe('¥2.00');
     expect(resolveTemplate('{{name|upper}}', { ...context, locale: 'tr', state: { name: 'milk' } })).toBe('MİLK');
   });
+  test('cached formatters keep locale, currency and time zone apart when settings alternate', () => {
+    const eur = { ...context, locale: 'de-DE', currency: 'EUR' };
+    for (let i = 0; i < 3; i++) {
+      expect(resolveTemplate('{{people|currency}}', context)).toBe('$2.00');
+      expect(resolveTemplate('{{people|currency}}', eur)).toBe('2,00\u00a0€');
+      expect(resolveTemplate('{{since|time}}', { ...context, timeZone: 'Asia/Kolkata' })).toBe('5:30 PM');
+      expect(resolveTemplate('{{since|time}}', context)).toBe('12:00 PM');
+      expect(resolveTemplate('{{since|ago}}', context)).toBe('3 days ago');
+    }
+  });
   test.each([
     [0, 'now'], [-59.9, '59 seconds ago'], [-60, '1 minute ago'], [-3599, '59 minutes ago'],
     [-3600, '1 hour ago'], [-86399, '23 hours ago'], [-86400, '1 day ago'],

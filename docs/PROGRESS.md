@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Phase | M7 — Ship: features done and device-tested; cleaning and polishing; T-70..74 (log, video, README, DEV post, publish) open |
-| Last updated | 2026-10-25 by Claude Code (T-122) |
+| Last updated | 2026-10-25 by Claude Code (T-123) |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-123 list performance (Claude Code, 2026-10-25, human-requested after the audit; **edits Codex-owned `src/spec/values.ts` and `src/spec/__tests__/values.test.ts` with the human's yes: please review `cached()` and the three call sites in `format()`**):** ADR-044. Measured before changing anything (desktop Node, so a phone is slower): one keystroke at 200 / 1,000 log rows took 421 / 1,825 ms, now 28 / 78 ms. `List` rows are memoised (`src/catalog/List/List.tsx`); `format()` reuses Intl formatters. New tests `catalog/__tests__/listRows.test.tsx` (unchanged rows do not render again, latest handlers run, handler presence changes a row) and one in `values.test.ts`. `npm run check` green. **Not tried on a device.** **Human next:** a log with 100+ rows (e.g. a Spend log from the copy of "Receipt Photo to Expense Tracker" with many rows): typing in the "What" field should keep up; ticking and deleting rows still work; money and date text in rows still shows in your locale. **Still slow:** the first open of a very long list (about 1.7 ms per row on desktop); needs a `FlatList` in the Renderer, only if a phone shows it. **Audit items still open:** confirm button labels (`clarify`), decorative 🦥 read aloud.
+>
 > **T-122 run header layout (Claude Code, 2026-10-25, human-requested after the audit; no Codex-owned files touched):** the run-screen header shows the mini-app name and one 48 dp "More actions" button (drawn dots, `expanded` state). It opens `OverflowMenu` (`src/ui/OverflowMenu.tsx`): Customize (only for apps with `meta.recipe`) and Export data; a full-screen backdrop and system Back close it; choosing an item closes it first. Built from views because RN has no menu component; no new dependency. `MoreIcon` is shared with Home rows. `npm run check` green (new `overflowMenu.test.tsx`); no run-screen test exists, so the wiring in `run/[id].tsx` is covered by typecheck only. **Not tried on a device.** **Human next:** open a mini-app with a long name (title keeps more room), tap the dots: Customize and Export data appear under the corner, tap outside / press Back closes, Export still shares, Customize still opens; a Home template (no Customize) shows only Export data; TalkBack reads "More actions, collapsed/expanded" and "menu item" roles. **Audit items still open:** list virtualization (`optimize`), confirm button labels (`clarify`), decorative 🦥 read aloud.
 >
 > **T-121 distill (Claude Code, 2026-10-25, human-requested after the audit; no Codex-owned files touched):** Home `AppRow` is one compact row: tap opens, a 48 dp "More actions for <name>" button (three drawn dots, `expanded` state) reveals Rename / Duplicate / Delete inline and closes after one is chosen. A damaged app shows only Delete. Inline, not a popup menu: RN has no menu component and `Alert` buttons do nothing on web. `npm run check` green. **Not tried on a device.** **Human next:** Home with 3+ saved apps: rows are short, More opens and closes, Rename still saves, Delete still confirms, TalkBack reads "More actions for <name>, collapsed/expanded". **Audit items still open:** run header actions (`layout`), list virtualization (`optimize`), confirm button labels (`clarify`), decorative 🦥 read aloud.
@@ -227,6 +229,7 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-25 | Claude Code | T-123 | List performance: memoised rows + Intl formatter cache in values.ts (Codex file, human OK); keystroke at 1,000 rows 1,825 to 78 ms (desktop); ADR-044. | see git |
 | 2026-10-25 | Claude Code | T-122 | Run header: one More button + overflow menu (Customize, Export data); shared MoreIcon. | see git |
 | 2026-10-25 | Claude Code | T-121 | Distill: Home app rows collapse to open + More; Rename/Duplicate/Delete inline on demand. | see git |
 | 2026-10-25 | Claude Code | T-120 | Harden: `outline` token for controls and Switches, quieter build-progress live region, `useAnnounce` for toasts/Undo/errors; ADR-043. | see git |

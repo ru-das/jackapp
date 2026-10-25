@@ -104,6 +104,14 @@ const relativeUnits: readonly [Intl.RelativeTimeFormatUnit, number][] = [
   ['year', 365 * 86400], ['month', 30 * 86400], ['day', 86400],
   ['hour', 3600], ['minute', 60], ['second', 1],
 ];
+// Building an Intl formatter costs far more than using one (milliseconds on a phone), and a list formats every row on every keystroke.
+// Keys are locale + currency/zone/style, so the map stays small; a constructor that throws (bad locale) never reaches `set`.
+const formatters = new Map<string, unknown>();
+function cached<T>(key: string, make: () => T): T {
+  let f = formatters.get(key) as T | undefined;
+  if (f === undefined) { f = make(); formatters.set(key, f); }
+  return f;
+}
 function format(value: unknown, formatter: string | undefined, context: ValueContext): string {
   if (value === null || value === undefined) return '';
   try {
@@ -131,9 +139,12 @@ function format(value: unknown, formatter: string | undefined, context: ValueCon
         if (finite(value)) return value.toFixed(2);
         break;
       case 'currency':
-        if (finite(value) && context.currency) return new Intl.NumberFormat(context.locale, {
-          style: 'currency', currency: context.currency, minimumFractionDigits: 2, maximumFractionDigits: 2,
-        }).format(value);
+        if (finite(value) && context.currency) {
+          const { locale, currency } = context;
+          return cached(`money|${locale}|${currency}`, () => new Intl.NumberFormat(locale, {
+            style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2,
+          })).format(value);
+        }
         break;
       case 'date':
       case 'time':
@@ -146,11 +157,13 @@ function format(value: unknown, formatter: string | undefined, context: ValueCon
           const [unit, size] = relativeUnits.find(([, size]) => Math.abs(seconds) >= size) ?? ['second', 1];
           const elapsed = Math.trunc(seconds / size);
           // "now" (not "in 0 seconds") for the moment it just happened
-          return new Intl.RelativeTimeFormat(context.locale, { numeric: elapsed === 0 ? 'auto' : 'always' }).format(elapsed === 0 ? 0 : elapsed, unit);
+          const numeric = elapsed === 0 ? 'auto' : 'always';
+          return cached(`ago|${context.locale}|${numeric}`, () => new Intl.RelativeTimeFormat(context.locale, { numeric })).format(elapsed === 0 ? 0 : elapsed, unit);
         }
-        return new Intl.DateTimeFormat(context.locale, {
-          timeZone: context.timeZone, ...(formatter === 'date' ? { dateStyle: 'medium' } : { timeStyle: 'short' }),
-        }).format(date);
+        const { locale, timeZone } = context;
+        return cached(`${formatter}|${locale}|${timeZone}`, () => new Intl.DateTimeFormat(locale, {
+          timeZone, ...(formatter === 'date' ? { dateStyle: 'medium' } : { timeStyle: 'short' }),
+        })).format(date);
       }
     }
   } catch {
