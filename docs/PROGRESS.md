@@ -8,8 +8,8 @@
 
 | | |
 |---|---|
-| Phase | M7 — Ship: features done and device-tested; cleaning and polishing; T-70..74 (log, video, README, DEV post, publish) open |
-| Last updated | 2026-10-26 by Claude Code (T-137) |
+| Phase | M7 — Ship: T-71 demo media created locally; T-70, T-72..74 (log, README, DEV post, publish) open |
+| Last updated | 2026-10-26 by Codex (T-71) |
 | `main` health | `npm run check` green |
 | Time left | Deadline Mon Oct 26, 12:29 PM IST · target ship Sun Oct 25 evening |
 
@@ -21,6 +21,8 @@
 
 ## Handoff note (latest)
 
+> **T-71 mobile demo (Codex, 2026-10-26, human-requested post-deadline):** `/tmp/jackapp-demo/JackApp-demo.mp4` is an 80-second 1080×1920 / 30 fps portrait video with music; `JackApp-demo-silent.mp4`, self-contained editable `JackApp-demo.html`, `contact-sheet.jpg`, `VIDEO-NOTES.md`, render scripts and 30 780×1580 mobile snapshots sit beside it, outside git. Uses the current Bagel Fat One / Fraunces / Figtree / JetBrains Mono, Ionicons and launcher icon. Story: introduce → prompt → condensed build → preview/save → add plants → customize timer 25 to 15 minutes → run in dark mode → grocery checklist → bill totals → matched light/dark library → on-device AI/local-data captions → brand close. No browser chrome, desktop screenshots, credits or agent attribution in the video. Captures use the running app at a phone viewport with the mock provider and seeded grocery/bill examples; no phone was connected and no real model was called. Tracker usage has reminders disabled. Font/image asset checks, visual contact-sheet review and MP4 stream/decode checks passed. `npm run check -- -- --runInBand` passed 70 suites / 2,716 tests; the first parallel run timed out in two tests under capture load; one existing Create `recheck` lint warning, no tests changed. **Next:** review/save the local media somewhere durable and upload for T-74. App code and dependencies unchanged. The human requested that README remain theirs to update; they will add the post-deadline T-71 entry. Only TASKS.md and PROGRESS.md are committed here. Claude Code delegation could not authenticate.
+>
 > **T-136/T-137 brand font + second critique pass (Claude Code, 2026-10-26, human-requested after `$impeccable critique`; no Codex-owned files touched):** ADR-053, ADR-054. JackApp wordmark is Bagel Fat One, used nowhere else (test-enforced); new dep `@expo-google-fonts/bagel-fat-one`. Create shows the model download inline; Home empty state is "Say what you need." with a "Needs AI" badge; apps are a flat list; Customize has placeholders and Undo; a11y/copy fixes. `npm run check` green (70 suites / 2,716 tests). **Not looked at in a browser or on a device.** **Human next:** `npm run web` and check the wordmark font and that no other title uses it; Home empty and with 1/3+ apps (flat list, hairlines, badge); Create on a phone with no model (card + progress, readiness flips after download; **new Android build needed for the font**). Not done: sticky Build bar, preview frame, thumb reach, kebab pattern; `rebuild.ts` still says "kind" (Codex).
 >
 > **T-135 critique pass (Claude Code, 2026-10-25, human-requested after `$impeccable critique`; no Codex-owned files touched):** ADR-052. Home: apps first, one "Start from something" list (hidden at 3+ apps), tinted `AppTile`s. Create: Fraunces prompt hero, Build under it, "Need ideas?" chips, type picker folded, AI note only when not set up. Preview: pill, heading, 3-line description, "Good to know" callout, `Reveal` motion. Settings: Ollama fields save on blur, bad address flagged, Test connection (`checkOllama`). Timer/Stat scale to 2x and fit; disabled buttons go grey; emoji tiles hidden from TalkBack. All seven steps (distill, layout, clarify, bolder, delight/animate, harden, polish) landed in this one commit. `npm run check` green (69 suites / 2,715 tests); detector clean. **I could not look at it rendered (no browser here), so the layout, tile colours and the reveal are unseen; not tried on a device.** **Human next:** `npm run web` and look at Home (empty, then 1 and 3+ apps, light and dark: tile tints readable, starters gone at 3), Create (prompt hero fits a phone width, Build visible without scrolling, Type fold opens), a built preview (pill, callout, reveal), Settings with Ollama (blur saves, bad address, Test connection against a running Ollama and a stopped one); on Android with the system font at its largest, open a timer and a stat card. **Design call to confirm:** starters hide at 3 saved apps; say if you want them always reachable.
@@ -257,6 +259,7 @@ Results the human reports during the on-device pass (list in TESTING.md AT-10 an
 
 | When (IST) | Agent | Task | Summary | Commit |
 |---|---|---|---|---|
+| 2026-10-26 | Codex | T-71 | 80-second portrait demo, music/silent MP4s, editable HTML and 30 mobile snapshots outside git; real app UI with mock/example data, no app code changes; 70 suites / 2,716 tests pass serially; human owns the README post-deadline entry. | (this commit) |
 | 2026-10-25 | Claude Code | T-132 | Removed OpenRouter: provider, models, key setting, cloud fallback, docs; old saved apps still load. ADR-049. | see git |
 | 2026-10-25 | Claude Code | T-131 | Polish: `Tap` (Android ripple, dim elsewhere) for every tap target; run menu hides the content behind it from TalkBack; ADR-048. | see git |
 | 2026-10-25 | Claude Code | T-130 | Adapt: digits keypad + auto hyphens for dates; own notification icon and accent colour (needs a new build); ADR-047. | see git |

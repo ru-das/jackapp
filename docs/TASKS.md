@@ -85,7 +85,7 @@ Tick with `[x]` only when the Definition of Done in `AGENTS.md` §6 is met. ROAD
 ## M7 — Ship (Sun → Mon 11:00 IST)
 
 - [ ] **T-70 (P0) Lazy Payoff log**: real uses of H1–H3 Fri–Sun with minutes saved (`docs/LAZY_LOG.md`).
-- [ ] **T-71 (P0) Demo video** (≤ 3 min) and screenshots/GIFs.
+- [x] **T-71 (P0) Demo video** (≤ 3 min) and screenshots/GIFs. 2026-10-26: 80-second portrait mobile demo, music/silent MP4s, editable HTML, contact sheet and 30 mobile snapshots in `/tmp/jackapp-demo` (outside git). Mobile-viewport captures with mock/example data; no physical Android or real-model recording. Upload still belongs to T-74.
 - [ ] **T-72 (P0) Final README**: setup, models, credits, eval numbers, post-deadline section.
 - [ ] **T-73 (P0) DEV post** using the challenge template (human writes final text; agents gather facts).
 - [ ] **T-74 (P0) Publish** with tags `devchallenge`, `hf26challenge`, before **Mon 12:29 PM IST**.
